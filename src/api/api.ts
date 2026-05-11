@@ -15,7 +15,7 @@ interface RetryableRequestConfig {
 
 // axios 인스턴스 생성
 const api = axios.create({
-  baseURL: "/api",
+  baseURL: "",
 });
 
 // 요청시 Access Token을 헤더에 포함시키는 인터셉터
@@ -52,7 +52,7 @@ api.interceptors.response.use(
 
     try {
       const refreshResponse = await axios.post(
-        "/api/auth/refresh",
+        "http://localhost:8081/api/auth/refresh",
         {},
         { withCredentials: true },
       );
