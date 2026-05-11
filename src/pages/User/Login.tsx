@@ -79,9 +79,16 @@ export default function Login() {
 
             <button
               type="submit"
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 cursor-pointer"
             >
               로그인
+            </button>
+            <button
+              type="button"
+              className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 cursor-pointer"
+              onClick={() => navigate("/signup")}
+            >
+              회원가입
             </button>
           </div>
         </form>
