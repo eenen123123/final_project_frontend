@@ -222,3 +222,43 @@ export const cardTokens = {
   body: "p-6 text-gray-600",
   footer: "border-t border-gray-100 bg-gray-50 px-6 py-3",
 };
+
+/**
+ * 배지 토큰: Badge 컴포넌트에서 사용되는 스타일을 정의합니다.
+ *
+ * Badge는 상태, 카테고리, 태그 등을 짧은 텍스트로 표시하는 작은 레이블입니다.
+ * 주로 리스트 아이템, 카드, 또는 네비게이션에서 상태 정보를 표시할 때 사용됩니다.
+ *
+ * base: 모든 배지에 공통으로 적용되는 스타일
+ *   - inline-flex: 인라인 요소처럼 동작하면서 flexbox 레이아웃 지원
+ *   - rounded-full: 완전한 원형 모양 (padding에 따라 타원 모양)
+ *   - text-xs: 매우 작은 텍스트 크기 (12px)
+ *   - font-bold: 강조된 텍스트 무게
+ *
+ * variants: 배지의 색상 테마별 스타일
+ *   - primary: 파란색 (주요 정보, 기본값)
+ *   - secondary: 회색 (보조 정보)
+ *   - danger: 빨간색 (경고, 에러, 부정적 상태)
+ *   - success: 초록색 (성공, 승인, 긍정적 상태)
+ *   - outline: 테두리 스타일 (밝은 배경이 필요한 경우)
+ *
+ * dotColors: dot 속성이 true일 때 variant별로 사용할 점의 색상
+ *   - 각 variant의 텍스트 색상과 동일하게 설정되어 시각적 일관성 유지
+ */
+export const badgeTokens = {
+  base: "inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-bold transition-colors",
+  variants: {
+    primary: "bg-blue-100 text-blue-700",
+    secondary: "bg-gray-100 text-gray-700",
+    danger: "bg-red-100 text-red-700",
+    success: "bg-green-100 text-green-700",
+    outline: "border border-gray-300 text-gray-600 bg-white",
+  },
+  dotColors: {
+    primary: "bg-blue-500",
+    secondary: "bg-gray-500",
+    danger: "bg-red-500",
+    success: "bg-green-500",
+    outline: "bg-gray-400",
+  },
+};
