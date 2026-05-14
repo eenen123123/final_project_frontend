@@ -21,6 +21,10 @@ const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
     const reactId = useId();
     const checkboxId = customId || reactId;
 
+    // Checkbox는 input[type="checkbox"]의 기본 브라우저 스타일을 제거하고,
+    // 커스텀 스타일과 SVG 체크 아이콘을 조합하여 표현합니다.
+    // label을 클릭하면 input이 체크되도록 htmlFor/id 연결을 유지합니다.
+
     // 1. 체크박스 본체 스타일
     // appearance-none을 사용하여 브라우저 기본 스타일을 제거하는 것이 커스텀의 시작입니다.
     const checkboxClasses = twMerge(

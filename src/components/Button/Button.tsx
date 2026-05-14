@@ -36,6 +36,16 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   fullWidth?: boolean; // 너비 100% 여부
 }
 
+/**
+ * Button 컴포넌트
+ * - variant: 버튼 종류에 따른 스타일 변형
+ * - size: 버튼의 크기를 조절
+ * - isLoading: 로딩 상태일 때 클릭 차단 및 스피너 표시
+ * - fullWidth: 부모 요소의 전체 너비를 채움
+ *
+ * 버튼 내부의 내용을 자유롭게 children으로 전달할 수 있고,
+ * className을 이용해 추가 스타일도 덮어쓸 수 있습니다.
+ */
 const Button = ({
   type = "button", // 기본값을 button으로 설정 (기본적으로 form 제출 버튼이 되지 않도록)
   children, // 버튼 내부에 들어갈 내용 (텍스트, 아이콘 등)

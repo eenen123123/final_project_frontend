@@ -60,18 +60,20 @@ const Select = ({
     return () => document.removeEventListener("mousedown", handleOutsideClick);
   }, []);
 
+  // 선택된 옵션의 인덱스를 메모화하여 value나 옵션 목록이 바뀔 때만 재계산합니다.
   const selectedIndex = useMemo(
     () => options.findIndex((opt) => opt.value === value),
     [value, options],
   );
 
   const openSelect = () => {
+    // 드롭다운을 여는 순간, 선택된 옵션을 하이라이트로 맞춥니다.
     setActiveIndex(selectedIndex >= 0 ? selectedIndex : 0);
     setIsOpen(true);
   };
 
-  // activeIndex는 사용자가 드롭다운에서 키보드로 이동 중인 하이라이트된 옵션 인덱스입니다.
-  // 실제 선택된 값은 value prop으로 관리됩니다.
+  // activeIndex는 사용자가 드롭다운을 키보드로 탐색할 때 바뀝니다.
+  // 실제 선택된 값은 value prop으로 관리되고, UI에는 selectedOption.label이 표시됩니다.
   const closeSelect = () => {
     setIsOpen(false);
   };

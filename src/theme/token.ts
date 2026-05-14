@@ -1,38 +1,37 @@
 /**
  * 디자인 토큰 파일 (Design System)
  * ================================
- * 이 파일은 애플리케이션 전체에서 사용되는 Tailwind CSS 클래스들을 관리하는 중앙 저장소입니다.
+ * 이 파일은 애플리케이션 전체에서 사용되는 Tailwind CSS 클래스를
+ * 중앙에서 관리하는 역할을 합니다.
  *
- * 계층 구조:
- * 1. 기본 토큰 (baseTokens): 색상, 타이포그래피, 스페이싱 등 가장 기본적인 디자인 값
- * 2. 공통 토큰 (commonTokens): 여러 컴포넌트에서 재사용되는 조합 스타일
- * 3. 컴포넌트 토큰 (*Tokens): 특정 컴포넌트에 맞춰진 스타일
+ * 핵심 개념:
+ * 1. 공통 스타일은 한번만 정의하고 재사용합니다.
+ * 2. 컴포넌트별 토큰은 해당 컴포넌트에 필요한 스타일 조합만 담당합니다.
+ * 3. 스타일 변경이 필요할 때는 컴포넌트 내부가 아닌 토큰 파일만 수정합니다.
  *
- * 이러한 계층 구조를 유지하면:
- * - 다크 모드 추가 시 baseTokens만 변경
- * - 브랜드 색상 변경 시 색상 팔레트만 수정
- * - 컴포넌트 재설계 시 해당 토큰만 갱신
+ * 일반적인 사용 흐름:
+ * import { inputTokens } from "../../theme/token";
+ * <input className={`${inputTokens.base} ${inputTokens.normal}`} />
  *
- * 사용 예시:
- * import { buttonTokens, inputTokens } from "../../theme/token";
+ * 이 구조는 작은 라이브러리뿐 아니라 중간 규모 UI 시스템에서도 유지보수가 쉽습니다.
  */
 
 /**
- * 공통 토큰: 여러 컴포넌트에서 공통적으로 사용되는 스타일을 정의합니다.
- * 예를 들어, focus 스타일이나 라벨 텍스트 스타일 등은 여러 컴포넌트에서
- * 동일하게 사용될 수 있으므로, 공통 토큰으로 분리하여 관리합니다.
- * focusBlue: 파란색 포커스 스타일입니다. 인풋과 셀렉트에서 사용됩니다.
- * focusRed: 빨간색 포커스 스타일입니다. 인풋과 셀렉트에서 에러 상태일 때 사용됩니다.
- * labelText: 라벨 텍스트의 기본 스타일입니다. 모든 컴포넌트의 라벨에 적용됩니다.
- * helperTextInput: 인풋 컴포넌트의 하단 안내 문구 스타일입니다.
- * errorTextInput: 인풋 컴포넌트의 에러 메시지 스타일입니다.
- * helperTextCheckbox: 체크박스 컴포넌트의 하단 안내 문구 스타일입니다.
- * errorTextCheckbox: 체크박스 컴포넌트의 에러 메시지 스타일입니다.
+ * 공통 토큰: 여러 컴포넌트에서 재사용되는 스타일 조각을 모아둡니다.
+ * 주로 텍스트, 포커스, 에러 메시지처럼 여러 컴포넌트가 동일하게 쓰는 스타일입니다.
+ *
+ * 이 객체는 직접 렌더링되는 클래스가 아니라,
+ * 다른 컴포넌트 토큰에서 조합해서 사용하는 용도로 설계되었습니다.
  */
 const commonTokens = {
+  // 포커스가 활성화되었을 때 사용하는 공통 스타일
   focusBlue: "focus:border-blue-600 focus:ring-4 focus:ring-blue-50",
   focusRed: "focus:border-red-500 focus:ring-4 focus:ring-red-100",
+
+  // 라벨 텍스트 기본 스타일
   labelText: "text-sm font-medium text-gray-700",
+
+  // 안내 및 에러 문구 스타일
   helperTextInput: "text-sm text-gray-500 ml-1",
   errorTextInput: "text-sm text-red-600 ml-1 font-medium",
   helperTextCheckbox: "text-xs text-gray-500 ml-7",
@@ -40,15 +39,17 @@ const commonTokens = {
 };
 
 /**
- * 버튼 토큰: Button 컴포넌트에서 사용되는 스타일을 정의합니다.
- * base: 모든 버튼에 공통적으로 적용되는 스타일입니다.
- * variants: 버튼의 디자인 테마별 스타일입니다. (primary, secondary, outline, danger, success)
- * sizes: 버튼의 크기별 스타일입니다. (sm, md, lg)
- * 각 variant와 size는 Button 컴포넌트에서 props로 받아서 적용됩니다.
+ * 버튼 토큰: Button 컴포넌트에서 사용하는 스타일입니다.
+ * Button 컴포넌트는 이 토큰을 가져와서 variant와 size에 따라 조합합니다.
+ *
+ * base: 버튼 공통 규칙을 담고 있습니다.
+ * variants: 버튼의 색상, 테두리, hover 상태를 정의합니다.
+ * sizes: 버튼 패딩과 텍스트 크기를 정의합니다.
  */
 export const buttonTokens = {
   base: "inline-flex items-center justify-center rounded-md font-medium transition-all focus:outline-none disabled:opacity-50 disabled:pointer-events-none active:scale-95",
   variants: {
+    // 추천 순서: primary > secondary > outline > danger > success
     primary: "bg-blue-600 text-white hover:bg-blue-700 shadow-sm",
     secondary: "bg-gray-600 text-white hover:bg-gray-700 shadow-sm",
     outline: "border-2 border-blue-600 text-blue-600 hover:bg-blue-50",
@@ -63,14 +64,15 @@ export const buttonTokens = {
 };
 
 /**
- * 인풋 토큰: Input 컴포넌트에서 사용되는 스타일을 정의합니다.
- * base: 모든 인풋에 공통적으로 적용되는 스타일입니다.
- * normal: 기본 상태의 스타일입니다.
- * error: 에러 상태의 스타일입니다.
- * wrapper: 인풋과 라벨, 에러 메시지 등을 감싸는 컨테이너의 스타일입니다.
- * label: 라벨 텍스트의 스타일입니다.
- * helperText: 하단 안내 문구의 스타일입니다.
- * errorText: 에러 메시지의 스타일입니다.
+ * 인풋 토큰: Input 컴포넌트에서 사용하는 스타일입니다.
+ * Input 컴포넌트는 label, 입력 박스, helper/error 텍스트를 구성합니다.
+ *
+ * base: 모든 입력창에 공통으로 쓰이는 기본 스타일
+ * normal: 정상 상태에서의 테두리 및 텍스트 색상
+ * error: 에러 상태에서의 테두리 및 텍스트 색상
+ * wrapper: 인풋 전체 레이아웃 컨테이너
+ * label: 상단 라벨의 스타일
+ * helperText / errorText: 하단 안내 문구 및 에러 문구 스타일
  */
 export const inputTokens = {
   base: "block px-4 py-2 text-base rounded-md border-2 transition-all outline-none disabled:opacity-50 disabled:bg-gray-50 disabled:pointer-events-none",
@@ -86,18 +88,17 @@ export const inputTokens = {
 };
 
 /**
- * 체크박스 토큰: Checkbox 컴포넌트에서 사용되는 스타일을 정의합니다.
- * base: 모든 체크박스에 공통적으로 적용되는 스타일입니다.
- * default: 기본 상태의 스타일입니다.
- * hoverFocus: 호버 및 포커스 시 적용되는 스타일입니다.
- * disabled: 비활성화 상태의 스타일입니다.
- * error: 에러 상태의 스타일입니다.
- * labelWrapper: 체크박스와 라벨을 감싸는 컨테이너의 스타일입니다.
- * label: 라벨 텍스트의 스타일입니다.
- * helperText: 하단 안내 문구의 스타일입니다.
- * errorText: 에러 메시지의 스타일입니다.
- * 체크박스는 appearance-none을 사용하여 브라우저 기본 스타일을 제거하고, 커스텀 스타일을 적용하는 방식입니다.
- * 체크 표시 아이콘은 input과 같은 부모 요소 안에 위치시키고, peer-checked 상태를 이용해 보이도록 설정합니다.
+ * 체크박스 토큰: Checkbox 컴포넌트에서 사용하는 스타일을 정의합니다.
+ * Checkbox는 appearance-none을 사용해 브라우저 기본 체크박스 스타일을 제거하고,
+ * 커스텀 박스와 SVG 체크 아이콘을 조합하여 구현합니다.
+ * base: 체크박스 본체의 기본 스타일 (크기, 모양, 애니메이션 등)
+ * default: 정상 상태에서의 테두리 및 배경색
+ * hoverFocus: 호버 및 포커스 상태에서의 스타일
+ * disabled: 비활성화 상태에서의 스타일
+ * error: 에러 상태에서의 스타일
+ * labelWrapper: 체크박스와 라벨을 감싸는 컨테이너 스타일
+ * label: 라벨 텍스트 스타일
+ * helperText / errorText: 하단 안내 문구 및 에러 문구 스타일
  */
 export const checkboxTokens = {
   base: "h-5 w-5 cursor-pointer appearance-none rounded border-2 transition-all duration-200 flex items-center justify-center shrink-0",
@@ -115,22 +116,24 @@ export const checkboxTokens = {
 };
 
 /**
- * 셀렉트 토큰: Select 컴포넌트에서 사용되는 스타일을 정의합니다.
- * triggerBase: 셀렉트 트리거 버튼에 공통적으로 적용되는 스타일입니다.
- * triggerStates: 트리거 버튼의 상태별 스타일입니다. (default, open, error)
- * disabled: 비활성화 상태의 스타일입니다.
- * label: 라벨 텍스트의 스타일입니다.
- * placeholder: 선택된 옵션이 없을 때 보여지는 플레이스홀더 텍스트의 스타일입니다.
- * listbox: 드롭다운 리스트의 컨테이너 스타일입니다.
- * option: 드롭다운 리스트의 각 옵션의 기본 스타일입니다.
- * selectedOption: 선택된 옵션의 스타일입니다.
- * optionHover: 옵션에 마우스를 올렸을 때의 스타일입니다.
- * errorText: 에러 메시지의 스타일입니다.
- * 셀렉트 컴포넌트는 트리거 버튼과 드롭다운 리스트로 구성되어 있습니다.
- * 트리거 버튼은 열림 상태와 에러 상태에 따라 스타일이 달라집니다.
- * 드롭다운 리스트는 옵션의 선택 여부와 호버 상태에 따라 스타일이 달라집니다.
+ * 셀렉트 토큰: Select 컴포넌트에서 사용하는 스타일을 정의합니다.
+ *
+ * Select는 버튼 형태의 트리거와 옵션 리스트(listbox)를 조합한 UI입니다.
+ * 트리거는 상태에 따라 border, ring, 색상이 달라지며,
+ * listbox는 드롭다운 메뉴의 룩앤필을 담당합니다.
+ * triggerBase: 트리거 버튼의 기본 스타일 (정렬, 패딩, 폰트, 테두리, 배경 등)
+ * triggerStates: 트리거의 상태별 스타일 (기본, 열림, 에러)
+ * disabled: 트리거가 비활성화되었을 때의 스타일
+ * label: 셀렉트 라벨 스타일
+ * placeholder: 선택된 옵션이 없을 때 보여줄 텍스트 스타일
+ * listbox: 드롭다운 메뉴의 스타일
+ * option: 각 옵션 항목의 기본 스타일
+ * selectedOption: 선택된 옵션의 스타일
+ * optionHover: 옵션에 마우스를 올렸을 때의 스타일
+ * errorText: 에러 메시지 스타일
  */
 export const selectTokens = {
+  // 버튼 형태의 기본 트리거 스타일
   triggerBase:
     "flex items-center justify-between px-4 py-2 text-base rounded-md border-2 transition-all outline-none bg-white " +
     commonTokens.focusBlue,
@@ -151,18 +154,19 @@ export const selectTokens = {
 };
 
 /**
- * 라디오 토큰: Radio 컴포넌트에서 사용되는 스타일을 정의합니다.
- * base: 모든 라디오 버튼에 공통적으로 적용되는 스타일입니다.
- * default: 기본 상태의 스타일입니다.
- * hoverFocus: 호버 및 포커스 시 적용되는 스타일입니다.
- * disabled: 비활성화 상태의 스타일입니다.
- * error: 에러 상태의 스타일입니다.
- * dot: 라디오 버튼이 선택되었을 때 나타나는 중앙 점의 스타일입니다.
- * labelWrapper: 라디오 버튼과 라벨을 감싸는 컨테이너의 스타일입니다.
- * label: 라벨 텍스트의 스타일입니다.
- * errorText: 에러 메시지의 스타일입니다.
- * 라디오 버튼은 체크박스와 유사하지만, 둥근 모양(rounded-full)이 특징입니다.
- * 라디오 그룹은 name 속성이 같은 라디오 버튼들로 구성되어, 하나만 선택 가능합니다.
+ * 라디오 토큰: Radio 컴포넌트에서 사용하는 스타일을 정의합니다.
+ *
+ * Radio는 체크박스와 비슷하게 구현되지만,
+ * 둥근 외형과 중앙 점 표시가 주요 차이점입니다.
+ * base: 라디오 버튼의 기본 스타일 (크기, 모양, 애니메이션 등)
+ * default: 정상 상태에서의 테두리 및 배경색
+ * hoverFocus: 호버 및 포커스 상태에서의 스타일
+ * disabled: 비활성화 상태에서의 스타일
+ * error: 에러 상태에서의 스타일
+ * dot: 라디오가 선택되었을 때 중앙에 나타나는 작은 원의 스타일
+ * labelWrapper: 라디오 버튼과 라벨을 감싸는 컨테이너 스타일
+ * label: 라벨 텍스트 스타일
+ * errorText: 에러 메시지 스타일
  */
 export const radioTokens = {
   base: "h-5 w-5 cursor-pointer appearance-none rounded-full border-2 transition-all duration-200 flex items-center justify-center shrink-0 peer",
@@ -180,17 +184,13 @@ export const radioTokens = {
 };
 
 /**
- * 모달 토큰: Modal 컴포넌트에서 사용되는 스타일을 정의합니다.
- * overlay: 모달의 배경 오버레이 스타일입니다.
- * panel: 모달 콘텐츠 패널의 기본 스타일입니다.
- * header: 모달 헤더 영역의 스타일입니다.
- * title: 모달 제목 텍스트의 스타일입니다.
- * closeButton: 모달 닫기 버튼의 스타일입니다.
- * body: 모달 본문 영역의 스타일입니다.
- * footer: 모달 푸터 영역의 스타일입니다.
- * 모달 컴포넌트는 백드롭과 콘텐츠 패널로 구성되어 있습니다.
- * 백드롭은 화면 전체를 덮으며, 클릭 시 모달을 닫는 역할을 합니다.
- * 콘텐츠 패널은 중앙에 위치하며, 헤더, 본문, 푸터로 나뉘어 다양한 내용을 담을 수 있습니다.
+ * 모달 토큰: Modal 컴포넌트에서 사용하는 스타일을 정의합니다.
+ *
+ * overlay: 모달 뒤에 깔리는 반투명 배경
+ * panel: 모달 콘텐츠를 담는 카드 같은 박스
+ * header / title / closeButton: 모달 상단 바
+ * body: 모달 본문 영역
+ * footer: 하단 버튼이나 액션 영역
  */
 export const modalTokens = {
   overlay: "absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity",
@@ -206,7 +206,14 @@ export const modalTokens = {
 };
 
 /**
- * 카드 토큰: Card 컴포넌트에서 사용되는 스타일을 정의합니다.
+ * 카드 토큰: Card 컴포넌트에서 사용하는 스타일을 정의합니다.
+ *
+ * Card는 정보를 영역별로 묶어주는 컨테이너입니다.
+ * base: 카드 자체의 기본 배경, 경계, 그림자 등을 정의합니다.
+ * header: 카드 상단 제목 영역
+ * title: 헤더 제목 텍스트
+ * body: 카드 본문 영역
+ * footer: 카드 하단 액션 영역
  */
 export const cardTokens = {
   base: "overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm",

@@ -21,7 +21,9 @@ const Modal = ({
   footer,
   size = "md",
 }: ModalProps) => {
-  // 모달이 열려있을 때 스크롤을 막고, Esc 키로 닫을 수 있도록 처리합니다.
+  // 모달이 열려 있는 동안 페이지 스크롤을 막습니다.
+  // 모달을 닫으면 원래 페이지 스크롤 상태를 그대로 복원합니다.
+  // Esc 키를 누르면 모달이 닫히도록 단축키를 적용합니다.
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
 
@@ -54,11 +56,9 @@ const Modal = ({
     lg: "max-w-2xl",
   };
 
-  // 모달 코드에서 가장 생소할 수 있는 부분이 바로 createPortal입니다.
-  // 개념: 컴포넌트를 DOM 트리의 다른 위치로 "순간 이동"시키는 기능입니다.
-  // 왜 쓰나요?: 리액트 앱은 보통 id="root"인 div 안에 모든 것을 그립니다.
-  //    하지만 모달이 부모 요소의 z-index나 overflow: hidden 스타일의 영향을 받으면 화면에 제대로 안 보일 수 있습니다.
-  //    이를 방지하기 위해 body 직속의 modal-root로 렌더링 위치를 옮기는 것입니다.
+  // createPortal은 모달 콘텐츠를 현재 컴포넌트 트리와 별개로
+  // DOM의 다른 위치에 렌더링할 때 사용합니다.
+  // 이 방식은 모달이 부모 요소의 z-index나 overflow 설정에 영향을 받지 않게 해줍니다.
   return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -104,9 +104,9 @@ const Modal = ({
         {footer && <div className={modalTokens.footer}>{footer}</div>}
       </div>
     </div>,
-    // modal-root가 없을 경우 기본적으로 body에 포털을 렌더링하여 런타임 에러를 방지합니다.
-    // 대부분의 HTML 템플릿에서 modal-root를 추가하는 것이 좋지만,
-    // 없을 때도 최소한 모달이 정상 표시되도록 안전하게 처리합니다.
+    // modal-root가 없으면 document.body로 fallback합니다.
+    // 이 방식은 모달 컨테이너가 없는 템플릿에서도 오류를 피하고,
+    // 최소한의 동작을 보장하기 위한 안전장치입니다.
     document.getElementById("modal-root") ?? document.body,
   );
 };

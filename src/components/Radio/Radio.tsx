@@ -23,6 +23,10 @@ const Radio = forwardRef<HTMLInputElement, RadioProps>(
     const radioId = customId || reactId;
     const errorId = `${radioId}-error`;
 
+    // Radio 버튼은 같은 name을 가진 그룹에서 하나만 선택될 수 있습니다.
+    // checked와 onChange를 상위에서 제어하는 방식으로 사용합니다.
+    // aria-invalid와 aria-describedby는 접근성에서 에러 상태를 알리는 용도입니다.
+
     // 1. 라디오 버튼 본체 스타일
     // 체크박스와 달리 rounded-full(원형)이 특징입니다.
     // appearance-none을 사용하여 브라우저 기본 스타일을 제거합니다.

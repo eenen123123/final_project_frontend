@@ -18,6 +18,9 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 // 일반적인 컴포넌트는 내부의 DOM 엘리먼트에 ref를 직접 전달할 수 없습니다.
 // 하지만 Input 컴포넌트는 로그인을 시도했을 때 아이디 창으로 포커스를 옮기는 등의 처리가 빈번하므로,
 // forwardRef를 통해 부모가 input 태그를 직접 제어할 수 있게 열어주어야 합니다.
+//
+// 이 컴포넌트는 내부적으로 id를 자동 생성하여 label과 연결합니다.
+// 이 덕분에 개발자는 id를 명시하지 않아도 접근성 있는 폼 요소를 만들 수 있습니다.
 const Input = forwardRef<HTMLInputElement, InputProps>(
   (
     {
