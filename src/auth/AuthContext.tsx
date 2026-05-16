@@ -5,6 +5,7 @@ interface TokenPayload {
   exp?: number;
   role?: string;
   sub?: string;
+  userName?: string;
 }
 
 interface AuthContextType {
@@ -15,6 +16,7 @@ interface AuthContextType {
   logout: () => void;
   getUserId: () => string | null;
   getRole: () => string | null;
+  getUserName: () => string | null;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -82,6 +84,14 @@ export default function AuthProvider({
     return payload.role;
   };
 
+  const getUserName = () => {
+    const payload = decodeTokenPayload(accessToken);
+
+    if (!payload?.userName) return null;
+
+    return payload.userName;
+  };
+
   useEffect(() => {
     let isMounted = true;
     const restoreSession = async () => {
@@ -128,6 +138,7 @@ export default function AuthProvider({
         logout,
         getUserId,
         getRole,
+        getUserName,
       }}
     >
       {children}
