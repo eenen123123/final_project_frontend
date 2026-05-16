@@ -173,7 +173,10 @@ function decodeTokenPayload(token: string | null): TokenPayload | null {
   if (!token) return null;
 
   try {
-    return JSON.parse(atob(token.split(".")[1])); // JWT의 페이로드 부분을 디코딩하여 객체로 반환
+    const base64 = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length).map((_, i) => binary.charCodeAt(i));
+    return JSON.parse(new TextDecoder().decode(bytes));
   } catch {
     return null; // 디코딩 실패 시 null 반환
   }
