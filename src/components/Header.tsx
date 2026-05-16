@@ -2,8 +2,9 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 
 export default function Header() {
-  const { isAuthenticated, logout, getNickname, getRole } = useAuth();
+  const { isAuthenticated, logout, getUserId, getRole } = useAuth();
   const isAdmin = getRole() === "ROLE_ADMIN";
+  const userId = getUserId();
 
   return (
     <>
@@ -16,7 +17,7 @@ export default function Header() {
           {isAdmin && <Link to="/admin">관리자 페이지</Link>}
           {isAuthenticated ? (
             <>
-              <span>{getNickname()}님 환영합니다!</span>
+              <span>{userId}님 환영합니다!</span>
               <Link to="/mypage">마이페이지</Link>
               <button onClick={logout}>로그아웃</button>
             </>

@@ -4,16 +4,16 @@ import { useAuth } from "../../auth/AuthContext";
 import api from "../../api/api";
 
 interface LoginProps {
-  loginId: string;
-  password: string;
+  userId: string;
+  userPswd: string;
 }
 
 export default function Login() {
   const { login, logout } = useAuth();
   const navigate = useNavigate();
   const [formData, setFormData] = useState<LoginProps>({
-    loginId: "",
-    password: "",
+    userId: "",
+    userPswd: "",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -53,26 +53,26 @@ export default function Login() {
       <div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="flex flex-col gap-2">
-            <label htmlFor="loginId" className=" font-medium">
+            <label htmlFor="userId" className=" font-medium">
               아이디
             </label>
             <input
               type="text"
-              name="loginId"
-              id="loginId"
-              value={formData.loginId}
+              name="userId"
+              id="userId"
+              value={formData.userId}
               onChange={handleChange}
               className="border border-gray-300 rounded px-3 py-2"
             />
 
-            <label htmlFor="password" className=" font-medium">
+            <label htmlFor="userPswd" className=" font-medium">
               비밀번호
             </label>
             <input
               type="password"
-              name="password"
-              id="password"
-              value={formData.password}
+              name="userPswd"
+              id="userPswd"
+              value={formData.userPswd}
               onChange={handleChange}
               className="border border-gray-300 rounded px-3 py-2"
             />

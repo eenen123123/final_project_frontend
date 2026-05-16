@@ -13,7 +13,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   login: (accessToken: string) => void;
   logout: () => void;
-  getNickname: () => string | null;
+  getUserId: () => string | null;
   getRole: () => string | null;
 }
 
@@ -57,11 +57,11 @@ export default function AuthProvider({
   };
 
   /**
-   * 사용자 닉네임을 반환하는 함수
+   * 사용자 아이디를 반환하는 함수
    *
-   * @returns 사용자 닉네임 문자열 또는 null
+   * @returns 사용자 아이디 문자열 또는 null
    */
-  const getNickname = () => {
+  const getUserId = () => {
     const payload = decodeTokenPayload(accessToken);
 
     if (!payload?.sub) return null;
@@ -126,7 +126,7 @@ export default function AuthProvider({
         isAuthenticated: !!accessToken,
         login,
         logout,
-        getNickname,
+        getUserId,
         getRole,
       }}
     >
