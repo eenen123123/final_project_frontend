@@ -19,7 +19,9 @@ export default function Header() {
             <>
               <span>{userName}님 환영합니다!</span>
               <Link to="/mypage">마이페이지</Link>
-              <button onClick={logout}>로그아웃</button>
+              <button onClick={logout} className=" cursor-pointer">
+                로그아웃
+              </button>
             </>
           ) : (
             <Link to="/login">로그인</Link>
