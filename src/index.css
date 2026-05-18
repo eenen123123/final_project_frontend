@@ -1,1 +1,7 @@
 @import "tailwindcss";
+
+/* globals.css */
+.tiptap p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  @apply text-slate-400 float-left h-0 pointer-events-none;
+}
