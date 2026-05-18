@@ -8,6 +8,7 @@ import Login from "./pages/User/Login";
 import SignUp from "./pages/User/SignUp";
 import TestPage from "./pages/test/TestPage";
 import FileUploadTest from "./pages/test/FileUploadTest";
+import KakaoPayTestPage from "./pages/test/KakaoPayTestPage";
 
 export default function AppRoute() {
   return (
@@ -18,6 +19,7 @@ export default function AppRoute() {
 
       <Route path="/test/editor" element={<TestPage />} />
       <Route path="/test/upload" element={<FileUploadTest />} />
+      <Route path="/test/kakao-pay" element={<KakaoPayTestPage />} />
 
       {/* 인증이 필요한 라우트 */}
       <Route element={<ProtectedRoute />}>

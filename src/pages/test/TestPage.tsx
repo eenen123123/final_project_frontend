@@ -6,6 +6,7 @@ export default function PostForm() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(false);
+  const [editorKey, setEditorKey] = useState(0);
 
   const isEmpty = !content || content === "<p></p>";
 
@@ -48,7 +49,7 @@ export default function PostForm() {
         />
 
         {/* 에디터 */}
-        <TipTapEditor value={content} onChange={setContent} />
+        <TipTapEditor key={editorKey} value={content} onChange={setContent} />
 
         {/* 버튼 */}
         <div className="flex justify-end gap-3 pt-2">
@@ -57,11 +58,12 @@ export default function PostForm() {
             onClick={() => {
               setTitle("");
               setContent("");
+              setEditorKey((k) => k + 1);
             }}
             className="
               px-5 py-2.5 rounded-lg text-sm font-medium text-slate-600
               border border-slate-200 hover:bg-slate-50
-              transition
+              transition cursor-pointer
             "
           >
             초기화

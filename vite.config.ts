@@ -18,6 +18,10 @@ export default defineConfig({
         target: "https://paste.maerchen.dev",
         changeOrigin: true,
       },
+      "/api/test/kakao-pay": {
+        target: "http://localhost:8081",
+        changeOrigin: true,
+      },
       "/api": {
         target: "http://localhost:8081",
         changeOrigin: true,
