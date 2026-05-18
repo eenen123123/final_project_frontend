@@ -13,7 +13,6 @@ export default function Header() {
           <Link to="/" className=" text-lg font-bold ">
             홈
           </Link>
-          <Link to="/test">테스트 페이지</Link>
           {isAdmin && <Link to="/admin">관리자 페이지</Link>}
           {isAuthenticated ? (
             <>

@@ -14,6 +14,10 @@ export default defineConfig({
   server: {
     allowedHosts: ["localhost"],
     proxy: {
+      "/api/storage": {
+        target: "https://paste.maerchen.dev",
+        changeOrigin: true,
+      },
       "/api": {
         target: "http://localhost:8081",
         changeOrigin: true,
