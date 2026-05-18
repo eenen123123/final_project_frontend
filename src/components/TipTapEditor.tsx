@@ -1,4 +1,5 @@
 import { useEditor, EditorContent } from "@tiptap/react";
+import { useState } from "react";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
 import TextAlign from "@tiptap/extension-text-align";
@@ -27,7 +28,7 @@ const ToolbarButton = ({
     onClick={onClick}
     title={title}
     className={`
-      px-2.5 py-1.5 rounded text-sm font-medium transition-colors
+      px-2.5 py-1.5 rounded text-sm font-medium transition-colors cursor-pointer
       ${
         isActive
           ? "bg-slate-800 text-white"
@@ -41,7 +42,10 @@ const ToolbarButton = ({
 
 const Divider = () => <div className="w-px h-5 bg-slate-200 mx-1" />;
 
+// TipTap 에디터 컴포넌트
 export default function TipTapEditor({ value, onChange }: TipTapEditorProps) {
+  const [charCount, setCharCount] = useState(0);
+
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -49,12 +53,12 @@ export default function TipTapEditor({ value, onChange }: TipTapEditorProps) {
       TextAlign.configure({ types: ["heading", "paragraph"] }),
       Placeholder.configure({
         placeholder: "내용을 입력하세요...",
-        // Placeholder 스타일은 globals.css 또는 index.css에 추가 필요 (아래 참고)
       }),
     ],
     content: value || "",
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
+      setCharCount(editor.getText().length);
     },
     editorProps: {
       attributes: {
@@ -211,24 +215,16 @@ export default function TipTapEditor({ value, onChange }: TipTapEditorProps) {
       <EditorContent editor={editor} />
 
       {/* 하단 글자수 표시 */}
+      {/* 
+        
+        글에 Style을 적용하면 글자수 계산에 영향을 줌. 
+        Style을 적용 했다가 다시 제거하는 경우에 글자수가 제대로 계산되지 않는 문제가 있음.
+        에디터에는 표시되지 않는 HTML 태그들이 글자수 계산에 포함되기 때문으로 추정.
+        TODO 추후 글자수 계산 로직 개선 필요.
+      */}
       <div className="flex justify-end px-4 py-1.5 border-t border-slate-100 bg-slate-50">
-        <span className="text-xs text-slate-400">
-          {editor.storage.characterCount?.characters?.() ??
-            editor.getText().length}
-          자
-        </span>
+        <span className="text-xs text-slate-400">{charCount}자</span>
       </div>
     </div>
   );
 }
-
-/*
-──────────────────────────────────────────────
-  globals.css 또는 index.css에 아래 추가 필요
-──────────────────────────────────────────────
-
-.tiptap p.is-editor-empty:first-child::before {
-  content: attr(data-placeholder);
-  @apply text-slate-400 float-left h-0 pointer-events-none;
-}
-*/
