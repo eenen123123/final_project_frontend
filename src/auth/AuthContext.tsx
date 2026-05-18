@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import api, { setApiAccessToken } from "../api/api";
 
+//  JWT 토큰 페이로드 인터페이스 정의
 interface TokenPayload {
   exp?: number;
   role?: string;
@@ -8,15 +9,16 @@ interface TokenPayload {
   userName?: string;
 }
 
+// 인증 컨텍스트 타입 정의
 interface AuthContextType {
-  accessToken: string | null;
-  isAuthReady: boolean;
-  isAuthenticated: boolean;
-  login: (accessToken: string) => void;
-  logout: () => void;
-  getUserId: () => string | null;
-  getRole: () => string | null;
-  getUserName: () => string | null;
+  accessToken: string | null; // 현재 액세스 토큰 문자열 또는 null
+  isAuthReady: boolean; // 인증 상태 초기화 완료 여부
+  isAuthenticated: boolean; // 현재 인증된 상태 여부 (액세스 토큰 존재 여부로 판단)
+  login: (accessToken: string) => void; // 로그인 처리 함수, 액세스 토큰을 인자로 받아 인증 상태를 업데이트
+  logout: () => void; // 로그아웃 처리 함수, 인증 상태를 초기화하고 서버에 로그아웃 요청을 보냄
+  getUserId: () => string | null; // 사용자 아이디를 반환하는 함수, 액세스 토큰에서 디코딩하여 사용자 아이디(sub) 추출
+  getRole: () => string | null; // 사용자 역할을 반환하는 함수, 액세스 토큰에서 디코딩하여 사용자 역할(role) 추출
+  getUserName: () => string | null; // 사용자 이름을 반환하는 함수, 액세스 토큰에서 디코딩하여 사용자 이름(userName) 추출
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -175,7 +177,9 @@ function decodeTokenPayload(token: string | null): TokenPayload | null {
   try {
     const base64 = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
     const binary = atob(base64);
-    const bytes = new Uint8Array(binary.length).map((_, i) => binary.charCodeAt(i));
+    const bytes = new Uint8Array(binary.length).map((_, i) =>
+      binary.charCodeAt(i),
+    );
     return JSON.parse(new TextDecoder().decode(bytes));
   } catch {
     return null; // 디코딩 실패 시 null 반환
