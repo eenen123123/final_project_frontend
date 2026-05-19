@@ -5,6 +5,7 @@ export default function BuyProduct() {
   const [formData, setFormData] = useState({
     item_name: "",
     quantity: 1,
+    amount: 100,
     total_amount: 100,
   });
 
@@ -51,6 +52,18 @@ export default function BuyProduct() {
     }
   };
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: name === "item_name" ? value : Number(value),
+      total_amount:
+        name === "amount"
+          ? Number(value) * formData.quantity
+          : formData.amount *
+            (name === "quantity" ? Number(value) : formData.quantity),
+    }));
+  };
   return (
     <div>
       <h1 className="text-2xl font-bold mb-4">상품 구매 페이지</h1>
@@ -63,10 +76,9 @@ export default function BuyProduct() {
             <label className="block mb-1">상품명</label>
             <input
               type="text"
+              name="item_name"
               value={formData.item_name}
-              onChange={(e) =>
-                setFormData({ ...formData, item_name: e.target.value })
-              }
+              onChange={handleInputChange}
               className="border p-2 w-full"
             />
           </div>
@@ -75,26 +87,31 @@ export default function BuyProduct() {
             <label className="block mb-1">수량</label>
             <input
               type="number"
+              name="quantity"
               value={formData.quantity}
-              onChange={(e) =>
-                setFormData({ ...formData, quantity: Number(e.target.value) })
-              }
+              onChange={handleInputChange}
               className="border p-2 w-full"
             />
           </div>
 
           <div className="mb-4">
-            <label className="block mb-1">총 금액</label>
+            <label className="block mb-1">개당 금액</label>
             <input
               type="number"
-              value={formData.total_amount}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  total_amount: Number(e.target.value),
-                })
-              }
+              name="amount"
+              value={formData.amount}
+              onChange={handleInputChange}
               className="border p-2 w-full"
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block mb-1">총 금액</label>
+            <input
+              type="text"
+              name="total_amount"
+              value={Number(formData.total_amount).toLocaleString()}
+              className="border p-2 w-full"
+              readOnly
             />
           </div>
         </form>
