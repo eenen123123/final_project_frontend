@@ -1,5 +1,5 @@
-import axios from "axios";
 import { useState } from "react";
+import api from "../../api/api"; // api 인스턴스 임포트
 
 interface KakaoPayRequest {
   item_name: string;
@@ -25,7 +25,8 @@ export default function KakaoPayTestPage() {
       return;
     }
     try {
-      const res = await axios.post("/api/test/kakao-pay", formData);
+      // Access Token을 담아서 카카오페이 결제 요청을 보냄
+      const res = await api.post("/api/test/kakao-pay", formData);
       console.log("res.data:", res.data);
       window.open(res.data.next_redirect_pc_url, "_blank");
     } catch (error) {
