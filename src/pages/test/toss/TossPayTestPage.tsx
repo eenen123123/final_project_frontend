@@ -9,6 +9,7 @@ export default function TossPayTestPage() {
   const handlePayment = async () => {
     const tossPayments = await loadTossPayments(clientKey);
     const payment = tossPayments.payment({ customerKey: ANONYMOUS });
+    // TODO : Anonymous 대신 실제 고객 식별자 사용 (예: userId)
 
     const req: TossPayRequestInterface = {
       amount: {
