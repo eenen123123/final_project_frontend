@@ -1,14 +1,8 @@
 import { useState } from "react";
-import api from "../../api/api"; // api 인스턴스 임포트
+import api from "../../api/api";
 
-interface KakaoPayRequest {
-  item_name: string;
-  quantity: number;
-  total_amount: number;
-}
-
-export default function KakaoPayTestPage() {
-  const [formData, setFormData] = useState<KakaoPayRequest>({
+export default function BuyProduct() {
+  const [formData, setFormData] = useState({
     item_name: "",
     quantity: 1,
     total_amount: 100,
@@ -35,9 +29,31 @@ export default function KakaoPayTestPage() {
     }
   };
 
+  const handleTossPay = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (
+      !formData.item_name ||
+      formData.quantity <= 0 ||
+      formData.total_amount <= 0
+    ) {
+      alert("상품명, 수량, 총 금액을 올바르게 입력해주세요.");
+      return;
+    }
+    try {
+      window.open(
+        `/test/toss-pay?item_name=${formData.item_name}&quantity=${formData.quantity}&total_amount=${formData.total_amount}`,
+        "_blank",
+      );
+      alert("토스페이 결제 요청을 보냈습니다. 새 창에서 결제를 진행해주세요.");
+    } catch (error) {
+      console.error("토스페이 결제 요청 실패:", error);
+      alert("토스페이 결제 요청에 실패했습니다.");
+    }
+  };
+
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-4">카카오페이 테스트 페이지</h1>
+      <h1 className="text-2xl font-bold mb-4">상품 구매 페이지</h1>
 
       <div className="bg-white p-6 rounded shadow-md">
         <form action="" className="mb-4">
@@ -80,14 +96,22 @@ export default function KakaoPayTestPage() {
             />
           </div>
         </form>
-
-        <button
-          type="submit"
-          onClick={handleKakaoPay}
-          className="bg-yellow-500 text-white px-4 py-2 rounded"
-        >
-          카카오페이 결제 요청
-        </button>
+        <div className="mt-4">
+          <button
+            type="button"
+            onClick={handleKakaoPay}
+            className="bg-yellow-500 text-white px-4 py-2 rounded cursor-pointer"
+          >
+            카카오페이 결제 요청
+          </button>
+          <button
+            type="button"
+            onClick={handleTossPay}
+            className="bg-blue-500 text-white px-4 py-2 rounded ml-2 cursor-pointer"
+          >
+            토스페이 결제 요청
+          </button>
+        </div>
       </div>
     </div>
   );
