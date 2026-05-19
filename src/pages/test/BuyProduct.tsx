@@ -1,6 +1,14 @@
 import { useState } from "react";
 import api from "../../api/api";
 
+/**
+ * 상품 구매 테스트 페이지
+ *
+ * TODO : 구매 처리 후 성공/실패 페이지 구현
+ * - 성공 페이지에서는 결제 정보 표시
+ * - 실패 페이지에서는 실패 사유 표시
+ */
+
 export default function BuyProduct() {
   const [formData, setFormData] = useState({
     item_name: "",
