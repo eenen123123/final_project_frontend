@@ -54,7 +54,9 @@ export default function BuyProduct() {
   return (
     <div>
       <h1 className="text-2xl font-bold mb-4">상품 구매 페이지</h1>
-
+      <div className="bg-white p-6 rounded shadow-md">
+        <h3 className="text-lg font-bold mb-4">Rest 모듈 실행중이어야함</h3>
+      </div>
       <div className="bg-white p-6 rounded shadow-md">
         <form action="" className="mb-4">
           <div className="mb-4">
