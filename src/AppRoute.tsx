@@ -1,5 +1,6 @@
 import { Route, Routes } from "react-router-dom";
 import Home from "./pages/Home";
+import ClassroomPage from "./pages/Classroom/ClassroomPage";
 import ProtectedRoute from "./auth/ProtectedRoute";
 import MyPage from "./pages/User/MyPage";
 import ProtectedRouteAdmin from "./auth/ProtectedRouteAdmin";
@@ -36,6 +37,7 @@ export default function AppRoute() {
       {/* 인증이 필요한 라우트 */}
       <Route element={<ProtectedRoute />}>
         <Route path="/mypage" element={<MyPage />} />
+        <Route path="/classroom/:classId" element={<ClassroomPage />} />
       </Route>
 
       {/* 관리자 전용 라우트 */}
