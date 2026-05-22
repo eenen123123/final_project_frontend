@@ -16,6 +16,7 @@ import TossPayTestPage from "./pages/test/toss/TossPayTestPage";
 import BuyProduct from "./pages/test/BuyProduct";
 import OnlineLecturePage from "./pages/Onlinelecture/OnlineLecturePage";
 import QnAPage from "./pages/QnA/QnAPage";
+import NoticePage from "./pages/Notice/NoticePage";
 
 export default function AppRoute() {
   return (
@@ -36,6 +37,7 @@ export default function AppRoute() {
       />
       <Route path="/test/toss-pay/fail" element={<TossPayFailTestPage />} />
       <Route path="/qna" element={<QnAPage />} />
+      <Route path="/notice" element={<NoticePage />} />
 
       {/* 인증이 필요한 라우트 */}
       <Route element={<ProtectedRoute />}>
