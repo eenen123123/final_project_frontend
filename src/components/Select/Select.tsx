@@ -5,24 +5,95 @@ import { selectTokens } from "../../theme/token";
 
 /**
  * SelectOption 인터페이스
- * 각 옵션의 값(value)과 화면에 보여줄 이름(label)을 정의합니다.
+ * 각 옵션의 실제 데이터 값(value)과 화면에 렌더링될 텍스트(label)를 정의합니다.
  */
 interface SelectOption {
+  /**
+   * 각 옵션의 고유 식별 값 (형태: 문자열 또는 숫자)
+   */
   value: string | number;
+
+  /**
+   * 화면에 노출할 친절한 이름
+   */
   label: string;
 }
 
 interface SelectProps {
-  label?: string; // 셀렉트 상단 라벨
-  options: SelectOption[]; // 선택 가능한 옵션 목록
-  value?: string | number; // 현재 선택된 옵션의 값
-  onChange: (value: string | number) => void; // 옵션이 선택될 때 호출되는 콜백 함수
-  placeholder?: string; // 선택된 옵션이 없을 때 보여줄 플레이스홀더 텍스트
-  error?: string; // 에러 메시지 (있을 경우 셀렉트가 빨간색으로 변함)
-  fullWidth?: boolean; // 너비 100% 여부
-  disabled?: boolean; // 셀렉트 비활성화 여부
+  /**
+   * 셀렉트 박스 상단에 표시될 라벨 텍스트입니다.
+   */
+  label?: string;
+
+  /**
+   * 드롭다운 리스트에 렌더링될 옵션 목록 배열입니다. (필수)
+   */
+  options: SelectOption[];
+
+  /**
+   * 현재 선택된 옵션의 값(`value`)입니다. 부모 컴포넌트의 상태값과 매핑됩니다.
+   */
+  value?: string | number;
+
+  /**
+   * 새로운 옵션이 선택되었을 때 실행되는 콜백 함수입니다. 선택된 옵션의 `value`를 인자로 넘겨줍니다. (필수)
+   */
+  onChange: (value: string | number) => void;
+
+  /**
+   * 선택된 옵션이 없을 때 초기값으로 보여줄 안내 문구입니다.
+   */
+  placeholder?: string;
+
+  /**
+   * 에러 메시지 텍스트입니다. 값이 존재하면 셀렉트 박스 테두리가 에러 스타일로 변경되며 하단에 메시지가 노출됩니다.
+   */
+  error?: string;
+
+  /**
+   * `true`일 경우 셀렉트 박스 너비가 부모 요소의 전체 너비(`w-full`)를 차지합니다. 기본값은 고정 너비(`w-80`)입니다.
+   */
+  fullWidth?: boolean;
+
+  /**
+   * `true`일 경우 셀렉트가 비활성화되며, 마우스 클릭 및 키보드 조작이 차단됩니다.
+   */
+  disabled?: boolean;
 }
 
+/**
+ * 프로젝트 전반에서 사용하는 커스텀 드롭다운 선택(Select) 컴포넌트입니다.
+ * 비표준 UI 환경에서도 완벽한 사용자 경험과 접근성을 제공하도록 고안되었습니다.
+ *
+ * ### ✨ 주요 특징
+ * 1. **⌨️ 표준 키보드 인터랙션 내장**:
+ * - `ArrowUp / ArrowDown`: 드롭다운을 열거나 하이라이트된 옵션을 위아래로 탐색합니다.
+ * - `Enter / Space`: 하이라이트된 옵션을 실제로 선택하거나 드롭다운을 토글합니다.
+ * - `Escape`: 드롭다운을 즉시 닫고 원래 포커스를 트리거 버튼으로 복구시킵니다.
+ * 2. **🖱️ 바깥 영역 클릭 감지 (Click Outside)**: 드롭다운이 열려 있을 때 화면의 빈 곳을 누르면 자동으로 안전하게 드롭다운이 닫힙니다.
+ * 3. **♿ 웹 접근성(WAI-ARIA) 만족**: `role="listbox"`, `role="option"`, `aria-expanded`, `aria-activedescendant` 등의 웹 표준 속성을 완벽히 추적하여 스크린 리더 환경을 지원합니다.
+ *
+ * ### 🛠️ 가용 속성 (Props)
+ * - `options` (`SelectOption[]`): `{ value, label }` 형태의 데이터 배열
+ * - `value` (`string | number`): 현재 바인딩된 상태 값
+ * - `onChange` (`(val) => void`): 값이 바뀔 때 부모로직을 실행할 이벤트 핸들러
+ * - `label` / `placeholder` / `error`: 폼 레이아웃 구성을 위한 텍스트 속성들
+ * - `fullWidth` / `disabled`: 레이아웃 및 제어 속성
+ *
+ * @example
+ * // 1. 리액트 상태와 연동한 기본 사용 예시
+ * const [fruit, setFruit] = useState<string | number>("");
+ * const fruitOptions = [
+ * { value: "apple", label: "사과" },
+ * { value: "banana", label: "바나나" }
+ * ];
+ * * <Select
+ * label="과일 선택"
+ * options={fruitOptions}
+ * value={fruit}
+ * onChange={setFruit}
+ * />
+ */
 const Select = ({
   label,
   options,
@@ -45,7 +116,7 @@ const Select = ({
   // 1. 선택된 옵션의 label 찾기
   const selectedOption = options.find((opt) => opt.value === value);
 
-  // 2. 외부 영역 클릭 시 드롭다운 닫기 로직 (핵심)
+  // 2. 외부 영역 클릭 시 드롭다운 닫기 로직
   useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {
       if (
