@@ -42,11 +42,11 @@ export default function NewHeader() {
       <div className="flex items-center gap-4 text-sm">
         <div className="flex items-center gap-4">
           <Link
-            to=""
+            to="/notice"
             className="text-slate-700 hover:text-slate-900 font-semibold transition-colors flex items-center gap-1.5"
           >
             <i className="fa-regular fa-user text-xs"></i>
-            <span>온라인 강의</span>
+            <span>공지 사항</span>
           </Link>
 
           <div className="h-4 w-px bg-gray-200 hidden md:block" />
@@ -96,7 +96,7 @@ export default function NewHeader() {
         {isAuthenticated ? (
           <div className="flex items-center gap-4">
              <Link
-            to="/classroom"
+            to="/classroom/1"
             className="text-slate-700 hover:text-slate-900 font-semibold transition-colors flex items-center gap-1.5"
           >
             <i className="fa-regular fa-user text-xs"></i>
