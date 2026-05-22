@@ -1,5 +1,6 @@
 import { Route, Routes } from "react-router-dom";
 import Home from "./pages/Home";
+import ClassroomPage from "./pages/Classroom/ClassroomPage";
 import ProtectedRoute from "./auth/ProtectedRoute";
 import MyPage from "./pages/User/MyPage";
 import ProtectedRouteAdmin from "./auth/ProtectedRouteAdmin";
@@ -13,6 +14,8 @@ import TossPaySuccessTestPage from "./pages/test/toss/TossPaySuccessTestPage";
 import TossPayFailTestPage from "./pages/test/toss/TossPayFailTestPage";
 import TossPayTestPage from "./pages/test/toss/TossPayTestPage";
 import BuyProduct from "./pages/test/BuyProduct";
+import OnlineLecturePage from "./pages/Onlinelecture/OnlineLecturePage";
+import QnAPage from "./pages/QnA/QnAPage";
 
 export default function AppRoute() {
   return (
@@ -32,10 +35,13 @@ export default function AppRoute() {
         element={<TossPaySuccessTestPage />}
       />
       <Route path="/test/toss-pay/fail" element={<TossPayFailTestPage />} />
+      <Route path="/qna" element={<QnAPage />} />
 
       {/* 인증이 필요한 라우트 */}
       <Route element={<ProtectedRoute />}>
         <Route path="/mypage" element={<MyPage />} />
+        <Route path="/classroom/:classId" element={<ClassroomPage />} />
+        <Route path="/mylecture" element={<OnlineLecturePage/>} />
       </Route>
 
       {/* 관리자 전용 라우트 */}

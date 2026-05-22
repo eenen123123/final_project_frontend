@@ -52,11 +52,21 @@ export default function NewHeader() {
           <div className="h-4 w-px bg-gray-200 hidden md:block" />
 
           <Link
-            to=""
+            to="/qna"
             className="text-slate-700 hover:text-slate-900 font-semibold transition-colors flex items-center gap-1.5"
           >
             <i className="fa-regular fa-user text-xs"></i>
-            <span>온라인 강의</span>
+            <span>Q&A</span>
+          </Link>
+
+          <div className="h-4 w-px bg-gray-200 hidden md:block" />
+
+          <Link
+            to="/mylecture"
+            className="text-slate-700 hover:text-slate-900 font-semibold transition-colors flex items-center gap-1.5"
+          >
+            <i className="fa-regular fa-user text-xs"></i>
+            <span>나의 강의실</span>
           </Link>
 
           <div className="h-4 w-px bg-gray-200 hidden md:block" />
@@ -85,6 +95,14 @@ export default function NewHeader() {
       <div className="flex items-center gap-4 text-sm">
         {isAuthenticated ? (
           <div className="flex items-center gap-4">
+             <Link
+            to="/classroom"
+            className="text-slate-700 hover:text-slate-900 font-semibold transition-colors flex items-center gap-1.5"
+          >
+            <i className="fa-regular fa-user text-xs"></i>
+            <span>Classroom</span>
+          </Link>
+
             {/* 유저 환영 메시지 */}
             <span className="text-slate-600 font-medium hidden md:block">
               <strong className="text-slate-900 font-bold">{userName}</strong>님
