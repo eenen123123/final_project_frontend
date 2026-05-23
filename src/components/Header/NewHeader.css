@@ -1,42 +1,73 @@
 @reference "../../index.css";
 
 @layer components {
-  /* 사이트 공통 헤더 바
-     sticky 고정, 흰 배경, 하단 테두리 + 미세한 그림자로 콘텐츠와 분리 */
+
+  /* 헤더 전체 래퍼 */
   .site-header {
-    @apply sticky top-0 z-40 h-16 bg-white border-b border-gray-100 flex items-center justify-between px-6 shadow-sm shadow-gray-50/40;
+    @apply sticky top-0 z-50 bg-white border-b border-gray-100 shadow-sm shadow-gray-50/40 relative;
   }
 
-  /* 좌측 브랜드 로고 링크 (HERMES)
-     호버 시 violet 계열로 전환하여 브랜드 색상 강조 */
+  /* 로고 */
   .brand-logo {
-    @apply text-lg font-black text-slate-900 tracking-tight flex items-center gap-2 hover:text-violet-600 transition-colors;
+    @apply flex items-center gap-2.5 select-none;
   }
 
-  /* 헤더 중앙 네비게이션 링크 (공지사항, Q&A, 나의 강의실 등)
-     및 우측 영역 링크 (Classroom, 마이페이지)에 공통 적용 */
+  .brand-logo-icon {
+    @apply w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors duration-200 group-hover:bg-blue-600;
+  }
+
+  .brand-logo-text {
+    @apply text-xl font-black tracking-widest text-gray-900 uppercase;
+  }
+
+  .brand-logo-dot {
+    @apply text-xl font-black text-blue-600 -ml-1;
+  }
+
+  /* 상단 유틸리티 영역 */
+  .header-util {
+    @apply flex items-center gap-4 text-xs text-gray-500;
+  }
+
+  .header-util-link {
+    @apply hover:text-gray-900 transition-colors;
+  }
+
+  .header-util-divider {
+    @apply w-px h-3 bg-gray-200;
+  }
+
+  /* 하단 네비바 */
+  .header-nav-bar {
+    @apply border-t border-gray-100;
+  }
+
+  /* 네비 링크 */
   .nav-link {
-    @apply text-slate-700 hover:text-slate-900 font-semibold transition-colors flex items-center gap-1.5;
+    @apply px-3.5 py-1.5 rounded-md text-sm font-bold text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors tracking-tight;
   }
 
-  /* 헤더 내 항목 사이 세로 구분선
-     반응형 노출 여부(hidden sm:block / hidden md:block)는 사용하는 곳에서 인라인으로 지정 */
-  .divider-v {
-    @apply h-4 w-px bg-gray-200;
+  /* 햄버거 버튼 */
+  .sitemap-btn {
+    @apply flex items-center justify-center w-8 h-8 rounded transition-colors text-gray-600 hover:bg-gray-100;
   }
 
-  /* 강조 액션 버튼 — 로그인 버튼 (헤더 우측, 비로그인 상태) */
-  .btn-primary {
-    @apply cursor-pointer px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-xs font-bold shadow-sm shadow-violet-200 transition-all flex items-center gap-1.5;
+  .sitemap-btn-active {
+    @apply bg-gray-900 text-white;
   }
 
-  /* 보조 액션 버튼 — 로그아웃 버튼 (헤더 우측, 로그인 상태) */
-  .btn-ghost {
-    @apply cursor-pointer px-3.5 py-1.5 bg-slate-50 hover:bg-rose-50 border border-slate-200 hover:border-rose-200 rounded-xl text-xs font-bold text-slate-600 hover:text-rose-600 transition-all shadow-xs;
-  }
-
-  /* 관리자 전용 뱃지 링크 — 좌측 네비게이션 영역, ROLE_ADMIN 계정에만 노출 */
+  /* 관리자 뱃지 */
   .badge-admin {
     @apply flex items-center gap-1.5 px-3 py-1 bg-violet-50 text-violet-600 rounded-lg text-xs font-bold hover:bg-violet-100 transition-all border border-violet-100;
+  }
+
+  /* 로그인 버튼 */
+  .btn-primary {
+    @apply cursor-pointer px-4 py-1.5 bg-gray-900 hover:bg-blue-600 text-white rounded-lg text-xs font-bold transition-all;
+  }
+
+  /* 로그아웃 버튼 */
+  .btn-ghost {
+    @apply cursor-pointer px-3 py-1.5 bg-gray-50 hover:bg-red-50 border border-gray-200 hover:border-red-200 rounded-lg text-xs font-bold text-gray-600 hover:text-red-600 transition-all;
   }
 }

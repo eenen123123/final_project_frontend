@@ -1,6 +1,10 @@
 import { Link } from "react-router-dom";
+import { useState } from "react";
 import { useAuth } from "../../auth/AuthContext";
+import SiteMap from "./components/SiteMap";
 import "./NewHeader.css";
+
+const D_DAY = 180;
 
 export default function NewHeader() {
   const { isAuthenticated, logout, getUserName, getRole } = useAuth();
@@ -8,104 +12,98 @@ export default function NewHeader() {
   const isAdmin = currentRoles.includes("ROLE_ADMIN");
   const userName = getUserName();
 
+  const [siteMapOpen, setSiteMapOpen] = useState(false);
+
   return (
     <header className="site-header">
-      {/* 1. 좌측 영역: 브랜드 로고 및 메인 네비게이션 */}
-      <div className="flex items-center gap-5">
-        <Link to="/" className="brand-logo">
-          <i className="fa-solid fa-layer-group text-violet-600 text-base"></i>
-          <span>HERMES</span>
+
+      {/* ── 1. 메인 바: 로고 + 우측 유틸 ── */}
+      <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
+
+        {/* 로고 */}
+        <Link to="/" className="brand-logo group">
+          <div className="brand-logo-icon">
+            <i className="fa-solid fa-bolt text-white text-sm" />
+          </div>
+          <span className="brand-logo-text">HERMES</span>
+          <span className="brand-logo-dot">.</span>
         </Link>
 
-        <div className="divider-v hidden sm:block" />
+        {/* 우측 유틸리티 */}
+        <div className="header-util">
+          <span className="font-semibold">
+            수능 <span className="text-blue-600 font-bold">D-{D_DAY}</span>
+          </span>
+          <div className="header-util-divider" />
 
-        <nav className="hidden sm:flex items-center gap-4 text-sm font-medium text-slate-600">
-          <Link to="/" className="hover:text-slate-900 transition-colors py-1">
-            홈
-          </Link>
+          {isAuthenticated ? (
+            <>
+              <span className="text-gray-700">
+                <strong className="font-bold">{userName}</strong>님
+              </span>
+              <Link to="/mypage" className="header-util-link">마이페이지</Link>
+              <button onClick={logout} className="btn-ghost">로그아웃</button>
+            </>
+          ) : (
+            <>
+              <Link to="/login" className="header-util-link">로그인</Link>
+              <Link to="/signup" className="btn-primary">회원가입</Link>
+            </>
+          )}
+
+          <div className="header-util-divider" />
+          <Link to="/notice" className="header-util-link">고객센터</Link>
+
+          {/* 검색 컴포넌트 연결 예정 */}
 
           {isAdmin && (
-            <Link to="/admin" className="badge-admin">
-              <i className="fa-solid fa-user-shield text-[10px]"></i>
-              <span>관리자 페이지</span>
-            </Link>
+            <>
+              <div className="header-util-divider" />
+              <Link to="/admin" className="badge-admin">
+                <i className="fa-solid fa-user-shield text-[10px]" />
+                관리자
+              </Link>
+            </>
           )}
-        </nav>
-      </div>
-
-      {/* 2. 중앙 영역 각종 네비게이터 */}
-      <div className="flex items-center gap-4 text-sm">
-        <div className="flex items-center gap-4">
-          <Link to="/notice" className="nav-link">
-            <i className="fa-regular fa-user text-xs"></i>
-            <span>공지 사항</span>
-          </Link>
-
-          <div className="divider-v hidden md:block" />
-
-          <Link to="/qna" className="nav-link">
-            <i className="fa-regular fa-user text-xs"></i>
-            <span>Q&A</span>
-          </Link>
-
-          <div className="divider-v hidden md:block" />
-
-          <Link to="/mylecture" className="nav-link">
-            <i className="fa-regular fa-user text-xs"></i>
-            <span>나의 강의실</span>
-          </Link>
-
-          <div className="divider-v hidden md:block" />
-
-          <Link to="" className="nav-link">
-            <i className="fa-regular fa-user text-xs"></i>
-            <span>온라인 강의</span>
-          </Link>
-
-          <div className="divider-v hidden md:block" />
-
-          <Link to="" className="nav-link">
-            <i className="fa-regular fa-user text-xs"></i>
-            <span>온라인 강의</span>
-          </Link>
         </div>
       </div>
 
-      {/* 3. 우측 영역: 유저 인증 및 프로필 세팅 상태 */}
-      <div className="flex items-center gap-4 text-sm">
-        {isAuthenticated ? (
-          <div className="flex items-center gap-4">
-            <Link to="/classroom/1" className="nav-link">
-              <i className="fa-regular fa-user text-xs"></i>
-              <span>Classroom</span>
-            </Link>
+      {/* ── 2. 하단 네비게이션 바 ── */}
+      <div className="header-nav-bar">
+        <div className="max-w-7xl mx-auto px-6 h-11 flex items-center gap-1">
 
-            {/* 유저 환영 메시지 */}
-            <span className="text-slate-600 font-medium hidden md:block">
-              <strong className="text-slate-900 font-bold">{userName}</strong>님
-              환영합니다!
-            </span>
+          {/* 사이트맵 버튼 */}
+          <button
+            onClick={() => setSiteMapOpen((v) => !v)}
+            className={`sitemap-btn ${siteMapOpen ? 'sitemap-btn-active' : ''}`}
+          >
+            <i className={`fa-solid ${siteMapOpen ? 'fa-xmark' : 'fa-bars'} text-sm`} />
+          </button>
 
-            <div className="divider-v hidden md:block" />
+          {/* 사이트맵 드롭다운 */}
+          <SiteMap isOpen={siteMapOpen} onClose={() => setSiteMapOpen(false)} />
 
-            {/* 마이페이지는 보조 텍스트 색상(slate-500)으로 우선순위를 낮게 표현 */}
-            <Link to="/mypage" className="nav-link text-slate-500">
-              <i className="fa-regular fa-user text-xs"></i>
-              <span>마이페이지</span>
-            </Link>
+          <div className="header-util-divider mx-2" />
 
-            <button onClick={logout} className="btn-ghost">
-              <i className="fa-solid fa-arrow-right-from-bracket mr-1"></i>
-              로그아웃
-            </button>
-          </div>
-        ) : (
-          <Link to="/login" className="btn-primary">
-            <i className="fa-solid fa-key text-[11px]"></i>
-            <span>로그인</span>
-          </Link>
-        )}
+          {/* 메인 네비 */}
+          <nav className="flex items-center gap-0.5 flex-1">
+            {[
+              { to: '/lectures',    label: '전체 강좌' },
+              { to: '/mylecture',   label: '나의 강의실' },
+              { to: '/qna',         label: 'Q&A' },
+              { to: '/notice',      label: '공지사항' },
+              { to: '/mypage',      label: '마이페이지' },
+              ...(isAuthenticated ? [{ to: '/classroom/1', label: 'Classroom' }] : []),
+            ].map(({ to, label }) => (
+              <Link key={to} to={to} className="nav-link">
+                {label}
+              </Link>
+            ))}
+          </nav>
+
+        </div>
       </div>
+
     </header>
   );
 }

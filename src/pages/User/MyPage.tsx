@@ -25,19 +25,19 @@ const CALENDAR_EVENTS: CalendarEvent[] = [
   { date: '2026-05-14', type: 'personal', title: '모의고사 당일 오답 정리' },
   { date: '2026-05-18', type: 'event',    title: '5.1~5.31 수강후기 작성 시 치킨 증정 🍗' },
   { date: '2026-05-22', type: 'event',    title: '5.1~5.31 수강후기 작성 시 치킨 증정 🍗' },
-  { date: '2026-05-22', type: 'event',    title: '이투스에서 놓친 혜택 자수하고 선물 받자!' },
+  { date: '2026-05-22', type: 'event',    title: '헤르메스에서 놓친 혜택 자수하고 선물 받자!' },
   { date: '2026-05-22', type: 'academic', title: '일정 없음. 다른 날을 확인해 보세요.' },
   { date: '2026-05-25', type: 'personal', title: '1단원 마무리 + 5월 학평 복습' },
   { date: '2026-05-29', type: 'academic', title: '중간 모의 테스트' },
 ];
 
 const SUBJECTS: StudySubject[] = [
-  { name: '국어',       percent: 45, minutes: 127 },
-  { name: '수학',       percent: 20, minutes: 56  },
-  { name: '영어',       percent: 10, minutes: 28  },
+  { name: '국어',       percent: 65, minutes: 127 },
+  { name: '수학',       percent: 70, minutes: 56  },
+  { name: '영어',       percent: 90, minutes: 28  },
   { name: '탐구',       percent: 70, minutes: 196 },
-  { name: '한국사',     percent: 15, minutes: 42  },
-  { name: '제2외/한문', percent: 5,  minutes: 14  },
+  { name: '한국사',     percent: 35, minutes: 42  },
+  { name: '제2외/한문', percent: 55,  minutes: 74  },
 ];
 
 const TEACHERS: TeacherRank[] = [
