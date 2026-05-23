@@ -1,26 +1,26 @@
 import { useState } from "react";
 
 interface SignUpProps {
-  loginId: string;
+  userId: string; // loginId -> userId 로 변경
   password: string;
   name: string;
-  nickName: string;
+  // nickName: string; MEMBER 테이블에 닉네임 컬럼 없어짐
 }
 
 export default function SignUp() {
   const [formData, setFormData] = useState<SignUpProps>({
-    loginId: "",
+    userId: "", // loginId -> userId 로 변경
     password: "",
     name: "",
-    nickName: "",
+    // nickName: "", MEMBER 테이블에 닉네임 컬럼 없어짐
   });
 
   const validateForm = (): boolean => {
     if (
-      !formData.loginId ||
+      !formData.userId ||
       !formData.password ||
-      !formData.name ||
-      !formData.nickName
+      !formData.name
+      // || !formData.nickName MEMBER 테이블에 닉네임 컬럼 없어짐
     ) {
       alert("모든 필드를 입력해주세요.");
       return false;
@@ -62,10 +62,8 @@ export default function SignUp() {
           name="loginId"
           id="loginId"
           placeholder="아이디"
-          value={formData.loginId}
-          onChange={(e) =>
-            setFormData({ ...formData, loginId: e.target.value })
-          }
+          value={formData.userId}
+          onChange={(e) => setFormData({ ...formData, userId: e.target.value })}
           className="border border-gray-300 rounded px-3 py-2 w-full"
         />
         <input
@@ -88,7 +86,8 @@ export default function SignUp() {
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
           className="border border-gray-300 rounded px-3 py-2 w-full"
         />
-        <input
+        {/* MEMBER 테이블에 닉네임 컬럼 없어짐 */}
+        {/* <input
           type="text"
           name="nickName"
           id="nickName"
@@ -98,7 +97,7 @@ export default function SignUp() {
             setFormData({ ...formData, nickName: e.target.value })
           }
           className="border border-gray-300 rounded px-3 py-2 w-full"
-        />
+        /> */}
         <button
           type="submit"
           className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 cursor-pointer"
