@@ -52,7 +52,7 @@ export default function NewHeader() {
           )}
 
           <div className="header-util-divider" />
-          <Link to="/notice" className="header-util-link">고객센터</Link>
+          <Link to="/customer" className="header-util-link">고객센터</Link>
 
           {/* 검색 컴포넌트 연결 예정 */}
 

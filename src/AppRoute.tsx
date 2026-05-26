@@ -18,6 +18,8 @@ import OnlineLecturePage from "./pages/Onlinelecture/OnlineLecturePage";
 
 import QnAPage from "./pages/ServiceCenter/QnA/QnAPage";
 import NoticePage from "./pages/ServiceCenter/Notice/NoticePage";
+import ServiceCenterPage from "./pages/ServiceCenter/ServiceCenterPage";
+import FAQPage from "./pages/ServiceCenter/FAQ/FAQPage";
 
 export default function AppRoute() {
   return (
@@ -36,9 +38,12 @@ export default function AppRoute() {
         path="/test/toss-pay/success"
         element={<TossPaySuccessTestPage />}
       />
+       {/* 공용 라우트 */}
       <Route path="/test/toss-pay/fail" element={<TossPayFailTestPage />} />
-      <Route path="/qna" element={<QnAPage />} />
-      <Route path="/notice" element={<NoticePage />} />
+      <Route path="/customer/qna" element={<QnAPage />} />
+      <Route path="/customer/notice" element={<NoticePage />} />
+      <Route path="/customer/*" element={<ServiceCenterPage />} />
+      <Route path="/customer/faq" element={<FAQPage />} />
 
       {/* 인증이 필요한 라우트 */}
       <Route element={<ProtectedRoute />}>
