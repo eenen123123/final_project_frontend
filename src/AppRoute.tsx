@@ -15,8 +15,9 @@ import TossPayFailTestPage from "./pages/test/toss/TossPayFailTestPage";
 import TossPayTestPage from "./pages/test/toss/TossPayTestPage";
 import BuyProduct from "./pages/test/BuyProduct";
 import OnlineLecturePage from "./pages/Onlinelecture/OnlineLecturePage";
-import QnAPage from "./pages/QnA/QnAPage";
-import NoticePage from "./pages/Notice/NoticePage";
+
+import QnAPage from "./pages/ServiceCenter/QnA/QnAPage";
+import NoticePage from "./pages/ServiceCenter/Notice/NoticePage";
 
 export default function AppRoute() {
   return (
