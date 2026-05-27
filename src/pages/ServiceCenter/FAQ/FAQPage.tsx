@@ -1,11 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import ServiceSidebar from '../components/ServiceSidebar';
 import FAQCategoryTabs from './components/FAQCategoryTabs';
 import { CATEGORY_CODE_MAP, SUB_CATEGORY_CODE_MAP, type MainCategory } from './constants/faqConstants';
 import type { FaqItem } from '../../../types/board/FaqInterface';
 import FAQHeader from './components/FAQHeader';
-import { useAuth } from '../../../auth/AuthContext';
 
 type SearchType = '제목+내용' | '제목';
 
@@ -16,9 +15,6 @@ export default function FAQPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const activeMain = (searchParams.get('category') ?? '강의/교재') as MainCategory;
   const activeSub  = searchParams.get('sub') ?? '전체';
-  const { getRole } = useAuth();
-  const isAdmin = getRole()?.includes('ROLE_ADMIN') ?? false;
-  const navigate = useNavigate();
 
   const [faqList,     setFaqList]     = useState<FaqItem[]>([]);
   const [loading,     setLoading]     = useState(false);
@@ -100,13 +96,6 @@ export default function FAQPage() {
               <p className="text-xs text-gray-500">
                 총 <strong className="text-blue-600">{filtered.length}</strong>개의 자주하는 질문(FAQ)
               </p>
-              {isAdmin && (
-                <button 
-                 onClick={() => navigate('/customer/faq/write')}
-                 className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2 rounded transition-colors">
-                  글 등록
-                </button>
-              )}
             </div>
               <table className="w-full border-t-2 border-gray-800 text-sm">
                 <colgroup>
