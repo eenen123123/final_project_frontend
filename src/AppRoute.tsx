@@ -17,12 +17,12 @@ import BuyProduct from "./pages/test/BuyProduct";
 import OnlineLecturePage from "./pages/Onlinelecture/OnlineLecturePage";
 import ClassroomLayout from "./layouts/ClassroomLayout";
 
-import QnAPage from "./pages/ServiceCenter/QnA/QnAPage";
+
 import NoticePage from "./pages/ServiceCenter/Notice/NoticePage";
 import ServiceCenterPage from "./pages/ServiceCenter/ServiceCenterPage";
 import FAQPage from "./pages/ServiceCenter/FAQ/FAQPage";
 import FaqDetailPage from "./pages/ServiceCenter/FAQ/FaqDetailPage";
-import FaqWritePage from "./pages/ServiceCenter/FAQ/FaqWritePage";
+import QnAPage from "./pages/ServiceCenter/QnA/QnAPage";
 
 export default function AppRoute() {
   return (
@@ -45,11 +45,11 @@ export default function AppRoute() {
       <Route path="/test/toss-pay/fail" element={<TossPayFailTestPage />} />
 
       {/* 고객센터 라우트 */}
-      <Route path="/customer/qna" element={<QnAPage />} />
-      <Route path="/customer/notice" element={<NoticePage />} />
-      <Route path="/customer/*" element={<ServiceCenterPage />} />
       <Route path="/customer/faq" element={<FAQPage />} />
       <Route path="/customer/faq/:postSn" element={<FaqDetailPage />} />
+      <Route path="/customer/notice" element={<NoticePage />} />
+      <Route path="/customer/qna" element={<QnAPage />} />
+      <Route path="/customer/*" element={<ServiceCenterPage />} />
 
       {/* 인증이 필요한 라우트 */}
       <Route element={<ProtectedRoute />}>
@@ -63,9 +63,6 @@ export default function AppRoute() {
       {/* 관리자 전용 라우트 */}
       <Route element={<ProtectedRouteAdmin />}>
         <Route path="/admin" element={<AdminPage />} />
-
-        {/* 고객센터 관리 라우트 */}
-        <Route path="/customer/faq/write" element={<FaqWritePage />} />
       </Route>
     </Routes>
   );
