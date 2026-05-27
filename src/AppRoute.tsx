@@ -20,6 +20,7 @@ import QnAPage from "./pages/ServiceCenter/QnA/QnAPage";
 import NoticePage from "./pages/ServiceCenter/Notice/NoticePage";
 import ServiceCenterPage from "./pages/ServiceCenter/ServiceCenterPage";
 import FAQPage from "./pages/ServiceCenter/FAQ/FAQPage";
+import FaqDetailPage from "./pages/ServiceCenter/FAQ/FaqDetailPage";
 
 export default function AppRoute() {
   return (
@@ -44,6 +45,7 @@ export default function AppRoute() {
       <Route path="/customer/notice" element={<NoticePage />} />
       <Route path="/customer/*" element={<ServiceCenterPage />} />
       <Route path="/customer/faq" element={<FAQPage />} />
+      <Route path="/customer/faq/:postSn" element={<FaqDetailPage />} />
 
       {/* 인증이 필요한 라우트 */}
       <Route element={<ProtectedRoute />}>
