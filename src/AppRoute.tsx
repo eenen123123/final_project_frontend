@@ -22,6 +22,7 @@ import NoticePage from "./pages/ServiceCenter/Notice/NoticePage";
 import ServiceCenterPage from "./pages/ServiceCenter/ServiceCenterPage";
 import FAQPage from "./pages/ServiceCenter/FAQ/FAQPage";
 import FaqDetailPage from "./pages/ServiceCenter/FAQ/FaqDetailPage";
+import FaqWritePage from "./pages/ServiceCenter/FAQ/FaqWritePage";
 
 export default function AppRoute() {
   return (
@@ -42,6 +43,8 @@ export default function AppRoute() {
       />
        {/* 공용 라우트 */}
       <Route path="/test/toss-pay/fail" element={<TossPayFailTestPage />} />
+
+      {/* 고객센터 라우트 */}
       <Route path="/customer/qna" element={<QnAPage />} />
       <Route path="/customer/notice" element={<NoticePage />} />
       <Route path="/customer/*" element={<ServiceCenterPage />} />
@@ -60,6 +63,9 @@ export default function AppRoute() {
       {/* 관리자 전용 라우트 */}
       <Route element={<ProtectedRouteAdmin />}>
         <Route path="/admin" element={<AdminPage />} />
+
+        {/* 고객센터 관리 라우트 */}
+        <Route path="/customer/faq/write" element={<FaqWritePage />} />
       </Route>
     </Routes>
   );
