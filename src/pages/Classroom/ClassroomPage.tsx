@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { useOutletContext } from "react-router-dom";
 import ClassroomLeftPanel from "./components/ClassroomLeftPanel";
 import { HomeTab, NoticeTab, LectureTab, AssignTab, QnaTab, ScoreTab } from "./components/ClassroomTabs";
+import type { ClassroomInfo } from "../../types/ClassroomInterface";
 
 export type TabType = "home" | "notice" | "lecture" | "assign" | "qna" | "score";
 
@@ -14,23 +16,15 @@ const TABS: { id: TabType; label: string; badge?: number }[] = [
   { id: "score", label: "성적 관리" },
 ];
 
-const TEACHER_INFO = {
-  name: "김민준",
-  subject: "영어",
-  className: "영어 A반",
-  schedule: "월 · 수 · 금",
-  time: "17:00 ~ 19:00",
-  room: "302호",
-};
-
 export default function ClassroomPage() {
+  const { classroom } = useOutletContext<{ classroom: ClassroomInfo | null }>();
   const [activeTab, setActiveTab] = useState<TabType>("home");
 
   return (
     <div className="flex flex-1 overflow-hidden">
       <ClassroomLeftPanel
-        teacher={TEACHER_INFO}
-        onTeacherPageClick={() => alert("선생님 페이지로 이동")}
+        instructor={classroom}
+        onInstructorPageClick={() => alert("강사 페이지로 이동")}
       />
 
       <main className="flex-1 overflow-y-auto p-6 bg-[#F8FAFC]">

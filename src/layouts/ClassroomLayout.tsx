@@ -1,6 +1,20 @@
-import { Outlet } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Outlet, useParams } from "react-router-dom";
+import api from "../api/api";
+import type { ClassroomInfo } from "../types/ClassroomInterface";
 
 export default function ClassroomLayout() {
+  const { classId } = useParams();
+  const [classroom, setClassroom] = useState<ClassroomInfo | null>(null);
+
+  useEffect(() => {
+    if (!classId) return;
+    api
+      .get(`http://localhost:8081/api/classroom/${classId}`)
+      .then((res) => setClassroom(res.data))
+      .catch((err) => console.error("클래스룸 정보 조회 실패", err));
+  }, [classId]);
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans antialiased selection:bg-blue-100">
 
@@ -13,7 +27,9 @@ export default function ClassroomLayout() {
             <h1 className="text-sm font-bold text-slate-800 tracking-tight flex items-center gap-2">
               HERMES
               <span className="text-[11px] font-medium text-slate-300">|</span>
-              <span className="text-[13px] font-semibold text-slate-600">클래스룸</span>
+              <span className="text-[13px] font-semibold text-slate-600">
+                {classroom ? classroom.classNm : "로딩 중..."}
+              </span>
             </h1>
             <p className="text-[10px] text-slate-400 font-bold tracking-wider uppercase mt-0.5">
               Classroom Dashboard
@@ -37,7 +53,7 @@ export default function ClassroomLayout() {
         </div>
       </header>
 
-      <Outlet />
+      <Outlet context={{ classroom }} />
     </div>
   );
 }
