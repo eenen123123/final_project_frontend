@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import ServiceSidebar from '../components/ServiceSidebar';
 import type { FaqItem } from '../../../types/board/FaqInterface';
+import FAQHeader from './components/FAQHeader';
 
 const API_BASE = 'http://localhost:8081';
 
@@ -51,34 +52,22 @@ export default function FaqDetailPage() {
         <div className="flex gap-5 items-start">
           <ServiceSidebar />
 
+          {/*헤더 영역*/}
           <div className="flex-1 min-w-0">
+          <FAQHeader subTitle="궁금한 내용을 빠르게 해결하세요!" />
 
-            {/* 브레드크럼 */}
-            <div className="text-xs text-gray-400 mb-3">
-              <Link to="/customer" className="hover:text-blue-500 transition-colors">고객센터</Link>
-              <span className="mx-1">&gt;</span>
-              <Link to="/customer/faq" className="hover:text-blue-500 transition-colors">자주하는 질문(FAQ)</Link>
-              {faq.faqCtgNm && (
-                <>
-                  <span className="mx-1">&gt;</span>
-                  <span className="text-gray-600">{faq.faqCtgNm} 관련</span>
-                </>
-              )}
-              {faq.faqSubCtgNm && (
-                <>
-                  <span className="mx-1">&gt;</span>
-                  <span className="text-gray-600">{faq.faqSubCtgNm}</span>
-                </>
-              )}
-            </div>
+          {/* 서브 브레드크럼 */}
+        <div className="text-xs text-gray-400 flex items-center gap-1 mt-3 mb-1">
+          <span>{faq.faqCtgNm} 관련</span>
+          <span>&gt;</span>
+          <span>{faq.faqSubCtgNm}</span>
+        </div>
 
-            {/* 타이틀 영역 */}
-            <div className="border-b-2 border-gray-800 pb-4 mb-6">
-              <h1 className="text-xl font-extrabold text-gray-900 leading-snug">
-                {faq.postSj}
-              </h1>
-            </div>
-
+          {/* 제목 */}
+          <h2 className="text-xl font-extrabold text-gray-900 leading-snug mb-4">
+            {faq.postSj}
+          </h2>
+            
             {/* 본문 내용 */}
             <div className="min-h-48 py-6 border-b border-gray-200 mb-6">
               {faq.postCn ? (

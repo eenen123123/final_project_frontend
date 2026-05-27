@@ -15,7 +15,7 @@ export default function ProtectedRouteAdmin() {
   }
 
   // 관리자가 아닌 사용자는 접근 불가 페이지로 리다이렉트
-  if (getRole() !== "ROLE_ADMIN") {
+  if (!getRole()?.includes("ROLE_ADMIN")) {
     return <Navigate to="/unauthorized" replace />;
   }
 
