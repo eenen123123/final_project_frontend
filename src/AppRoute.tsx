@@ -15,6 +15,7 @@ import TossPayFailTestPage from "./pages/test/toss/TossPayFailTestPage";
 import TossPayTestPage from "./pages/test/toss/TossPayTestPage";
 import BuyProduct from "./pages/test/BuyProduct";
 import OnlineLecturePage from "./pages/Onlinelecture/OnlineLecturePage";
+import ClassroomLayout from "./layouts/ClassroomLayout";
 
 import QnAPage from "./pages/ServiceCenter/QnA/QnAPage";
 import NoticePage from "./pages/ServiceCenter/Notice/NoticePage";
@@ -50,8 +51,10 @@ export default function AppRoute() {
       {/* 인증이 필요한 라우트 */}
       <Route element={<ProtectedRoute />}>
         <Route path="/mypage" element={<MyPage />} />
-        <Route path="/classroom/:classId" element={<ClassroomPage />} />
         <Route path="/mylecture" element={<OnlineLecturePage/>} />
+        <Route element={<ClassroomLayout />}>
+          <Route path="/classroom/:classId" element={<ClassroomPage />} />
+        </Route>
       </Route>
 
       {/* 관리자 전용 라우트 */}
