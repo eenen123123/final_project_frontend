@@ -33,7 +33,7 @@ api.interceptors.response.use(
     return response;
   },
   async (error) => {
-    const originalRequest = error.config as RetryableRequestConfig;
+    const originalRequest = error.config as RetryableRequestConfig | undefined;
     const status = error.response?.status;
     const requestUrl = originalRequest?.url ?? "";
 
@@ -52,11 +52,19 @@ api.interceptors.response.use(
     originalRequest._retry = true;
 
     try {
-      await axios.post(
+      const refreshResponse = await axios.post(
         "http://localhost:8081/api/auth/refresh",
         {},
         { withCredentials: true },
       );
+      const newAccessToken = refreshResponse.data.accessToken;
+      setApiAccessToken(newAccessToken); // 인스턴스의 토큰 업데이트
+
+      originalRequest.headers = originalRequest.headers ?? {}; // 헤더 객체가 없는 경우 초기화
+      originalRequest.headers.Authorization = `Bearer ${newAccessToken}`; // 원래 요청의 헤더에 새 토큰 설정
+      originalRequest.withCredentials = true; // 쿠키 포함
+
+      return api(originalRequest); // 원래 요청 재시도
     } catch (refreshError) {
       setApiAccessToken(null); // 토큰 재발급 실패 시 토큰 제거
 
