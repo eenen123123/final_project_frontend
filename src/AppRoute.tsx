@@ -24,6 +24,7 @@ import FaqDetailPage from "./pages/ServiceCenter/FAQ/FaqDetailPage";
 import QnAPage from "./pages/ServiceCenter/QnA/QnAPage";
 import NoticeDetailPage from "./pages/ServiceCenter/Notice/NoticeDetailPage";
 import QnaWritePage from "./pages/ServiceCenter/QnA/QnaWritePage";
+import QnaDetailPage from "./pages/ServiceCenter/QnA/QnaDetailPage";
 
 export default function AppRoute() {
   return (
@@ -56,12 +57,13 @@ export default function AppRoute() {
       {/* 인증이 필요한 라우트 */}
       <Route element={<ProtectedRoute />}>
         <Route path="/mypage" element={<MyPage />} />
+        <Route path="/classroom/:classId" element={<ClassroomPage />} />
         <Route path="/mylecture" element={<OnlineLecturePage />} />
-        <Route element={<ClassroomLayout />}>
-          <Route path="/classroom/:classId" element={<ClassroomPage />} />
-        </Route>
         <Route path="/customer/qna/write" element={<QnaWritePage />} />
+        <Route path="/customer/qna/my" element={<QnAPage myOnly />} />
       </Route>
+
+      <Route path="/customer/qna/:postSn" element={<QnaDetailPage />} />
 
       {/* 관리자 전용 라우트 */}
       <Route element={<ProtectedRouteAdmin />}>
