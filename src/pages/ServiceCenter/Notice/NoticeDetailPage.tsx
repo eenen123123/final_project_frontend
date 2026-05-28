@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ServiceSidebar from '../components/ServiceSidebar';
-import type { FaqItem } from '../../../types/board/FaqInterface';
-import FAQHeader from './components/FAQHeader';
+import NoticeHeader from './components/NoticeHeader';
 import api from '../../../api/api';
+import type { NoticeItem } from '../../../types/board/NoticeInterface';
 
 {/*
   * 변경사항 *
@@ -13,27 +13,34 @@ import api from '../../../api/api';
 4. 이전글/다음글 cursor-pointer 추가
 */}
 
-export default function FaqDetailPage() {
+
+const TYPE_BADGE: Record<string, string> = {
+  '01': 'bg-blue-50 text-blue-600',
+  '02': 'bg-orange-50 text-orange-600',
+  '03': 'bg-red-50 text-red-600',
+};
+
+export default function NoticeDetailPage() {
   const { postSn } = useParams<{ postSn: string }>();
   const navigate = useNavigate();
 
-  const [faq,     setFaq]     = useState<FaqItem | null>(null);
+  const [notice,  setNotice]  = useState<NoticeItem | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!postSn) return;
-    const fetchFaq = async () => {
+    const fetchNotice = async () => {
       setLoading(true);
       try {
-        const res = await api.get(`/api/faq/${postSn}`);
-        setFaq(res.data);
+        const res = await api.get(`/api/notice/${postSn}`);
+        setNotice(res.data);
       } catch (err) {
-        console.error('FAQ 상세 조회 실패:', err);
+        console.error('공지사항 상세 조회 실패:', err);
       } finally {
         setLoading(false);
       }
     };
-    fetchFaq();
+    fetchNotice();
   }, [postSn]);
 
   if (loading) {
@@ -44,10 +51,10 @@ export default function FaqDetailPage() {
     );
   }
 
-  if (!faq) {
+  if (!notice) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
-        <p className="text-sm text-gray-400">FAQ를 찾을 수 없습니다.</p>
+        <p className="text-sm text-gray-400">공지사항을 찾을 수 없습니다.</p>
       </div>
     );
   }
@@ -62,25 +69,30 @@ export default function FaqDetailPage() {
           </div>
 
           <div className="flex-1 min-w-0 w-full">
-            <FAQHeader subTitle="궁금한 내용을 빠르게 해결하세요!" />
+            <NoticeHeader />
 
-            {/* 서브 브레드크럼 */}
-            <div className="text-xs text-gray-400 flex items-center gap-1 mt-3 mb-1">
-              <span>{faq.faqCtgNm} 관련</span>
-              <span>&gt;</span>
-              <span>{faq.faqSubCtgNm}</span>
+            {/* 유형 뱃지 + 제목 */}
+            <div className="flex items-center gap-2 mt-3 mb-1">
+              {notice.noticeTypeCd && (
+                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded flex-shrink-0 ${TYPE_BADGE[notice.noticeTypeCd] ?? 'bg-gray-50 text-gray-500'}`}>
+                  {notice.noticeTypeNm}
+                </span>
+              )}
+              <h2 className="text-xl font-extrabold text-gray-900 leading-snug">
+                {notice.postSj}
+              </h2>
             </div>
 
-            {/* 제목 */}
-            <h2 className="text-xl font-extrabold text-gray-900 leading-snug mb-4">
-              {faq.postSj}
-            </h2>
+            {/* 등록일 */}
+            <p className="text-xs text-gray-400 mb-4">
+              등록일 : {notice.regDt?.slice(0, 10).replace(/-/g, '.')}
+            </p>
 
-            {/* 본문 내용 */}
-            <div className="min-h-48 py-6 border-b border-gray-200 mb-6">
-              {faq.postCn ? (
+            {/* 본문 */}
+            <div className="min-h-48 py-6 border-t border-b border-gray-200 mb-6">
+              {notice.postCn ? (
                 <div className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
-                  {faq.postCn}
+                  {notice.postCn}
                 </div>
               ) : (
                 <p className="text-sm text-gray-400">내용이 없습니다.</p>
@@ -90,7 +102,7 @@ export default function FaqDetailPage() {
             {/* 전체목록 버튼 */}
             <div className="mb-6">
               <button
-                onClick={() => navigate('/customer/faq')}
+                onClick={() => navigate('/customer/notice')}
                 className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded text-sm text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

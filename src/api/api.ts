@@ -22,6 +22,7 @@ const api = axios.create({
 api.interceptors.request.use((config) => {
   config.withCredentials = true; // 쿠키 포함
   if (inMemoryAccessToken) {
+    console.log("API 요청에 Access Token 포함:", inMemoryAccessToken);
     config.headers["Authorization"] = `Bearer ${inMemoryAccessToken}`;
   }
   return config;
@@ -53,7 +54,7 @@ api.interceptors.response.use(
 
     try {
       const refreshResponse = await axios.post(
-        "http://localhost:8081/api/auth/refresh",
+        "/api/auth/refresh",
         {},
         { withCredentials: true },
       );
