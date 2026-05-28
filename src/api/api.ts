@@ -43,6 +43,7 @@ api.interceptors.response.use(
       originalRequest._retry ||
       requestUrl.includes("/api/auth/login") ||
       requestUrl.includes("/api/auth/logout") ||
+      requestUrl.includes("/api/auth/refresh") ||
       (status !== 401 && status !== 403)
     ) {
       return Promise.reject(error);
@@ -60,6 +61,8 @@ api.interceptors.response.use(
       setApiAccessToken(null); // 토큰 재발급 실패 시 토큰 제거
 
       if (window.location.pathname !== "/login") {
+        console.log("토큰 재발급 실패, 로그인 페이지로 리다이렉트");
+
         window.location.replace("/login"); // 로그인 페이지로 리다이렉트
       }
 
