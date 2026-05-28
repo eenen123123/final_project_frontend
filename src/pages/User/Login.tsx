@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import api from "../../api/api";
 
@@ -15,6 +15,10 @@ export default function Login() {
     userId: "",
     userPswd: "",
   });
+
+  const location = useLocation();
+  const from =
+    (location.state as { from?: { pathname: string } })?.from?.pathname ?? "/";
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -38,7 +42,7 @@ export default function Login() {
       }
       const { accessToken } = response.data;
       login(accessToken);
-      navigate("/");
+      navigate(from, { replace: true });
     } catch (error) {
       console.error("Login Failed", error);
       alert("로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.");
@@ -49,9 +53,10 @@ export default function Login() {
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-md mx-auto">
         <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-
           <div className="bg-blue-950 px-8 py-6">
-            <p className="text-amber-400 text-xs tracking-widest mb-1">Hermes</p>
+            <p className="text-amber-400 text-xs tracking-widest mb-1">
+              Hermes
+            </p>
             <h1 className="text-white text-2xl font-bold">로그인</h1>
             <p className="text-blue-300 text-sm mt-1">
               헤르메스에 오신 것을 환영합니다.
@@ -60,7 +65,10 @@ export default function Login() {
 
           <form onSubmit={handleSubmit} className="px-8 py-8 space-y-5">
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="userId" className="text-sm font-medium text-gray-700">
+              <label
+                htmlFor="userId"
+                className="text-sm font-medium text-gray-700"
+              >
                 아이디
               </label>
               <input
@@ -74,7 +82,10 @@ export default function Login() {
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="userPswd" className="text-sm font-medium text-gray-700">
+              <label
+                htmlFor="userPswd"
+                className="text-sm font-medium text-gray-700"
+              >
                 비밀번호
               </label>
               <input
