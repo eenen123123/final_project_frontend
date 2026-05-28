@@ -6,8 +6,9 @@ import NewHeader from "./components/Header/NewHeader";
 function App() {
   return (
     <>
-      <Header />
-      <NewHeader/>
+      {/* 이전 헤더 제거 */}
+      {/* <Header /> */}
+      <NewHeader />
       <AppRoute />
     </>
   );

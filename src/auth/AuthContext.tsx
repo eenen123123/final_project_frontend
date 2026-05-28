@@ -99,7 +99,7 @@ export default function AuthProvider({
     const restoreSession = async () => {
       try {
         const response = await api.post(
-          "http://localhost:8081/api/auth/refresh",
+          "/api/auth/refresh",
           {},
           { withCredentials: true },
         );

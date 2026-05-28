@@ -1,106 +1,185 @@
-import { useState, useMemo } from 'react';
-import NoticeItem from './components/NoticeItem';
-import type { Notice } from '../../types/NoticeInterface';
+import { useState, useEffect, useMemo } from 'react';
+import { Link } from 'react-router-dom';
+import ServiceSidebar from '../components/ServiceSidebar';
+import NoticeHeader from './components/NoticeHeader';
+import api from '../../../api/api';
+import type { NoticeItem } from '../../../types/board/NoticeInterface';
 
-// ── 더미 데이터 (추후 API 교체) ─────────────────────────────────────────────
-const MOCK_NOTICES: Notice[] = [
-  {
-    id: 'n1',
-    category: '공지',
-    title: '5월 모의고사 해설 라이브 안내 (5/18 20:00)',
-    preview: '5월 학평 사회문화 전 문항 라이브 해설을 진행합니다. 라이브 중 채팅으로 질문하면 실시간 답변드립니다.',
-    date: '2026.05.07',
-    isPinned: true,
-  },
-  {
-    id: 'n2',
-    category: '업데이트',
-    title: '13~14강 (일탈 이론) 자료 v2 업로드',
-    preview: '머튼의 적응 양식 표를 보강하여 PDF를 다시 올렸습니다. 마이페이지 > 자료실에서 확인해주세요.',
-    date: '2026.05.05',
-    isPinned: true,
-  },
-  {
-    id: 'n3',
-    category: '공지',
-    title: '수강 기간 연장 정책 변경 안내',
-    preview: '기존 1회 30일 → 2회 각 30일로 연장 정책이 개선되었습니다.',
-    date: '2026.04.28',
-  },
-  {
-    id: 'n4',
-    category: '이벤트',
-    title: 'QnA 우수 답변 작성자 5월 시상',
-    preview: '이번 달 QnA에서 가장 도움이 된 답변을 남긴 수강생 3명에게 교재를 증정합니다.',
-    date: '2026.04.20',
-  },
-  {
-    id: 'n5',
-    category: '업데이트',
-    title: '모바일 앱 1.4.0 업데이트',
-    preview: '오프라인 다운로드 안정성을 개선하고, 1.5배속과 1.75배속을 추가했습니다.',
-    date: '2026.04.12',
-  },
-  {
-    id: 'n6',
-    category: '공지',
-    title: '2026 수능 대비 학습 로드맵 공개',
-    preview: '1순환 개념 → 2순환 기출 → 3순환 실전, 단계별 추천 커리큘럼을 마이페이지에서 확인하세요.',
-    date: '2026.04.01',
-  },
-];
-// ──────────────────────────────────────────────────────────────────────────
+{/*
+  * 변경사항 *
+1. 사이드바 hidden md:block 모바일 숨김
+2. 레이아웃 flex-col md:flex-row 반응형
+3. 테이블 모바일 카드 리스트로 전환
+4. 버튼 cursor-pointer 추가
+*/}
+
+const PAGE_SIZE = 15;
+
+const TYPE_BADGE: Record<string, string> = {
+  '01': 'bg-blue-50 text-blue-600',
+  '02': 'bg-orange-50 text-orange-600',
+  '03': 'bg-red-50 text-red-600',
+};
 
 export default function NoticePage() {
-  const [search, setSearch] = useState('');
+  const [noticeList,  setNoticeList]  = useState<NoticeItem[]>([]);
+  const [loading,     setLoading]     = useState(false);
+  const [searchInput, setSearchInput] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [page,        setPage]        = useState(1);
+
+  useEffect(() => {
+    const fetchNoticeList = async () => {
+      setLoading(true);
+      try {
+        const res = await api.get('/api/notice');
+        setNoticeList(res.data);
+      } catch (err) {
+        console.error('공지사항 조회 실패:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchNoticeList();
+  }, []);
+
+  const handleSearch = () => {
+    if (!searchInput.trim()) { alert('검색값을 입력하세요'); return; }
+    setSearchQuery(searchInput.trim());
+    setPage(1);
+  };
 
   const filtered = useMemo(() => {
-    if (!search.trim()) return MOCK_NOTICES;
-    const q = search.toLowerCase();
-    return MOCK_NOTICES.filter(
-      (n) =>
-        n.title.toLowerCase().includes(q) ||
-        n.preview.toLowerCase().includes(q)
-    );
-  }, [search]);
+    if (!searchQuery) return noticeList;
+    const q = searchQuery.toLowerCase();
+    return noticeList.filter((n) => n.postSj.toLowerCase().includes(q));
+  }, [noticeList, searchQuery]);
 
-  const handleNoticeClick = (notice: Notice) => {
-    // TODO: 공지 상세 페이지 라우팅
-    console.log('공지 클릭:', notice.id);
-  };
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const paged      = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
     <div className="min-h-screen bg-white">
-      {/* 페이지 헤더 */}
-      <div className="px-8 pt-8 pb-6 border-b border-gray-100">
-        <p className="text-sm text-gray-400 mb-2">
-          사회문화 A &nbsp;/&nbsp; 공지사항
-        </p>
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">공지사항</h1>
-        <p className="text-sm text-gray-500">
-          강좌 운영, 자료 업데이트, 이벤트 등 모든 공지사항을 확인하세요.
-        </p>
-      </div>
-
-      {/* 구분선 */}
-      <div className="border-b border-gray-100" />
-
-      {/* 목록 */}
-      <div className="px-8 py-2">
-        {filtered.length > 0 ? (
-          filtered.map((notice) => (
-            <NoticeItem
-              key={notice.id}
-              notice={notice}
-              onClick={handleNoticeClick}
-            />
-          ))
-        ) : (
-          <div className="text-center py-24 text-gray-400">
-            <p className="text-lg mb-1">공지사항이 없어요</p>
-            <p className="text-sm">다른 검색어를 입력해보세요</p>
+      <div className="w-full max-w-5xl mx-auto px-4 py-5">
+        <div className="flex flex-col md:flex-row gap-5 items-start">
+          {/* 사이드바: 모바일에서 숨김 */}
+          <div className="hidden md:block">
+            <ServiceSidebar />
           </div>
-        )}
+
+          <div className="flex-1 min-w-0 w-full">
+            <NoticeHeader />
+
+            {/* 데스크탑 테이블 */}
+            <div className="hidden md:block mt-4 mb-4">
+              <table className="w-full text-sm">
+                <colgroup>
+                  <col style={{ width: '80px' }} />
+                  <col />
+                  <col style={{ width: '100px' }} />
+                </colgroup>
+                <thead>
+                  <tr className="bg-gray-50 border-b border-gray-200">
+                    <th className="py-2.5 px-3 text-xs font-semibold text-gray-600 text-center">번호</th>
+                    <th className="py-2.5 px-3 text-xs font-semibold text-gray-600 text-left">제목</th>
+                    <th className="py-2.5 px-3 text-xs font-semibold text-gray-600 text-center">작성일</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {loading ? (
+                    <tr><td colSpan={3} className="py-12 text-center text-sm text-gray-400">불러오는 중...</td></tr>
+                  ) : paged.length > 0 ? paged.map((item, idx) => (
+                    <tr key={item.postSn} className="hover:bg-gray-50 transition-colors">
+                      <td className="py-3 px-3 text-center text-xs text-gray-400">
+                        {filtered.length - ((page - 1) * PAGE_SIZE) - idx}
+                      </td>
+                      <td className="py-3 px-3">
+                        <Link
+                          to={`/customer/notice/${item.postSn}`}
+                          className="text-sm text-gray-800 hover:text-blue-600 transition-colors flex items-center gap-2 cursor-pointer"
+                        >
+                          {item.noticeTypeCd && (
+                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded flex-shrink-0 ${TYPE_BADGE[item.noticeTypeCd] ?? 'bg-gray-50 text-gray-500'}`}>
+                              {item.noticeTypeNm}
+                            </span>
+                          )}
+                          {item.postSj}
+                        </Link>
+                      </td>
+                      <td className="py-3 px-3 text-center text-xs text-gray-400">
+                        {item.regDt?.slice(0, 10).replace(/-/g, '.')}
+                      </td>
+                    </tr>
+                  )) : (
+                    <tr><td colSpan={3} className="py-12 text-center text-sm text-gray-400">공지사항이 없습니다.</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* 모바일 카드 리스트 */}
+            <div className="md:hidden divide-y divide-gray-100 border-t-2 border-gray-800 mt-4 mb-4">
+              {loading ? (
+                <p className="py-12 text-center text-sm text-gray-400">불러오는 중...</p>
+              ) : paged.length > 0 ? paged.map((item) => (
+                <Link key={item.postSn} to={`/customer/notice/${item.postSn}`}
+                  className="flex items-center justify-between py-3 px-2 hover:bg-gray-50 transition-colors cursor-pointer">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5 mb-0.5">
+                      {item.noticeTypeCd && (
+                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded flex-shrink-0 ${TYPE_BADGE[item.noticeTypeCd] ?? 'bg-gray-50 text-gray-500'}`}>
+                          {item.noticeTypeNm}
+                        </span>
+                      )}
+                      <span className="text-[10px] text-gray-400">{item.regDt?.slice(0, 10).replace(/-/g, '.')}</span>
+                    </div>
+                    <p className="text-sm text-gray-800 truncate">{item.postSj}</p>
+                  </div>
+                  <span className="text-gray-300 text-sm flex-shrink-0 ml-2">&gt;</span>
+                </Link>
+              )) : (
+                <p className="py-12 text-center text-sm text-gray-400">공지사항이 없습니다.</p>
+              )}
+            </div>
+
+            {/* 페이지네이션 */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-1 mb-6">
+                <button onClick={() => setPage(1)} disabled={page === 1}
+                  className="px-2 py-1 text-xs text-gray-400 hover:text-gray-700 disabled:opacity-30 cursor-pointer">◀◀</button>
+                <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
+                  className="px-2 py-1 text-xs text-gray-400 hover:text-gray-700 disabled:opacity-30 cursor-pointer">◀</button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                  <button key={p} onClick={() => setPage(p)}
+                    className={`px-2.5 py-1 text-xs rounded transition-colors cursor-pointer ${
+                      page === p ? 'bg-blue-600 text-white font-bold' : 'text-gray-500 hover:text-gray-900'
+                    }`}>{p}</button>
+                ))}
+                <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
+                  className="px-2 py-1 text-xs text-gray-400 hover:text-gray-700 disabled:opacity-30 cursor-pointer">▶</button>
+                <button onClick={() => setPage(totalPages)} disabled={page === totalPages}
+                  className="px-2 py-1 text-xs text-gray-400 hover:text-gray-700 disabled:opacity-30 cursor-pointer">▶▶</button>
+              </div>
+            )}
+
+            {/* 하단 검색 */}
+            <div className="flex flex-wrap items-center gap-2 justify-center mt-4">
+              <input
+                type="text"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                placeholder="제목검색"
+                className="border border-gray-300 rounded text-xs px-3 py-2 w-64 sm:w-72 focus:outline-none focus:border-blue-400 transition-colors"
+              />
+              <button onClick={handleSearch}
+                className="bg-gray-700 hover:bg-gray-900 text-white text-xs font-semibold px-4 py-2 rounded transition-colors cursor-pointer">
+                검색
+              </button>
+            </div>
+
+          </div>
+        </div>
       </div>
     </div>
   );
