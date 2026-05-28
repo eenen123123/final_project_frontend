@@ -22,3 +22,7 @@ export interface QnaCreateRequest {
   postCn: string;
   wrtrUserId: string;
 }
+
+export interface QnaPageProps {
+  myOnly?: boolean;
+}
