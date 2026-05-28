@@ -22,6 +22,8 @@ import ServiceCenterPage from "./pages/ServiceCenter/ServiceCenterPage";
 import FAQPage from "./pages/ServiceCenter/FAQ/FAQPage";
 import FaqDetailPage from "./pages/ServiceCenter/FAQ/FaqDetailPage";
 import QnAPage from "./pages/ServiceCenter/QnA/QnAPage";
+import NoticeDetailPage from "./pages/ServiceCenter/Notice/NoticeDetailPage";
+import QnaWritePage from "./pages/ServiceCenter/QnA/QnaWritePage";
 
 export default function AppRoute() {
   return (
@@ -47,6 +49,7 @@ export default function AppRoute() {
       <Route path="/customer/faq" element={<FAQPage />} />
       <Route path="/customer/faq/:postSn" element={<FaqDetailPage />} />
       <Route path="/customer/notice" element={<NoticePage />} />
+      <Route path="/customer/notice/:postSn" element={<NoticeDetailPage/>} />
       <Route path="/customer/qna" element={<QnAPage />} />
       <Route path="/customer/*" element={<ServiceCenterPage />} />
 
@@ -55,6 +58,7 @@ export default function AppRoute() {
         <Route path="/mypage" element={<MyPage />} />
         <Route path="/classroom/:classId" element={<ClassroomPage />} />
         <Route path="/mylecture" element={<OnlineLecturePage/>} />
+        <Route path="/customer/qna/write" element={<QnaWritePage/>}/>
       </Route>
 
       {/* 관리자 전용 라우트 */}
