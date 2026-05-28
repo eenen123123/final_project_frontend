@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useKakaoPostcodePopup } from "react-daum-postcode";
 
 interface SignUpForm {
   userId: string;
@@ -15,13 +16,19 @@ interface SignUpForm {
   zip: string;
   addr: string;
   daddr: string;
+  userEnrno?: string;
 }
 
 export default function SignUp() {
   const [emailConfirmed, setEmailConfirmed] = useState(false);
+  const [userIdAvailable, setUserIdAvailable] = useState(false);
   const [timer, setTimer] = useState(600); // 남은 초 (10분)
   const [timerActive, setTimerActive] = useState(false);
+  const [rrnFront, setRrnFront] = useState("");
+  const [rrnBack, setRrnBack] = useState("");
+  const rrnBackRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
+  const openPostcode = useKakaoPostcodePopup();
 
   useEffect(() => {
     if (!timerActive) return;
@@ -49,12 +56,15 @@ export default function SignUp() {
     zip: "",
     addr: "",
     daddr: "",
+    userEnrno: "",
   });
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    setUserIdAvailable(false); // 입력이 변경되면 아이디 중복 확인 상태 초기화
+    setEmailConfirmed(false); // 입력이 변경되면 이메일 인증 상태 초기화
   };
 
   const validateForm = (): boolean => {
@@ -69,6 +79,8 @@ export default function SignUp() {
       "emailAddr",
       "zip",
       "addr",
+      "emailCode",
+      "userEnrno",
     ];
     if (required.some((k) => !formData[k])) {
       alert("모든 필수 항목을 입력해주세요.");
@@ -97,11 +109,79 @@ export default function SignUp() {
       return false;
     }
 
+    if (rrnFront.length === 6 && rrnBack.length === 7) {
+      const yymmdd = formData.birthDate.replace(/-/g, "").substring(2);
+      if (rrnFront !== yymmdd) {
+        alert("생년월일과 주민등록번호의 생년월일이 일치하지 않습니다.");
+        return false;
+      }
+
+      const genderDigit = rrnBack.charAt(0);
+      const isMale = genderDigit === "1" || genderDigit === "3";
+      const isFemale = genderDigit === "2" || genderDigit === "4";
+      if ((isMale && formData.gender !== "M") || (isFemale && formData.gender !== "F")) {
+        alert("주민등록번호의 성별과 선택한 성별이 일치하지 않습니다.");
+        return false;
+      }
+
+      const digits = (rrnFront + rrnBack).split("").map(Number);
+      const weights = [2, 3, 4, 5, 6, 7, 8, 9, 2, 3, 4, 5];
+      const sum = weights.reduce((acc, w, i) => acc + w * digits[i], 0);
+      if ((11 - (sum % 11)) % 10 !== digits[12]) {
+        alert("유효하지 않은 주민등록번호입니다.");
+        return false;
+      }
+    }
+
     if (!emailConfirmed) {
       alert("이메일 인증이 필요합니다.");
       return false;
     }
+
+    if (!userIdAvailable) {
+      alert("아이디 중복 확인이 필요합니다.");
+      return false;
+    }
+
     return true;
+  };
+
+  const handleRrnFrontChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value.replace(/\D/g, "").slice(0, 6);
+    setRrnFront(val);
+    setFormData((prev) => ({ ...prev, userEnrno: val + "-" + rrnBack }));
+    if (val.length === 6) rrnBackRef.current?.focus();
+  };
+
+  const handleRrnBackChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value.replace(/\D/g, "").slice(0, 7);
+    setRrnBack(val);
+    setFormData((prev) => ({ ...prev, userEnrno: rrnFront + "-" + val }));
+  };
+
+  const checkIsUserIdAvailable = async () => {
+    if (!formData.userId) {
+      alert("아이디를 입력해주세요.");
+      return;
+    }
+    try {
+      const response = await axios.get(
+        `/api/member/check-userid?userId=${formData.userId}`,
+      );
+      console.log(`아이디 중복 확인 결과: ${response.data}`);
+
+      if (response.data === true) {
+        setUserIdAvailable(true);
+        alert("사용 가능한 아이디입니다.");
+      } else {
+        setUserIdAvailable(false);
+        alert("이미 사용 중인 아이디입니다. 다른 아이디를 선택해주세요.");
+      }
+    } catch (error) {
+      console.error("아이디 중복 확인 실패", error);
+      alert("아이디 중복 확인에 실패했습니다. 다시 시도해주세요.");
+      setUserIdAvailable(false);
+    }
   };
 
   const handleGetEmailCode = async () => {
@@ -113,20 +193,41 @@ export default function SignUp() {
       alert("인증번호가 이미 발송되었습니다. 잠시 후 다시 시도해주세요.");
       return;
     }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.emailAddr)) {
+      alert("유효한 이메일 주소를 입력해주세요.");
+      return;
+    }
+
     try {
-      // await axios.post("http://localhost:8081/api/member/email-code", { emailAddr: formData.emailAddr });
+      await axios.post("/api/member/email-code", {
+        emailAddr: formData.emailAddr,
+      });
     } catch (error) {
       console.error("인증번호 발송 실패", error);
+      alert("인증번호 발송에 실패했습니다. 다시 시도해주세요.");
       return;
     }
     setTimer(600);
     setTimerActive(true);
   };
 
-  const handleConfirmEmailCode = () => {
-    // TODO: 서버에서 인증번호 검증
-    setEmailConfirmed(true);
-    setTimerActive(false);
+  const handleConfirmEmailCode = async () => {
+    if (!formData.emailCode) {
+      alert("인증번호를 입력해주세요.");
+      return;
+    }
+    try {
+      await axios.post("/api/member/email-code/verify", {
+        emailAddr: formData.emailAddr,
+        emailCode: formData.emailCode,
+      });
+      setEmailConfirmed(true);
+      setTimerActive(false);
+    } catch (error) {
+      console.error("이메일 인증 실패", error);
+      alert("이메일 인증에 실패했습니다. 다시 시도해주세요.");
+    }
   };
 
   const formatTimer = (s: number) =>
@@ -134,13 +235,27 @@ export default function SignUp() {
       .toString()
       .padStart(2, "0")}:${(s % 60).toString().padStart(2, "0")}`;
 
+  const handleAddressSearch = () => {
+    openPostcode({
+      onComplete: (data) => {
+        console.log("주소 검색 결과:", data);
+
+        setFormData((prev) => ({
+          ...prev,
+          zip: data.zonecode,
+          addr: data.address || data.jibunAddress,
+        }));
+      },
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
     try {
-      await axios.post("http://localhost:8081/api/member/signup", formData);
+      await axios.post("/api/member/signup", formData);
       alert("회원가입이 완료되었습니다.");
-      // navigate("/login");
+      navigate("/login");
     } catch (error) {
       console.error("회원가입 실패", error);
       alert("회원가입에 실패했습니다. 다시 시도해주세요.");
@@ -164,16 +279,37 @@ export default function SignUp() {
 
           {/* 폼 영역 */}
           <form onSubmit={handleSubmit} className="px-8 py-8 space-y-5">
-            <Field label="아이디" required>
-              <input
-                type="text"
-                name="userId"
-                value={formData.userId}
-                onChange={handleChange}
-                placeholder="4~20자"
-                className={inputCls}
-              />
-            </Field>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-gray-700">
+                아이디<span className="text-red-500 ml-0.5">*</span>
+                {!userIdAvailable ? (
+                  <span className="text-red-500 ml-2 text-xs">
+                    아이디 중복 확인이 필요합니다.
+                  </span>
+                ) : (
+                  <span className="text-green-500 ml-2 text-xs">
+                    사용 가능한 아이디입니다.
+                  </span>
+                )}
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  name="userId"
+                  value={formData.userId}
+                  onChange={handleChange}
+                  placeholder="4~20자"
+                  className={`${inputCls} flex-1`}
+                />
+                <button
+                  type="button"
+                  onClick={checkIsUserIdAvailable}
+                  className="shrink-0 px-4 py-2 bg-gray-100 border border-gray-200 text-gray-700 text-sm rounded-lg hover:bg-gray-200 transition-colors whitespace-nowrap"
+                >
+                  중복 확인
+                </button>
+              </div>
+            </div>
 
             <Field label="비밀번호" required>
               <input
@@ -230,6 +366,34 @@ export default function SignUp() {
                   className={inputCls}
                 />
               </Field>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-gray-700">
+                주민등록번호
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={rrnFront}
+                  onChange={handleRrnFrontChange}
+                  maxLength={6}
+                  placeholder="앞 6자리"
+                  inputMode="numeric"
+                  className={`${inputCls} `}
+                />
+                <span className="text-gray-400">-</span>
+                <input
+                  ref={rrnBackRef}
+                  type="password"
+                  value={rrnBack}
+                  onChange={handleRrnBackChange}
+                  maxLength={7}
+                  placeholder="뒤 7자리"
+                  inputMode="numeric"
+                  className={`${inputCls}  `}
+                />
+              </div>
             </div>
 
             <Field label="전화번호" required>
@@ -299,25 +463,38 @@ export default function SignUp() {
               )}
             </div>
 
-            <Field label="우편번호" required>
-              <input
-                type="text"
-                name="zip"
-                value={formData.zip}
-                onChange={handleChange}
-                className={inputCls}
-              />
-            </Field>
-
-            <Field label="주소" required>
-              <input
-                type="text"
-                name="addr"
-                value={formData.addr}
-                onChange={handleChange}
-                className={inputCls}
-              />
-            </Field>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-gray-700">
+                주소<span className="text-red-500 ml-0.5">*</span>
+              </label>
+              <div className="flex gap-2">
+                <div>
+                  <input
+                    type="text"
+                    value={formData.zip}
+                    readOnly
+                    placeholder="우편번호"
+                    className={`${inputCls} w-28 bg-gray-50 cursor-default`}
+                  />
+                  <input
+                    type="text"
+                    value={formData.addr}
+                    readOnly
+                    placeholder="주소 검색 후 자동 입력"
+                    className={`${inputCls} flex-1 bg-gray-50 cursor-default mt-2`}
+                  />
+                </div>
+                <div>
+                  <button
+                    type="button"
+                    onClick={handleAddressSearch}
+                    className="shrink-0 px-4 py-2 bg-gray-100 border border-gray-200 text-gray-700 text-sm rounded-lg hover:bg-gray-200 transition-colors whitespace-nowrap"
+                  >
+                    주소 검색
+                  </button>
+                </div>
+              </div>
+            </div>
 
             <Field label="상세주소">
               <input
