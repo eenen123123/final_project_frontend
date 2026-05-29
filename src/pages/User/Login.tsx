@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import api from "../../api/api";
 
-interface LoginProps {
+interface LoginForm {
   userId: string;
   userPswd: string;
 }
@@ -11,26 +11,31 @@ interface LoginProps {
 export default function Login() {
   const { login, logout } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
-  const from = (location.state as { from?: { pathname: string } })?.from?.pathname ?? "/";
-
-  const [formData, setFormData] = useState<LoginProps>({
+  const [formData, setFormData] = useState<LoginForm>({
     userId: "",
     userPswd: "",
   });
 
+  const location = useLocation();
+  const from =
+    (location.state as { from?: { pathname: string } })?.from?.pathname ?? "/";
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     try {
-      const response = await api.post("http://localhost:8081/api/auth/login", formData);
+      const response = await api.post(
+        "http://localhost:8081/api/auth/login",
+        formData,
+      );
 
-      if (response.status === 401 && response.data.message === "유효하지 않은 리프레시 토큰입니다.") {
+      if (
+        response.status === 401 &&
+        response.data.message === "유효하지 않은 리프레시 토큰입니다."
+      ) {
         logout();
         navigate("/login");
         return;
@@ -41,52 +46,79 @@ export default function Login() {
     } catch (error) {
       console.error("Login Failed", error);
       alert("로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.");
-      return;
     }
   };
+
   return (
-    <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded shadow">
-      <h2 className="text-2xl font-bold mb-4">로그인</h2>
-      <div>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="flex flex-col gap-2">
-            <label htmlFor="userId" className=" font-medium">
-              아이디
-            </label>
-            <input
-              type="text"
-              name="userId"
-              id="userId"
-              value={formData.userId}
-              onChange={handleChange}
-              className="border border-gray-300 rounded px-3 py-2"
-            />
-
-            <label htmlFor="userPswd" className=" font-medium">
-              비밀번호
-            </label>
-            <input
-              type="password"
-              name="userPswd"
-              id="userPswd"
-              value={formData.userPswd}
-              onChange={handleChange}
-              className="border border-gray-300 rounded px-3 py-2"
-            />
-
-            <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 cursor-pointer">
-              로그인
-            </button>
-            <button
-              type="button"
-              className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 cursor-pointer"
-              onClick={() => navigate("/signup")}
-            >
-              회원가입
-            </button>
+    <div className="min-h-screen bg-gray-50 py-12 px-4">
+      <div className="max-w-md mx-auto">
+        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+          <div className="bg-blue-950 px-8 py-6">
+            <p className="text-amber-400 text-xs tracking-widest mb-1">
+              Hermes
+            </p>
+            <h1 className="text-white text-2xl font-bold">로그인</h1>
+            <p className="text-blue-300 text-sm mt-1">
+              헤르메스에 오신 것을 환영합니다.
+            </p>
           </div>
-        </form>
+
+          <form onSubmit={handleSubmit} className="px-8 py-8 space-y-5">
+            <div className="flex flex-col gap-1.5">
+              <label
+                htmlFor="userId"
+                className="text-sm font-medium text-gray-700"
+              >
+                아이디
+              </label>
+              <input
+                type="text"
+                name="userId"
+                id="userId"
+                value={formData.userId}
+                onChange={handleChange}
+                className={inputCls}
+              />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label
+                htmlFor="userPswd"
+                className="text-sm font-medium text-gray-700"
+              >
+                비밀번호
+              </label>
+              <input
+                type="password"
+                name="userPswd"
+                id="userPswd"
+                value={formData.userPswd}
+                onChange={handleChange}
+                className={inputCls}
+              />
+            </div>
+
+            <div className="flex flex-col gap-3 pt-2">
+              <button
+                type="submit"
+                className="w-full py-2.5 bg-blue-950 text-white font-semibold rounded-lg hover:bg-blue-900 transition-colors cursor-pointer"
+              >
+                로그인
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate("/signup")}
+                className="w-full py-2.5 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+              >
+                회원가입
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );
 }
+
+const inputCls =
+  "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-blue-400 transition-colors";

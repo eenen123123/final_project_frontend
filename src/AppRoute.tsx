@@ -15,6 +15,7 @@ import TossPayFailTestPage from "./pages/test/toss/TossPayFailTestPage";
 import TossPayTestPage from "./pages/test/toss/TossPayTestPage";
 import BuyProduct from "./pages/test/BuyProduct";
 import OnlineLecturePage from "./pages/Onlinelecture/OnlineLecturePage";
+import ClassroomLayout from "./layouts/ClassroomLayout";
 
 import NoticePage from "./pages/ServiceCenter/Notice/NoticePage";
 import ServiceCenterPage from "./pages/ServiceCenter/ServiceCenterPage";
@@ -39,7 +40,10 @@ export default function AppRoute() {
 
       <Route path="/test/buy" element={<BuyProduct />} />
       <Route path="/test/toss-pay" element={<TossPayTestPage />} />
-      <Route path="/test/toss-pay/success" element={<TossPaySuccessTestPage />} />
+      <Route
+        path="/test/toss-pay/success"
+        element={<TossPaySuccessTestPage />}
+      />
       {/* 공용 라우트 */}
       <Route path="/test/toss-pay/fail" element={<TossPayFailTestPage />} />
 
