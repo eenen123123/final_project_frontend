@@ -24,6 +24,7 @@ import QnAPage from "./pages/ServiceCenter/QnA/QnAPage";
 import NoticeDetailPage from "./pages/ServiceCenter/Notice/NoticeDetailPage";
 import QnaWritePage from "./pages/ServiceCenter/QnA/QnaWritePage";
 import QnaDetailPage from "./pages/ServiceCenter/QnA/QnaDetailPage";
+import QnaEditPage from "./pages/ServiceCenter/QnA/QnaEditPage";
 
 export default function AppRoute() {
   return (
@@ -57,6 +58,7 @@ export default function AppRoute() {
         <Route path="/mylecture" element={<OnlineLecturePage />} />
         <Route path="/customer/qna/write" element={<QnaWritePage />} />
         <Route path="/customer/qna/my" element={<QnAPage myOnly />} />
+        <Route path="/customer/qna/:postSn/edit" element={<QnaEditPage />} />
       </Route>
 
       <Route path="/customer/qna/:postSn" element={<QnaDetailPage />} />
