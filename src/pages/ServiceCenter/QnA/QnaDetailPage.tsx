@@ -15,6 +15,8 @@ export default function QnaDetailPage() {
   const [loading, setLoading] = useState(false);
   const [denied, setDenied] = useState(false);
 
+  const isOwner = qna?.wrtrUserId === getUserId();
+
   useEffect(() => {
     if (!postSn) return;
     const fetchQna = async () => {
@@ -26,7 +28,6 @@ export default function QnaDetailPage() {
         // 비밀글 접근 제한
         if (data.secrYn === "Y") {
           const userId = getUserId();
-          const role = getRole();
           if (!isAuthenticated || (userId !== data.wrtrUserId && !getRole()?.includes("ADMIN"))) {
             setDenied(true);
             setLoading(false);
@@ -43,6 +44,18 @@ export default function QnaDetailPage() {
     };
     fetchQna();
   }, [postSn]);
+
+  const handleDelete = async () => {
+    if (!window.confirm("정말 삭제하시겠습니까?")) return;
+    try {
+      await api.delete(`/api/qna/${postSn}`);
+      alert("삭제되었습니다.");
+      navigate("/customer/qna");
+    } catch (err) {
+      console.error("QnA 삭제 실패:", err);
+      alert("삭제 중 오류가 발생했습니다.");
+    }
+  };
 
   if (loading) {
     return (
@@ -105,7 +118,6 @@ export default function QnaDetailPage() {
     <div className="min-h-screen bg-white">
       <div className="w-full max-w-5xl mx-auto px-4 py-5">
         <div className="flex flex-col md:flex-row gap-5 items-start">
-          {/* 사이드바: 모바일에서 숨김 */}
           <div className="hidden md:block">
             <ServiceSidebar />
           </div>
@@ -171,8 +183,8 @@ export default function QnaDetailPage() {
               </div>
             )}
 
-            {/* 전체목록 버튼 */}
-            <div className="mt-5">
+            {/* 버튼 영역 */}
+            <div className="mt-5 flex items-center justify-between">
               <button
                 onClick={() => navigate("/customer/qna")}
                 className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded text-sm text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
@@ -189,6 +201,24 @@ export default function QnaDetailPage() {
                 </svg>
                 전체목록
               </button>
+
+              {/* 본인 글일 때만 수정/삭제 버튼 표시 */}
+              {isOwner && (
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => navigate(`/customer/qna/${postSn}/edit`)}
+                    className="px-4 py-2 border border-violet-200 rounded text-sm text-violet-600 font-semibold hover:bg-violet-50 transition-colors cursor-pointer"
+                  >
+                    수정
+                  </button>
+                  <button
+                    onClick={handleDelete}
+                    className="px-4 py-2 border border-red-200 rounded text-sm text-red-500 font-semibold hover:bg-red-50 transition-colors cursor-pointer"
+                  >
+                    삭제
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
