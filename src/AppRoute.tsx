@@ -40,10 +40,7 @@ export default function AppRoute() {
 
       <Route path="/test/buy" element={<BuyProduct />} />
       <Route path="/test/toss-pay" element={<TossPayTestPage />} />
-      <Route
-        path="/test/toss-pay/success"
-        element={<TossPaySuccessTestPage />}
-      />
+      <Route path="/test/toss-pay/success" element={<TossPaySuccessTestPage />} />
       {/* 공용 라우트 */}
       <Route path="/test/toss-pay/fail" element={<TossPayFailTestPage />} />
 
@@ -53,6 +50,7 @@ export default function AppRoute() {
       <Route path="/customer/notice" element={<NoticePage />} />
       <Route path="/customer/notice/:postSn" element={<NoticeDetailPage />} />
       <Route path="/customer/qna" element={<QnAPage />} />
+      <Route path="/customer/qna/:postSn" element={<QnaDetailPage />} />
       <Route path="/customer/*" element={<ServiceCenterPage />} />
 
       {/* 인증이 필요한 라우트 */}
@@ -64,8 +62,6 @@ export default function AppRoute() {
         <Route path="/customer/qna/my" element={<QnAPage myOnly />} />
         <Route path="/customer/qna/:postSn/edit" element={<QnaEditPage />} />
       </Route>
-
-      <Route path="/customer/qna/:postSn" element={<QnaDetailPage />} />
 
       {/* 관리자 전용 라우트 */}
       <Route element={<ProtectedRouteAdmin />}>
