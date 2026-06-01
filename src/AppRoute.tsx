@@ -28,6 +28,8 @@ import QnaDetailPage from "./pages/ServiceCenter/QnA/QnaDetailPage";
 import QnaEditPage from "./pages/ServiceCenter/QnA/QnaEditPage";
 import DataRoomPage from "./pages/ServiceCenter/DataRoom/DataRoomPage";
 import DataRoomDetailPage from "./pages/ServiceCenter/DataRoom/DataRoomDetailPage";
+import VerifyPasswordPage from "./pages/User/VerifyPasswordPage";
+import ProfileEditPage from "./pages/User/ProfileEditPage";
 
 export default function AppRoute() {
   return (
@@ -60,6 +62,8 @@ export default function AppRoute() {
       {/* 인증이 필요한 라우트 */}
       <Route element={<ProtectedRoute />}>
         <Route path="/mypage" element={<MyPage />} />
+        <Route path="/mypage/verify" element={<VerifyPasswordPage />} /> {/* 비밀번호 확인 */}
+        <Route path="/mypage/profile/edit" element={<ProfileEditPage />} />
         <Route path="/classroom/:classId" element={<ClassroomPage />} />
         <Route path="/mylecture" element={<OnlineLecturePage />} />
         <Route path="/customer/qna/write" element={<QnaWritePage />} />
