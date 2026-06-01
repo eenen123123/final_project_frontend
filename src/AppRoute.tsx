@@ -26,6 +26,8 @@ import NoticeDetailPage from "./pages/ServiceCenter/Notice/NoticeDetailPage";
 import QnaWritePage from "./pages/ServiceCenter/QnA/QnaWritePage";
 import QnaDetailPage from "./pages/ServiceCenter/QnA/QnaDetailPage";
 import QnaEditPage from "./pages/ServiceCenter/QnA/QnaEditPage";
+import DataRoomPage from "./pages/ServiceCenter/DataRoom/DataRoomPage";
+import DataRoomDetailPage from "./pages/ServiceCenter/DataRoom/DataRoomDetailPage";
 
 export default function AppRoute() {
   return (
@@ -51,6 +53,8 @@ export default function AppRoute() {
       <Route path="/customer/notice/:postSn" element={<NoticeDetailPage />} />
       <Route path="/customer/qna" element={<QnAPage />} />
       <Route path="/customer/qna/:postSn" element={<QnaDetailPage />} />
+      <Route path="/customer/resource" element={<DataRoomPage />} />
+      <Route path="/customer/resource/:postSn" element={<DataRoomDetailPage />} />
       <Route path="/customer/*" element={<ServiceCenterPage />} />
 
       {/* 인증이 필요한 라우트 */}
