@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../auth/AuthContext";
-import api from "../../api/api";
 import WithdrawSection from "./components/WithdrawSection";
+import api from "../../../api/api";
+import { useAuth } from "../../../auth/AuthContext";
 
 interface ProfileData {
   userId: string;

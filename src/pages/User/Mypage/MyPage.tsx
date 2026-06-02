@@ -1,13 +1,14 @@
 import { useState } from "react";
-import { useAuth } from "../../auth/AuthContext";
-import Badge from "../../components/Badge/Badge";
-import MyPageSidebar from "./components/MyPageSidebar";
-import StudyStatus from "./components/StudyStatus";
-import StudyCalendar from "./components/StudyCalendar";
-import StudyReport from "./components/StudyReport";
-import AlertDropdown from "./components/AlertDropdown";
-import type { AlertItem } from "./components/AlertDropdown";
-import type { CourseStatus, CalendarEvent, StudySubject, TeacherRank } from "../../types/MyPageInterface";
+import { useAuth } from "../../../auth/AuthContext";
+import Badge from "../../../components/Badge/Badge";
+
+import StudyStatus from "../Mypage/components/StudyStatus";
+import StudyCalendar from "../Mypage/components/StudyCalendar";
+import StudyReport from "../Mypage/components//StudyReport";
+import AlertDropdown from "../Mypage/components/AlertDropdown";
+import type { AlertItem } from "../Mypage/components/AlertDropdown";
+import type { CourseStatus, CalendarEvent, StudySubject, TeacherRank } from "../../../types/MyPageInterface";
+import MyPageSidebar from "../Mypage/components/MyPageSidebar";
 
 // ── 더미 데이터 ───────────────────────────────────────────────────────────
 const COURSE_STATUS: CourseStatus = {

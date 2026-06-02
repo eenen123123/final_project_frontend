@@ -2,7 +2,7 @@ import { Route, Routes } from "react-router-dom";
 import Home from "./pages/Home";
 import ClassroomPage from "./pages/Classroom/ClassroomPage";
 import ProtectedRoute from "./auth/ProtectedRoute";
-import MyPage from "./pages/User/MyPage";
+import MyPage from "./pages/User/Mypage/MyPage";
 import ProtectedRouteAdmin from "./auth/ProtectedRouteAdmin";
 import AdminPage from "./pages/Admin/AdminPage";
 import Login from "./pages/User/Login";
@@ -14,9 +14,6 @@ import TossPaySuccessTestPage from "./pages/test/toss/TossPaySuccessTestPage";
 import TossPayFailTestPage from "./pages/test/toss/TossPayFailTestPage";
 import TossPayTestPage from "./pages/test/toss/TossPayTestPage";
 import BuyProduct from "./pages/test/BuyProduct";
-import OnlineLecturePage from "./pages/Onlinelecture/OnlineLecturePage";
-import ClassroomLayout from "./layouts/ClassroomLayout";
-
 import NoticePage from "./pages/ServiceCenter/Notice/NoticePage";
 import ServiceCenterPage from "./pages/ServiceCenter/ServiceCenterPage";
 import FAQPage from "./pages/ServiceCenter/FAQ/FAQPage";
@@ -29,7 +26,12 @@ import QnaEditPage from "./pages/ServiceCenter/QnA/QnaEditPage";
 import DataRoomPage from "./pages/ServiceCenter/DataRoom/DataRoomPage";
 import DataRoomDetailPage from "./pages/ServiceCenter/DataRoom/DataRoomDetailPage";
 import VerifyPasswordPage from "./pages/User/VerifyPasswordPage";
-import ProfileEditPage from "./pages/User/ProfileEditPage";
+import MyLecturePage from "./pages/User/Mypage/MyLecturePage";
+import ProfileEditPage from "./pages/User/Mypage/ProfileEditPage";
+import DummyPage from "./pages/User/Mypage/dummy";
+import LectureEnrollPage from "./pages/User/Mypage/LectureEnrollPage";
+import BookOrderPage from "./pages/User/Mypage/BookOrderPage";
+import LectureHistoryPage from "./pages/User/Mypage/LectureHistoryPage";
 
 export default function AppRoute() {
   return (
@@ -58,17 +60,21 @@ export default function AppRoute() {
       <Route path="/customer/resource" element={<DataRoomPage />} />
       <Route path="/customer/resource/:postSn" element={<DataRoomDetailPage />} />
       <Route path="/customer/*" element={<ServiceCenterPage />} />
+      <Route path="/dummy" element={<DummyPage />} />
 
       {/* 인증이 필요한 라우트 */}
       <Route element={<ProtectedRoute />}>
         <Route path="/mypage" element={<MyPage />} />
-        <Route path="/mypage/verify" element={<VerifyPasswordPage />} /> {/* 비밀번호 확인 */}
+        <Route path="/mylecture" element={<MyLecturePage />} />
+        <Route path="/mypage/verify" element={<VerifyPasswordPage />} />
         <Route path="/mypage/profile/edit" element={<ProfileEditPage />} />
         <Route path="/classroom/:classId" element={<ClassroomPage />} />
-        <Route path="/mylecture" element={<OnlineLecturePage />} />
         <Route path="/customer/qna/write" element={<QnaWritePage />} />
         <Route path="/customer/qna/my" element={<QnAPage myOnly />} />
         <Route path="/customer/qna/:postSn/edit" element={<QnaEditPage />} />
+        <Route path="/enroll" element={<LectureEnrollPage />} />
+        <Route path="/mylecture/book" element={<BookOrderPage />} />
+        <Route path="/mylecture/history" element={<LectureHistoryPage />} />
       </Route>
 
       {/* 관리자 전용 라우트 */}
