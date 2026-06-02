@@ -37,6 +37,20 @@ export default function FileUploadTest() {
   // 파일 업로드
   const uploadFile = async () => {
     if (!fileUploadBody.file) return;
+
+    if (
+      !fileUploadBody.file.type.startsWith("image/") &&
+      !fileUploadBody.file.type.startsWith("application/pdf")
+    ) {
+      alert("이미지 또는 PDF 파일만 업로드할 수 있습니다.");
+      return;
+    }
+
+    if (fileUploadBody.file.size > 10 * 1024 * 1024) {
+      alert("파일 크기는 10MB를 초과할 수 없습니다.");
+      return;
+    }
+
     try {
       setIsUploading(true);
       const formData = new FormData();
@@ -50,9 +64,10 @@ export default function FileUploadTest() {
       });
       const uploadedFileId = res.data;
       setFileServerId(uploadedFileId);
-      console.log("File uploaded successfully:", uploadedFileId);
+      console.log("파일 업로드 성공:", uploadedFileId);
     } catch (error) {
-      console.error("File upload failed:", error);
+      console.error("파일 업로드 실패:", error);
+      alert("파일 업로드에 실패했습니다.");
     } finally {
       setIsUploading(false);
     }
@@ -65,9 +80,18 @@ export default function FileUploadTest() {
     try {
       const res = await api.post(`/api/files/${fileServerId}/token`);
       setFileUrl(res.data);
-      console.log("File URL:", res.data);
+      console.log("파일 접근 URL:", res.data);
     } catch (error) {
-      console.error("Failed to get file URL:", error);
+      if (error instanceof Error) {
+        if (error.message.includes("403")) {
+          alert("파일 접근 권한이 없습니다.");
+        } else {
+          alert(`파일 접근 URL 가져오기 실패: ${error.message}`);
+        }
+      } else {
+        alert("파일 접근 URL 가져오기 실패");
+      }
+      console.error("파일 접근 URL 가져오기 실패:", error);
     }
   };
   return (
@@ -75,7 +99,7 @@ export default function FileUploadTest() {
       <div className="border p-4 rounded">
         <form action="" className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
-            <label htmlFor="fileInput">Choose a file</label>
+            <label htmlFor="fileInput">파일 선택</label>
             <input
               id="fileInput"
               type="file"
