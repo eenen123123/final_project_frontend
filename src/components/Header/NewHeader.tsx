@@ -16,10 +16,8 @@ export default function NewHeader() {
 
   return (
     <header className="site-header">
-
       {/* ── 1. 메인 바: 로고 + 우측 유틸 ── */}
       <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
-
         {/* 로고 */}
         <Link to="/" className="brand-logo group">
           <div className="brand-logo-icon">
@@ -41,18 +39,28 @@ export default function NewHeader() {
               <span className="text-gray-700">
                 <strong className="font-bold">{userName}</strong>님
               </span>
-              <Link to="/mypage" className="header-util-link">마이페이지</Link>
-              <button onClick={logout} className="btn-ghost">로그아웃</button>
+              <Link to="/mypage" className="header-util-link">
+                마이페이지
+              </Link>
+              <button onClick={logout} className="btn-ghost">
+                로그아웃
+              </button>
             </>
           ) : (
             <>
-              <Link to="/login" className="header-util-link">로그인</Link>
-              <Link to="/signup" className="btn-primary">회원가입</Link>
+              <Link to="/login" className="header-util-link">
+                로그인
+              </Link>
+              <Link to="/signup" className="btn-primary">
+                회원가입
+              </Link>
             </>
           )}
 
           <div className="header-util-divider" />
-          <Link to="/customer" className="header-util-link">고객센터</Link>
+          <Link to="/customer" className="header-util-link">
+            고객센터
+          </Link>
 
           {/* 검색 컴포넌트 연결 예정 */}
 
@@ -71,13 +79,12 @@ export default function NewHeader() {
       {/* ── 2. 하단 네비게이션 바 ── */}
       <div className="header-nav-bar">
         <div className="max-w-7xl mx-auto px-6 h-11 flex items-center gap-1">
-
           {/* 사이트맵 버튼 */}
           <button
             onClick={() => setSiteMapOpen((v) => !v)}
-            className={`sitemap-btn ${siteMapOpen ? 'sitemap-btn-active' : ''}`}
+            className={`sitemap-btn ${siteMapOpen ? "sitemap-btn-active" : ""}`}
           >
-            <i className={`fa-solid ${siteMapOpen ? 'fa-xmark' : 'fa-bars'} text-sm`} />
+            <i className={`fa-solid ${siteMapOpen ? "fa-xmark" : "fa-bars"} text-sm`} />
           </button>
 
           {/* 사이트맵 드롭다운 */}
@@ -88,22 +95,20 @@ export default function NewHeader() {
           {/* 메인 네비 */}
           <nav className="flex items-center gap-0.5 flex-1">
             {[
-              { to: '/lectures',    label: '전체 강좌' },
-              { to: '/mylecture',   label: '나의 강의실' },
-              { to: '/qna',         label: 'Q&A' },
-              { to: '/notice',      label: '공지사항' },
-              { to: '/mypage',      label: '마이페이지' },
-              ...(isAuthenticated ? [{ to: '/classroom/1', label: 'Classroom' }] : []),
+              { to: "/lectures", label: "전체 강좌" },
+              { to: "/mylecture", label: "나의 강의실" },
+              { to: "/qna", label: "Q&A" },
+              { to: "/dummy", label: "더미" },
+              { to: "/mypage", label: "마이페이지" },
+              ...(isAuthenticated ? [{ to: "/classroom/1", label: "Classroom" }] : []),
             ].map(({ to, label }) => (
               <Link key={to} to={to} className="nav-link">
                 {label}
               </Link>
             ))}
           </nav>
-
         </div>
       </div>
-
     </header>
   );
 }
