@@ -146,13 +146,14 @@ function FetchPostExample() {
   const [post, setPost] = useState<PostResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [postId, setPostId] = useState(141);
 
   const fetchPost = async () => {
     setLoading(true);
     setError(null);
     setPost(null);
     try {
-      const res = await api.get<PostResponse>("/api/posts/example/141");
+      const res = await api.get<PostResponse>(`/api/posts/example/${postId}`);
       setPost(res.data);
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "불러오기 실패";
@@ -165,16 +166,21 @@ function FetchPostExample() {
   return (
     <div className="space-y-4">
       <h2 className="text-lg font-semibold text-slate-700">
-        게시글 불러오기 테스트 (141번)
+        게시글 불러오기 테스트 ({postId}번)
       </h2>
-
+      <input
+        type="number"
+        className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+        value={postId}
+        onChange={(e) => setPostId(Number(e.target.value))}
+      />
       <button
         type="button"
         onClick={fetchPost}
         disabled={loading}
         className="rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-slate-700 disabled:opacity-40"
       >
-        {loading ? "불러오는 중..." : "GET /api/posts/example/141"}
+        {loading ? "불러오는 중..." : `GET /api/posts/example/${postId}`}
       </button>
 
       {error && (
@@ -186,7 +192,9 @@ function FetchPostExample() {
       {post && (
         <div className="space-y-3">
           <p className="text-xs text-slate-400">postSn: {post.postSn}</p>
-          <h3 className="text-xl font-semibold text-slate-900">{post.postSj}</h3>
+          <h3 className="text-xl font-semibold text-slate-900">
+            {post.postSj}
+          </h3>
           <TipTapEditor initialContent={post.postCn} editable={false} />
         </div>
       )}
