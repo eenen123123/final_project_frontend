@@ -9,11 +9,11 @@ interface NavItem {
 
 const NAV: NavItem[] = [
   { label: "수강중 강좌", href: "/mylecture" },
-  { label: "My 캘린더", href: "#calendar" },
+  { label: "My 캘린더", href: "/mycalendar" },
   { label: "주문/배송 조회", href: "#order" },
   { label: "수강 신청", href: "#enroll" },
   {
-    label: "내 강의실",
+    label: "나의 강의실",
     href: "#classroom",
     children: [
       { label: "수강중 강좌", href: "/mylecture" },
@@ -36,7 +36,7 @@ const NAV: NavItem[] = [
     label: "나의 정보",
     href: "#info",
     children: [
-      { label: "학습 알림 설정", href: "#notification" },
+      { label: "나의 Q&A", href: "#notification" },
       { label: "개인 정보 수정", href: "/mypage/verify" },
     ],
   },

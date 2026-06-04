@@ -1,5 +1,4 @@
-import type { StudySubject, TeacherRank } from "../../../types/MyPageInterface";
-
+import type { StudySubject, TeacherRank } from "../../../../types/MyPageInterface";
 
 interface StudyReportProps {
   subjects: StudySubject[];
@@ -15,7 +14,7 @@ function RadarChart({ subjects }: { subjects: StudySubject[] }) {
   const levels = [30, 60, 90];
 
   // 6개 축 각도
-  const angles = subjects.map((_, i) => (Math.PI / 2) + (2 * Math.PI * i) / subjects.length);
+  const angles = subjects.map((_, i) => Math.PI / 2 + (2 * Math.PI * i) / subjects.length);
 
   const point = (r: number, angle: number) => ({
     x: cx + r * Math.cos(angle),
@@ -24,17 +23,22 @@ function RadarChart({ subjects }: { subjects: StudySubject[] }) {
 
   // 배경 육각형
   const hexPath = (r: number) =>
-    angles.map((a, i) => {
-      const p = point(r, a);
-      return `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`;
-    }).join(' ') + ' Z';
+    angles
+      .map((a, i) => {
+        const p = point(r, a);
+        return `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`;
+      })
+      .join(" ") + " Z";
 
   // 데이터 폴리곤
-  const dataPath = subjects.map((s, i) => {
-    const r = (s.percent / 100) * maxR;
-    const p = point(r, angles[i]);
-    return `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`;
-  }).join(' ') + ' Z';
+  const dataPath =
+    subjects
+      .map((s, i) => {
+        const r = (s.percent / 100) * maxR;
+        const p = point(r, angles[i]);
+        return `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`;
+      })
+      .join(" ") + " Z";
 
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>

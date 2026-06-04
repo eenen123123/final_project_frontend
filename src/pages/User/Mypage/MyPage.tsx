@@ -7,7 +7,7 @@ import StudyCalendar from "../Mypage/components/StudyCalendar";
 import StudyReport from "../Mypage/components//StudyReport";
 import AlertDropdown from "../Mypage/components/AlertDropdown";
 import type { AlertItem } from "../Mypage/components/AlertDropdown";
-import type { CourseStatus, CalendarEvent, StudySubject, TeacherRank } from "../../../types/MyPageInterface";
+import type { CalendarEvent, CourseStatus, StudySubject, TeacherRank } from "../../../types/MyPageInterface";
 import MyPageSidebar from "../Mypage/components/MyPageSidebar";
 
 // ── 더미 데이터 ───────────────────────────────────────────────────────────
@@ -24,18 +24,54 @@ const COURSE_STATUS: CourseStatus = {
 };
 
 const CALENDAR_EVENTS: CalendarEvent[] = [
-  { date: "2026-05-01", type: "event", title: "5월 수강생 이벤트 시작" },
-  { date: "2026-05-05", type: "academic", title: "어린이날 (휴일)" },
-  { date: "2026-05-07", type: "personal", title: "사회문화 A — 2강 복습" },
-  { date: "2026-05-08", type: "personal", title: "3~4강 시청 예정" },
-  { date: "2026-05-14", type: "academic", title: "5월 모의고사" },
-  { date: "2026-05-14", type: "personal", title: "모의고사 당일 오답 정리" },
-  { date: "2026-05-18", type: "event", title: "5.1~5.31 수강후기 작성 시 치킨 증정 🍗" },
-  { date: "2026-05-22", type: "event", title: "5.1~5.31 수강후기 작성 시 치킨 증정 🍗" },
-  { date: "2026-05-22", type: "event", title: "헤르메스에서 놓친 혜택 자수하고 선물 받자!" },
-  { date: "2026-05-22", type: "academic", title: "일정 없음. 다른 날을 확인해 보세요." },
-  { date: "2026-05-25", type: "personal", title: "1단원 마무리 + 5월 학평 복습" },
-  { date: "2026-05-29", type: "academic", title: "중간 모의 테스트" },
+  {
+    id: "1",
+    date: "2026-05-01",
+    startDate: "2026-05-01",
+    endDate: "2026-05-01",
+    type: "event",
+    title: "5월 수강생 이벤트 시작",
+  },
+  {
+    id: "2",
+    date: "2026-05-05",
+    startDate: "2026-05-05",
+    endDate: "2026-05-05",
+    type: "academic",
+    title: "어린이날 (휴일)",
+  },
+  {
+    id: "3",
+    date: "2026-05-07",
+    startDate: "2026-05-07",
+    endDate: "2026-05-07",
+    type: "personal",
+    title: "사회문화 A — 2강 복습",
+  },
+  {
+    id: "4",
+    date: "2026-05-14",
+    startDate: "2026-05-14",
+    endDate: "2026-05-14",
+    type: "academic",
+    title: "5월 모의고사",
+  },
+  {
+    id: "5",
+    date: "2026-05-22",
+    startDate: "2026-05-22",
+    endDate: "2026-05-22",
+    type: "event",
+    title: "헤르메스에서 놓친 혜택 자수하고 선물 받자!",
+  },
+  {
+    id: "6",
+    date: "2026-05-25",
+    startDate: "2026-05-25",
+    endDate: "2026-05-25",
+    type: "personal",
+    title: "1단원 마무리 + 5월 학평 복습",
+  },
 ];
 
 const SUBJECTS: StudySubject[] = [

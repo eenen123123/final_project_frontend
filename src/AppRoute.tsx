@@ -32,6 +32,7 @@ import DummyPage from "./pages/User/Mypage/dummy";
 import LectureEnrollPage from "./pages/User/Mypage/LectureEnrollPage";
 import BookOrderPage from "./pages/User/Mypage/BookOrderPage";
 import LectureHistoryPage from "./pages/User/Mypage/LectureHistoryPage";
+import MyCalendarPage from "./pages/User/Mypage/MyCalendarPage";
 
 export default function AppRoute() {
   return (
@@ -65,6 +66,7 @@ export default function AppRoute() {
       {/* 인증이 필요한 라우트 */}
       <Route element={<ProtectedRoute />}>
         <Route path="/mypage" element={<MyPage />} />
+        <Route path="/mycalendar" element={<MyCalendarPage />} />
         <Route path="/mylecture" element={<MyLecturePage />} />
         <Route path="/mypage/verify" element={<VerifyPasswordPage />} />
         <Route path="/mypage/profile/edit" element={<ProfileEditPage />} />

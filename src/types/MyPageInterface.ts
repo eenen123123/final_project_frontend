@@ -11,11 +11,14 @@ export interface TeacherRank {
 }
 
 export interface CalendarEvent {
-  date: string;      // 'YYYY-MM-DD'
+  id: string;
+  date: string;        // 'YYYY-MM-DD' (StudyCalendar 호환용)
+  startDate: string;
+  endDate: string;
   type: 'event' | 'academic' | 'personal';
   title: string;
+  content?: string;
 }
-
 export interface CourseStatus {
   active: number;
   activeLabel: string;
