@@ -26,6 +26,7 @@ import QnaEditPage from "./pages/ServiceCenter/QnA/QnaEditPage";
 import DataRoomPage from "./pages/ServiceCenter/DataRoom/DataRoomPage";
 import DataRoomDetailPage from "./pages/ServiceCenter/DataRoom/DataRoomDetailPage";
 import VerifyPasswordPage from "./pages/User/VerifyPasswordPage";
+import NotFound from "./pages/NotFound";
 import MyLecturePage from "./pages/User/Mypage/MyLecturePage";
 import ProfileEditPage from "./pages/User/Mypage/ProfileEditPage";
 import DummyPage from "./pages/User/Mypage/dummy";
@@ -81,6 +82,8 @@ export default function AppRoute() {
       <Route element={<ProtectedRouteAdmin />}>
         <Route path="/admin" element={<AdminPage />} />
       </Route>
+
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }
