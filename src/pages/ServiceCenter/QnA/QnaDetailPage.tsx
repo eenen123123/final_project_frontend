@@ -5,45 +5,44 @@ import QnaHeader from "./components/QnaHeader";
 import { useAuth } from "../../../auth/AuthContext";
 import api from "../../../api/api";
 import type { QnaItem } from "../../../types/board/QnaInterface";
+import TipTapEditor from "../../../components/TipTapEditor";
+import axios from "axios";
 
 export default function QnaDetailPage() {
   const { postSn } = useParams<{ postSn: string }>();
   const navigate = useNavigate();
-  const { isAuthenticated, getUserId, getRole } = useAuth();
+  const { getUserId, isAuthReady } = useAuth();
 
   const [qna, setQna] = useState<QnaItem | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [denied, setDenied] = useState(false);
 
   const isOwner = qna?.wrtrUserId === getUserId();
 
   useEffect(() => {
-    if (!postSn) return;
+    if (!postSn || !isAuthReady) return;
     const fetchQna = async () => {
       setLoading(true);
       try {
-        const res = await api.get(`/api/qna/${postSn}`);
-        const data: QnaItem = res.data;
-
-        // 비밀글 접근 제한
-        if (data.secrYn === "Y") {
-          const userId = getUserId();
-          if (!isAuthenticated || (userId !== data.wrtrUserId && !getRole()?.includes("ADMIN"))) {
-            setDenied(true);
-            setLoading(false);
-            return;
-          }
-        }
-
+        const res = await api.get<QnaItem>(`/api/qna/${postSn}`);
+        const data = res.data;
+        if (typeof data.postCn === "string")
+          data.postCn = JSON.parse(data.postCn);
+        if (typeof data.answCn === "string")
+          data.answCn = JSON.parse(data.answCn);
         setQna(data);
       } catch (err) {
-        console.error("QnA 상세 조회 실패:", err);
+        if (axios.isAxiosError(err) && err.response?.status === 403) {
+          setDenied(true);
+        } else {
+          console.error("QnA 상세 조회 실패:", err);
+        }
       } finally {
         setLoading(false);
       }
     };
     fetchQna();
-  }, [postSn]);
+  }, [postSn, isAuthReady]);
 
   const handleDelete = async () => {
     if (!window.confirm("정말 삭제하시겠습니까?")) return;
@@ -90,8 +89,12 @@ export default function QnaDetailPage() {
                     d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"
                   />
                 </svg>
-                <p className="text-sm font-semibold text-gray-600">비밀글입니다.</p>
-                <p className="text-xs text-gray-400">작성자 본인만 열람할 수 있습니다.</p>
+                <p className="text-sm font-semibold text-gray-600">
+                  비밀글입니다.
+                </p>
+                <p className="text-xs text-gray-400">
+                  작성자 본인만 열람할 수 있습니다.
+                </p>
                 <button
                   onClick={() => navigate("/customer/qna")}
                   className="mt-2 px-5 py-2 border border-gray-300 rounded text-sm text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
@@ -149,18 +152,26 @@ export default function QnaDetailPage() {
                     </svg>
                   )}
                   {qna.answStatCd === "01" ? (
-                    <span className="text-xs text-gray-400 font-semibold">답변대기</span>
+                    <span className="text-xs text-gray-400 font-semibold">
+                      답변대기
+                    </span>
                   ) : (
                     <span className="text-xs bg-blue-50 text-blue-600 font-semibold px-2 py-0.5 rounded-full">
                       답변완료
                     </span>
                   )}
                 </div>
-                <span className="text-xs text-gray-400">{qna.regDt?.slice(0, 10)}</span>
+                <span className="text-xs text-gray-400">
+                  {qna.regDt?.slice(0, 10)}
+                </span>
               </div>
-              <div className="px-4 py-5">
-                <h2 className="text-base font-bold text-gray-900 mb-3">{qna.postSj}</h2>
-                <div className="text-sm text-gray-700 leading-relaxed whitespace-pre-line min-h-24">{qna.postCn}</div>
+              <div className="px-4 pt-4 pb-2 border-b border-gray-100">
+                <h2 className="text-base font-bold text-gray-900">
+                  {qna.postSj}
+                </h2>
+              </div>
+              <div className="px-4 py-5 min-h-24">
+                <TipTapEditor initialContent={qna.postCn} editable={false} />
               </div>
             </div>
 
@@ -169,17 +180,28 @@ export default function QnaDetailPage() {
               <div className="mt-3 border border-blue-100 rounded-sm">
                 <div className="px-4 py-3 bg-blue-50 border-b border-blue-100">
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-blue-600">관리자 답변</span>
-                    <span className="text-xs text-gray-400">{qna.answDt?.slice(0, 10)}</span>
+                    <span className="text-xs font-bold text-blue-600">
+                      관리자 답변
+                    </span>
+                    <span className="text-xs text-gray-400">
+                      {qna.answDt?.slice(0, 10)}
+                    </span>
                   </div>
                 </div>
                 <div className="px-4 py-5">
-                  <div className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">{qna.answCn}</div>
+                  <div className="text-sm text-gray-700 leading-relaxed">
+                    <TipTapEditor
+                      initialContent={qna.answCn}
+                      editable={false}
+                    />
+                  </div>
                 </div>
               </div>
             ) : (
               <div className="mt-3 border border-gray-100 rounded-sm px-4 py-6 text-center bg-gray-50">
-                <p className="text-xs text-gray-400">아직 답변이 등록되지 않았습니다.</p>
+                <p className="text-xs text-gray-400">
+                  아직 답변이 등록되지 않았습니다.
+                </p>
               </div>
             )}
 
@@ -197,12 +219,15 @@ export default function QnaDetailPage() {
                   stroke="currentColor"
                   strokeWidth={2}
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M4 6h16M4 10h16M4 14h16M4 18h16"
+                  />
                 </svg>
                 전체목록
               </button>
 
-              {/* 본인 글일 때만 수정/삭제 버튼 표시 */}
               {isOwner && (
                 <div className="flex items-center gap-2">
                   <button

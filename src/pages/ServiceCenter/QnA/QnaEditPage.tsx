@@ -5,6 +5,9 @@ import QnaHeader from "./components/QnaHeader";
 import { useAuth } from "../../../auth/AuthContext";
 import api from "../../../api/api";
 import type { QnaItem } from "../../../types/board/QnaInterface";
+import type { JSONContent } from "@tiptap/react";
+import TipTapEditor from "../../../components/TipTapEditor";
+import { extractFileIds, stripBlobUrls } from "../../../api/fileApi";
 
 const QNA_CATEGORIES = [
   { code: "01", name: "수강문의" },
@@ -17,15 +20,22 @@ export default function QnaEditPage() {
   const navigate = useNavigate();
   const { getUserId } = useAuth();
 
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<{
+    qnaCtgCd: string;
+    secrYn: string;
+    postSj: string;
+    postCn: JSONContent | null;
+    wrtrUserId: string;
+  }>({
     qnaCtgCd: "01",
     secrYn: "N",
     postSj: "",
-    postCn: "",
+    postCn: null,
     wrtrUserId: getUserId() ?? "",
   });
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [hasPendingUploads, setHasPendingUploads] = useState(false);
 
   useEffect(() => {
     if (!postSn) return;
@@ -35,7 +45,6 @@ export default function QnaEditPage() {
         const res = await api.get(`/api/qna/${postSn}`);
         const data: QnaItem = res.data;
 
-        // 본인 글인지 확인
         if (data.wrtrUserId !== getUserId()) {
           alert("수정 권한이 없습니다.");
           navigate(`/customer/qna/${postSn}`);
@@ -46,7 +55,7 @@ export default function QnaEditPage() {
           qnaCtgCd: data.qnaCtgCd,
           secrYn: data.secrYn,
           postSj: data.postSj,
-          postCn: data.postCn,
+          postCn: typeof data.postCn === "string" ? JSON.parse(data.postCn) : data.postCn,
           wrtrUserId: data.wrtrUserId,
         });
       } catch (err) {
@@ -58,28 +67,23 @@ export default function QnaEditPage() {
     fetchQna();
   }, [postSn]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSecrToggle = () => {
-    setForm((prev) => ({ ...prev, secrYn: prev.secrYn === "Y" ? "N" : "Y" }));
-  };
+  const isEmpty = !form.postCn || !form.postCn.content?.some((n) => n.content?.length);
 
   const handleSubmit = async () => {
-    if (!form.postSj.trim()) {
-      alert("제목을 입력하세요.");
-      return;
-    }
-    if (!form.postCn.trim()) {
-      alert("내용을 입력하세요.");
-      return;
-    }
+    if (!form.postSj.trim()) return alert("제목을 입력하세요.");
+    if (isEmpty) return alert("내용을 입력하세요.");
+    if (hasPendingUploads) return alert("이미지 업로드가 완료될 때까지 기다려주세요.");
+
+    const cleanContent = stripBlobUrls(form.postCn!);
+    const fileIds = extractFileIds(cleanContent);
 
     setSubmitting(true);
     try {
-      await api.put(`/api/qna/${postSn}`, form);
+      await api.put(`/api/qna/${postSn}`, {
+        ...form,
+        postCn: JSON.stringify(cleanContent),
+        fileIds,
+      });
       alert("수정되었습니다.");
       navigate(`/customer/qna/${postSn}`);
     } catch (err) {
@@ -102,7 +106,6 @@ export default function QnaEditPage() {
     <div className="min-h-screen bg-white">
       <div className="w-full max-w-5xl mx-auto px-4 py-5">
         <div className="flex flex-col md:flex-row gap-5 items-start">
-          {/* 사이드바: 모바일에서 숨김 */}
           <div className="hidden md:block">
             <ServiceSidebar />
           </div>
@@ -117,9 +120,8 @@ export default function QnaEditPage() {
                   분류 <span className="text-red-400">*</span>
                 </label>
                 <select
-                  name="qnaCtgCd"
                   value={form.qnaCtgCd}
-                  onChange={handleChange}
+                  onChange={(e) => setForm((prev) => ({ ...prev, qnaCtgCd: e.target.value }))}
                   className="border border-gray-300 rounded text-sm px-3 py-2 focus:outline-none focus:border-blue-400 transition-colors cursor-pointer w-40"
                 >
                   {QNA_CATEGORIES.map((cat) => (
@@ -137,39 +139,42 @@ export default function QnaEditPage() {
                 </label>
                 <input
                   type="text"
-                  name="postSj"
                   value={form.postSj}
-                  onChange={handleChange}
+                  onChange={(e) => setForm((prev) => ({ ...prev, postSj: e.target.value }))}
                   placeholder="제목을 입력하세요."
                   className="w-full border border-gray-300 rounded text-sm px-3 py-2 focus:outline-none focus:border-blue-400 transition-colors"
                 />
               </div>
 
-              {/* 내용 */}
-              <div className="mb-4">
-                <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-                  내용 <span className="text-red-400">*</span>
-                </label>
-                <textarea
-                  name="postCn"
-                  value={form.postCn}
-                  onChange={handleChange}
-                  placeholder="문의 내용을 입력하세요."
-                  rows={10}
-                  className="w-full border border-gray-300 rounded text-sm px-3 py-2 focus:outline-none focus:border-blue-400 transition-colors resize-none"
+              {/* 내용 - 데이터 로드 후 에디터 마운트 */}
+              {form.postCn !== null && (
+                <TipTapEditor
+                  initialContent={form.postCn}
+                  onChange={(json, pending) => {
+                    setForm((prev) => ({ ...prev, postCn: json }));
+                    setHasPendingUploads(pending);
+                  }}
+                  ctxType="POST"
+                  ctxId={postSn ?? "0"}
+                  maxImages={5}
                 />
-              </div>
+              )}
 
               {/* 비공개 여부 */}
-              <div className="mb-6 flex items-center gap-2">
+              <div className="mt-4 mb-6 flex items-center gap-2">
                 <input
                   type="checkbox"
                   id="secrYn"
                   checked={form.secrYn === "Y"}
-                  onChange={handleSecrToggle}
+                  onChange={() =>
+                    setForm((prev) => ({ ...prev, secrYn: prev.secrYn === "Y" ? "N" : "Y" }))
+                  }
                   className="w-4 h-4 accent-blue-600 cursor-pointer"
                 />
-                <label htmlFor="secrYn" className="text-xs text-gray-600 cursor-pointer flex items-center gap-1">
+                <label
+                  htmlFor="secrYn"
+                  className="text-xs text-gray-600 cursor-pointer flex items-center gap-1"
+                >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     className="w-3.5 h-3.5 text-gray-400"

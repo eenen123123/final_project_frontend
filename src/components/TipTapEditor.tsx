@@ -1,4 +1,11 @@
-import { type ChangeEvent, createContext, useContext, useEffect, useRef, useState } from "react";
+import {
+  type ChangeEvent,
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import {
   EditorContent,
   NodeViewWrapper,
@@ -15,7 +22,13 @@ import {
 import StarterKit from "@tiptap/starter-kit";
 import TextAlign from "@tiptap/extension-text-align";
 import Placeholder from "@tiptap/extension-placeholder";
-import { extractFileIds, getFileToken, getFilesToken, uploadFile } from "../api/fileApi";
+import Highlight from "@tiptap/extension-highlight";
+import {
+  extractFileIds,
+  getFileToken,
+  getFilesToken,
+  uploadFile,
+} from "../api/fileApi";
 
 const ImageTokenContext = createContext<Record<number, string> | null>(null);
 
@@ -38,6 +51,7 @@ export interface TipTapEditorProps {
   ctxId?: string;
   maxImages?: number;
   placeholder?: string;
+  editorMaxHeight?: string;
 }
 
 // --- ImageNodeView ---
@@ -199,14 +213,17 @@ export default function TipTapEditor({
   ctxId = "0",
   maxImages = 5,
   placeholder = "내용을 입력하세요...",
+  editorMaxHeight = "480px",
 }: TipTapEditorProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pendingUploadsRef = useRef<Set<string>>(new Set());
   const [uploadingCount, setUploadingCount] = useState(0);
-  const [imageTokens, setImageTokens] = useState<Record<number, string> | null>(() => {
-    const fileIds = initialContent ? extractFileIds(initialContent) : [];
-    return fileIds.length === 0 ? {} : null;
-  });
+  const [imageTokens, setImageTokens] = useState<Record<number, string> | null>(
+    () => {
+      const fileIds = initialContent ? extractFileIds(initialContent) : [];
+      return fileIds.length === 0 ? {} : null;
+    },
+  );
 
   useEffect(() => {
     const fileIds = initialContent ? extractFileIds(initialContent) : [];
@@ -214,13 +231,14 @@ export default function TipTapEditor({
     getFilesToken(fileIds)
       .then(setImageTokens)
       .catch(() => setImageTokens({}));
-  // initialContent는 마운트 시 한 번만 사용
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // initialContent는 마운트 시 한 번만 사용
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const editor = useEditor({
     editable,
     extensions: [
+      Highlight,
       StarterKit,
       TextAlign.configure({ types: ["heading", "paragraph"] }),
       Placeholder.configure({ placeholder }),
@@ -233,7 +251,7 @@ export default function TipTapEditor({
     editorProps: {
       attributes: {
         class:
-          "min-h-[240px] px-4 py-3 text-sm text-slate-800 leading-relaxed focus:outline-none prose prose-sm max-w-none prose-headings:font-semibold prose-headings:text-slate-900 prose-p:text-slate-700 prose-ul:list-disc prose-ul:pl-5 prose-ol:list-decimal prose-ol:pl-5 prose-code:bg-slate-100 prose-code:px-1 prose-code:rounded prose-code:text-sm prose-blockquote:border-l-4 prose-blockquote:border-slate-300 prose-blockquote:pl-4 prose-blockquote:text-slate-500",
+          "min-h-[240px] px-4 py-3 text-sm text-slate-800 leading-normal prose-p:my-0 focus:outline-none prose prose-sm max-w-none prose-headings:font-semibold prose-headings:text-slate-900 prose-p:text-slate-700 prose-ul:list-disc prose-ul:pl-5 prose-ol:list-decimal prose-ol:pl-5 prose-code:bg-slate-100 prose-code:px-1 prose-code:rounded prose-code:text-sm prose-blockquote:border-l-4 prose-blockquote:border-slate-300 prose-blockquote:pl-4 prose-blockquote:text-slate-500",
       },
     },
   });
@@ -274,8 +292,9 @@ export default function TipTapEditor({
           alt: file.name,
         },
       })
-      .run();
 
+      .run();
+    editor.commands.scrollIntoView();
     pendingUploadsRef.current.add(objectUrl);
     setUploadingCount((c) => c + 1);
 
@@ -283,7 +302,9 @@ export default function TipTapEditor({
       const fileId = await uploadFile(file, ctxType, ctxId);
       pendingUploadsRef.current.delete(objectUrl);
       setUploadingCount((c) => c - 1);
+      URL.revokeObjectURL(objectUrl);
       updateImageNodeInEditor(editor, objectUrl, {
+        src: null,
         fileId,
         uploadStatus: "done",
       });
@@ -298,249 +319,262 @@ export default function TipTapEditor({
 
   return (
     <ImageTokenContext.Provider value={imageTokens}>
-    <div className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm">
-      {editable && (
-        <div className="flex flex-wrap items-center gap-0.5 px-3 py-2 border-b border-slate-200 bg-slate-50">
-          {/* 텍스트 스타일 */}
-          <ToolbarButton
-            onClick={() => editor.chain().focus().toggleBold().run()}
-            isActive={editor.isActive("bold")}
-            title="굵게 (Ctrl+B)"
-          >
-            <span className="font-bold">B</span>
-          </ToolbarButton>
-          <ToolbarButton
-            onClick={() => editor.chain().focus().toggleItalic().run()}
-            isActive={editor.isActive("italic")}
-            title="기울임 (Ctrl+I)"
-          >
-            <span className="italic">I</span>
-          </ToolbarButton>
-          <ToolbarButton
-            onClick={() => editor.chain().focus().toggleUnderline().run()}
-            isActive={editor.isActive("underline")}
-            title="밑줄 (Ctrl+U)"
-          >
-            <span className="underline">U</span>
-          </ToolbarButton>
-          <ToolbarButton
-            onClick={() => editor.chain().focus().toggleStrike().run()}
-            isActive={editor.isActive("strike")}
-            title="취소선"
-          >
-            <span className="line-through">S</span>
-          </ToolbarButton>
-          <ToolbarButton
-            onClick={() => editor.chain().focus().toggleCode().run()}
-            isActive={editor.isActive("code")}
-            title="인라인 코드"
-          >
-            {"</>"}
-          </ToolbarButton>
-
-          <Divider />
-
-          {/* 헤딩 */}
-          <ToolbarButton
-            onClick={() =>
-              editor.chain().focus().toggleHeading({ level: 1 }).run()
-            }
-            isActive={editor.isActive("heading", { level: 1 })}
-            title="제목 1"
-          >
-            H1
-          </ToolbarButton>
-          <ToolbarButton
-            onClick={() =>
-              editor.chain().focus().toggleHeading({ level: 2 }).run()
-            }
-            isActive={editor.isActive("heading", { level: 2 })}
-            title="제목 2"
-          >
-            H2
-          </ToolbarButton>
-          <ToolbarButton
-            onClick={() =>
-              editor.chain().focus().toggleHeading({ level: 3 }).run()
-            }
-            isActive={editor.isActive("heading", { level: 3 })}
-            title="제목 3"
-          >
-            H3
-          </ToolbarButton>
-
-          <Divider />
-
-          {/* 리스트 */}
-          <ToolbarButton
-            onClick={() => editor.chain().focus().toggleBulletList().run()}
-            isActive={editor.isActive("bulletList")}
-            title="글머리 기호 목록"
-          >
-            • 목록
-          </ToolbarButton>
-          <ToolbarButton
-            onClick={() => editor.chain().focus().toggleOrderedList().run()}
-            isActive={editor.isActive("orderedList")}
-            title="번호 목록"
-          >
-            1. 목록
-          </ToolbarButton>
-
-          <Divider />
-
-          {/* 정렬 */}
-          <ToolbarButton
-            onClick={() => editor.chain().focus().setTextAlign("left").run()}
-            isActive={editor.isActive({ textAlign: "left" })}
-            title="왼쪽 정렬"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth="1.5"
-              stroke="currentColor"
-              className="size-4"
+      <div className={editable ? "border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm" : ""}>
+        {editable && (
+          <div className="flex flex-wrap items-center gap-0.5 px-3 py-2 border-b border-slate-200 bg-slate-50">
+            {/* 텍스트 스타일 */}
+            <ToolbarButton
+              onClick={() => editor.chain().focus().toggleBold().run()}
+              isActive={editor.isActive("bold")}
+              title="굵게 (Ctrl+B)"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12"
-              />
-            </svg>
-          </ToolbarButton>
-          <ToolbarButton
-            onClick={() => editor.chain().focus().setTextAlign("center").run()}
-            isActive={editor.isActive({ textAlign: "center" })}
-            title="가운데 정렬"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth="1.5"
-              stroke="currentColor"
-              className="size-4"
+              <span className="font-bold">B</span>
+            </ToolbarButton>
+            <ToolbarButton
+              onClick={() => editor.chain().focus().toggleItalic().run()}
+              isActive={editor.isActive("italic")}
+              title="기울임 (Ctrl+I)"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
-              />
-            </svg>
-          </ToolbarButton>
-          <ToolbarButton
-            onClick={() => editor.chain().focus().setTextAlign("right").run()}
-            isActive={editor.isActive({ textAlign: "right" })}
-            title="오른쪽 정렬"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth="1.5"
-              stroke="currentColor"
-              className="size-4"
+              <span className="italic">I</span>
+            </ToolbarButton>
+            <ToolbarButton
+              onClick={() => editor.chain().focus().toggleUnderline().run()}
+              isActive={editor.isActive("underline")}
+              title="밑줄 (Ctrl+U)"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M3.75 6.75h16.5M3.75 12h16.5M12 17.25h8.25"
-              />
-            </svg>
-          </ToolbarButton>
-
-          <Divider />
-
-          {/* 실행취소 / 다시실행 */}
-          <ToolbarButton
-            onClick={() => editor.chain().focus().undo().run()}
-            isActive={false}
-            title="실행취소 (Ctrl+Z)"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth="2"
-              stroke="currentColor"
-              className="size-4"
+              <span className="underline">U</span>
+            </ToolbarButton>
+            <ToolbarButton
+              onClick={() => editor.chain().focus().toggleStrike().run()}
+              isActive={editor.isActive("strike")}
+              title="취소선"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"
-              />
-            </svg>
-          </ToolbarButton>
-          <ToolbarButton
-            onClick={() => editor.chain().focus().redo().run()}
-            isActive={false}
-            title="다시실행 (Ctrl+Y)"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth="2"
-              stroke="currentColor"
-              className="size-4"
+              <span className="line-through">S</span>
+            </ToolbarButton>
+            <ToolbarButton
+              onClick={() => editor.chain().focus().toggleCode().run()}
+              isActive={editor.isActive("code")}
+              title="인라인 코드"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="m15 15 6-6m0 0-6-6m6 6H9a6 6 0 0 0 0 12h3"
-              />
-            </svg>
-          </ToolbarButton>
+              {"</>"}
+            </ToolbarButton>
 
-          <Divider />
-
-          {/* 이미지 업로드 */}
-          <ToolbarButton
-            onClick={() => fileInputRef.current?.click()}
-            isActive={false}
-            title="이미지 업로드"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth="1.5"
-              stroke="currentColor"
-              className="size-5"
+            <ToolbarButton
+              onClick={() => editor.chain().focus().toggleHighlight().run()}
+              isActive={editor.isActive("highlight")}
+              title="하이라이트"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"
-              />
-            </svg>
-          </ToolbarButton>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={handleImageSelect}
-          />
-        </div>
-      )}
+              <span className="bg-yellow-200 px-0.5">H</span>
+            </ToolbarButton>
 
-      <EditorContent editor={editor} />
+            <Divider />
 
-      {editable && (
-        <div className="flex justify-between px-4 py-1.5 border-t border-slate-100 bg-slate-50">
-          <span className="text-xs text-amber-500">
-            {uploadingCount > 0 && `이미지 업로드 중 ${uploadingCount}개...`}
-          </span>
-          <span className="text-xs text-slate-400">
-            {editor.getText().length}자
-          </span>
-        </div>
-      )}
-    </div>
+            {/* 헤딩 */}
+            <ToolbarButton
+              onClick={() =>
+                editor.chain().focus().toggleHeading({ level: 1 }).run()
+              }
+              isActive={editor.isActive("heading", { level: 1 })}
+              title="제목 1"
+            >
+              H1
+            </ToolbarButton>
+            <ToolbarButton
+              onClick={() =>
+                editor.chain().focus().toggleHeading({ level: 2 }).run()
+              }
+              isActive={editor.isActive("heading", { level: 2 })}
+              title="제목 2"
+            >
+              H2
+            </ToolbarButton>
+            <ToolbarButton
+              onClick={() =>
+                editor.chain().focus().toggleHeading({ level: 3 }).run()
+              }
+              isActive={editor.isActive("heading", { level: 3 })}
+              title="제목 3"
+            >
+              H3
+            </ToolbarButton>
+
+            <Divider />
+
+            {/* 리스트 */}
+            <ToolbarButton
+              onClick={() => editor.chain().focus().toggleBulletList().run()}
+              isActive={editor.isActive("bulletList")}
+              title="글머리 기호 목록"
+            >
+              • 목록
+            </ToolbarButton>
+            <ToolbarButton
+              onClick={() => editor.chain().focus().toggleOrderedList().run()}
+              isActive={editor.isActive("orderedList")}
+              title="번호 목록"
+            >
+              1. 목록
+            </ToolbarButton>
+
+            <Divider />
+
+            {/* 정렬 */}
+            <ToolbarButton
+              onClick={() => editor.chain().focus().setTextAlign("left").run()}
+              isActive={editor.isActive({ textAlign: "left" })}
+              title="왼쪽 정렬"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth="1.5"
+                stroke="currentColor"
+                className="size-4"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12"
+                />
+              </svg>
+            </ToolbarButton>
+            <ToolbarButton
+              onClick={() =>
+                editor.chain().focus().setTextAlign("center").run()
+              }
+              isActive={editor.isActive({ textAlign: "center" })}
+              title="가운데 정렬"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth="1.5"
+                stroke="currentColor"
+                className="size-4"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
+                />
+              </svg>
+            </ToolbarButton>
+            <ToolbarButton
+              onClick={() => editor.chain().focus().setTextAlign("right").run()}
+              isActive={editor.isActive({ textAlign: "right" })}
+              title="오른쪽 정렬"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth="1.5"
+                stroke="currentColor"
+                className="size-4"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M3.75 6.75h16.5M3.75 12h16.5M12 17.25h8.25"
+                />
+              </svg>
+            </ToolbarButton>
+
+            <Divider />
+
+            {/* 실행취소 / 다시실행 */}
+            <ToolbarButton
+              onClick={() => editor.chain().focus().undo().run()}
+              isActive={false}
+              title="실행취소 (Ctrl+Z)"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth="2"
+                stroke="currentColor"
+                className="size-4"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"
+                />
+              </svg>
+            </ToolbarButton>
+            <ToolbarButton
+              onClick={() => editor.chain().focus().redo().run()}
+              isActive={false}
+              title="다시실행 (Ctrl+Y)"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth="2"
+                stroke="currentColor"
+                className="size-4"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="m15 15 6-6m0 0-6-6m6 6H9a6 6 0 0 0 0 12h3"
+                />
+              </svg>
+            </ToolbarButton>
+
+            <Divider />
+
+            {/* 이미지 업로드 */}
+            <ToolbarButton
+              onClick={() => fileInputRef.current?.click()}
+              isActive={false}
+              title="이미지 업로드"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth="1.5"
+                stroke="currentColor"
+                className="size-5"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"
+                />
+              </svg>
+            </ToolbarButton>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleImageSelect}
+            />
+          </div>
+        )}
+
+        <EditorContent
+          editor={editor}
+          className={`max-h-[${editorMaxHeight}] overflow-y-auto`}
+        />
+
+        {editable && (
+          <div className="flex justify-between px-4 py-1.5 border-t border-slate-100 bg-slate-50">
+            <span className="text-xs text-amber-500">
+              {uploadingCount > 0 && `이미지 업로드 중 ${uploadingCount}개...`}
+            </span>
+            <span className="text-xs text-slate-400">
+              {editor.getText().length}자
+            </span>
+          </div>
+        )}
+      </div>
     </ImageTokenContext.Provider>
   );
 }
