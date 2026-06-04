@@ -22,6 +22,7 @@ import {
 import StarterKit from "@tiptap/starter-kit";
 import TextAlign from "@tiptap/extension-text-align";
 import Placeholder from "@tiptap/extension-placeholder";
+import Highlight from "@tiptap/extension-highlight";
 import {
   extractFileIds,
   getFileToken,
@@ -237,6 +238,7 @@ export default function TipTapEditor({
   const editor = useEditor({
     editable,
     extensions: [
+      Highlight,
       StarterKit,
       TextAlign.configure({ types: ["heading", "paragraph"] }),
       Placeholder.configure({ placeholder }),
@@ -249,7 +251,7 @@ export default function TipTapEditor({
     editorProps: {
       attributes: {
         class:
-          "min-h-[240px] px-4 py-3 text-sm text-slate-800 leading-relaxed focus:outline-none prose prose-sm max-w-none prose-headings:font-semibold prose-headings:text-slate-900 prose-p:text-slate-700 prose-ul:list-disc prose-ul:pl-5 prose-ol:list-decimal prose-ol:pl-5 prose-code:bg-slate-100 prose-code:px-1 prose-code:rounded prose-code:text-sm prose-blockquote:border-l-4 prose-blockquote:border-slate-300 prose-blockquote:pl-4 prose-blockquote:text-slate-500",
+          "min-h-[240px] px-4 py-3 text-sm text-slate-800 leading-normal prose-p:my-0 focus:outline-none prose prose-sm max-w-none prose-headings:font-semibold prose-headings:text-slate-900 prose-p:text-slate-700 prose-ul:list-disc prose-ul:pl-5 prose-ol:list-decimal prose-ol:pl-5 prose-code:bg-slate-100 prose-code:px-1 prose-code:rounded prose-code:text-sm prose-blockquote:border-l-4 prose-blockquote:border-slate-300 prose-blockquote:pl-4 prose-blockquote:text-slate-500",
       },
     },
   });
@@ -353,6 +355,14 @@ export default function TipTapEditor({
               title="인라인 코드"
             >
               {"</>"}
+            </ToolbarButton>
+
+            <ToolbarButton
+              onClick={() => editor.chain().focus().toggleHighlight().run()}
+              isActive={editor.isActive("highlight")}
+              title="하이라이트"
+            >
+              <span className="bg-yellow-200 px-0.5">H</span>
             </ToolbarButton>
 
             <Divider />
