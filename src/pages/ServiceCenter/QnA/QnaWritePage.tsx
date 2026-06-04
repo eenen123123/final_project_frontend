@@ -1,3 +1,5 @@
+/* cSpell:disable */
+import { extractFileIds, stripBlobUrls } from "../../../api/fileApi";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ServiceSidebar from "../components/ServiceSidebar";
@@ -5,6 +7,8 @@ import QnaHeader from "./components/QnaHeader";
 import { useAuth } from "../../../auth/AuthContext";
 import api from "../../../api/api";
 import type { QnaCreateRequest } from "../../../types/board/QnaInterface";
+import type { JSONContent } from "@tiptap/react";
+import TipTapEditor from "../../../components/TipTapEditor";
 
 const QNA_CATEGORIES = [
   { code: "01", name: "수강문의" },
@@ -23,42 +27,40 @@ export default function QnaWritePage() {
   const navigate = useNavigate();
   const { getUserId } = useAuth();
 
+  const [hasPendingUploads, setHasPendingUploads] = useState(false);
+
   const [form, setForm] = useState<QnaCreateRequest>({
-    qnaCtgCd: "01",
+    qnaCtgCd: QNA_CATEGORIES[0].code,
     secrYn: "N",
     postSj: "",
-    postCn: "",
-    wrtrUserId: getUserId() ?? "",
+    postCn: null,
+    wrtrUserId: getUserId() || "",
   });
+
+  const isEmpty =
+    !form.postCn || !form.postCn.content?.some((n) => n.content?.length);
+
   const [notiType, setNotiType] = useState("noti-none");
   const [submitting, setSubmitting] = useState(false);
 
-  const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >,
-  ) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSecrToggle = () => {
-    setForm((prev) => ({ ...prev, secrYn: prev.secrYn === "Y" ? "N" : "Y" }));
+  const handleTipTapChange = (json: JSONContent, pending: boolean) => {
+    setForm((prev) => ({ ...prev, postCn: json }));
+    setHasPendingUploads(pending);
   };
 
   const handleSubmit = async () => {
-    if (!form.postSj.trim()) {
-      alert("제목을 입력하세요.");
-      return;
-    }
-    if (!form.postCn.trim()) {
-      alert("내용을 입력하세요.");
-      return;
-    }
+    if (!form.postSj.trim()) return alert("제목을 입력해주세요.");
+    if (isEmpty) return alert("내용을 입력해주세요.");
+
+    if (hasPendingUploads)
+      return alert("이미지 업로드가 완료될 때까지 기다려주세요.");
+
+    const cleanContent = stripBlobUrls(form.postCn!);
+    const fileIds = extractFileIds(cleanContent);
 
     setSubmitting(true);
     try {
-      await api.post("/api/qna", form);
+      await api.post("/api/qna", { ...form, fileIds });
       alert("질문이 등록되었습니다.");
       navigate("/customer/qna");
     } catch (err) {
@@ -90,7 +92,9 @@ export default function QnaWritePage() {
                 <select
                   name="qnaCtgCd"
                   value={form.qnaCtgCd}
-                  onChange={handleChange}
+                  onChange={(e) =>
+                    setForm((prev) => ({ ...prev, qnaCtgCd: e.target.value }))
+                  }
                   className="border border-gray-300 rounded text-sm px-3 py-2 focus:outline-none focus:border-blue-400 transition-colors cursor-pointer w-40"
                 >
                   {QNA_CATEGORIES.map((cat) => (
@@ -110,26 +114,22 @@ export default function QnaWritePage() {
                   type="text"
                   name="postSj"
                   value={form.postSj}
-                  onChange={handleChange}
+                  onChange={(e) =>
+                    setForm((prev) => ({ ...prev, postSj: e.target.value }))
+                  }
                   placeholder="제목을 입력하세요."
                   className="w-full border border-gray-300 rounded text-sm px-3 py-2 focus:outline-none focus:border-blue-400 transition-colors"
                 />
               </div>
 
               {/* 내용 */}
-              <div className="mb-4">
-                <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-                  내용 <span className="text-red-400">*</span>
-                </label>
-                <textarea
-                  name="postCn"
-                  value={form.postCn}
-                  onChange={handleChange}
-                  placeholder="문의 내용을 입력하세요."
-                  rows={10}
-                  className="w-full border border-gray-300 rounded text-sm px-3 py-2 focus:outline-none focus:border-blue-400 transition-colors resize-none"
-                />
-              </div>
+              <TipTapEditor
+                onChange={handleTipTapChange}
+                ctxType="POST"
+                ctxId="0"
+                maxImages={5}
+                placeholder="내용을 입력하세요..."
+              />
 
               {/* 비공개 여부 */}
               <div className="mb-5 flex items-center gap-2">
@@ -137,7 +137,12 @@ export default function QnaWritePage() {
                   type="checkbox"
                   id="secrYn"
                   checked={form.secrYn === "Y"}
-                  onChange={handleSecrToggle}
+                  onChange={() =>
+                    setForm((prev) => ({
+                      ...prev,
+                      secrYn: prev.secrYn === "Y" ? "N" : "Y",
+                    }))
+                  }
                   className="w-4 h-4 accent-blue-600 cursor-pointer"
                 />
                 <label
@@ -198,8 +203,8 @@ export default function QnaWritePage() {
                   취소
                 </button>
                 <button
-                  onClick={handleSubmit}
                   disabled={submitting}
+                  onClick={handleSubmit}
                   className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded transition-colors cursor-pointer disabled:opacity-50"
                 >
                   {submitting ? "등록 중..." : "등록"}

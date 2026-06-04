@@ -302,7 +302,9 @@ export default function TipTapEditor({
       const fileId = await uploadFile(file, ctxType, ctxId);
       pendingUploadsRef.current.delete(objectUrl);
       setUploadingCount((c) => c - 1);
+      URL.revokeObjectURL(objectUrl);
       updateImageNodeInEditor(editor, objectUrl, {
+        src: null,
         fileId,
         uploadStatus: "done",
       });
@@ -317,7 +319,7 @@ export default function TipTapEditor({
 
   return (
     <ImageTokenContext.Provider value={imageTokens}>
-      <div className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm">
+      <div className={editable ? "border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm" : ""}>
         {editable && (
           <div className="flex flex-wrap items-center gap-0.5 px-3 py-2 border-b border-slate-200 bg-slate-50">
             {/* 텍스트 스타일 */}

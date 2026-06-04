@@ -1,63 +1,43 @@
-import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import ServiceSidebar from "../components/ServiceSidebar";
 import { useAuth } from "../../../auth/AuthContext";
 import api from "../../../api/api";
 import type { QnaItem, QnaPageProps } from "../../../types/board/QnaInterface";
 import QnaHeader from "./components/QnaHeader";
-
-type SearchType = "제목+내용" | "제목";
-
-const PAGE_SIZE = 10;
+import {
+  usePaginatedSearch,
+  type PageResponse,
+} from "../../../hooks/usePaginatedSearch";
 
 export default function QnAPage({ myOnly = false }: QnaPageProps) {
-  const { isAuthenticated, getUserId } = useAuth();
+  const { isAuthenticated, isAuthReady } = useAuth();
 
-  const [qnaList, setQnaList] = useState<QnaItem[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [searchType, setSearchType] = useState<SearchType>("제목+내용");
-  const [searchInput, setSearchInput] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [page, setPage] = useState(1);
-
-  useEffect(() => {
-    const fetchQnaList = async () => {
-      setLoading(true);
-      try {
-        const res = await api.get("/api/qna");
-        const data: QnaItem[] = res.data;
-        if (myOnly) {
-          const userId = getUserId();
-          setQnaList(data.filter((q) => q.wrtrUserId === userId));
-        } else {
-          setQnaList(data);
-        }
-      } catch (err) {
-        console.error("QnA 조회 실패:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchQnaList();
-  }, [myOnly]);
-
-  const handleSearch = () => {
-    if (!searchInput.trim()) {
-      alert("검색값을 입력하세요");
-      return;
-    }
-    setSearchQuery(searchInput.trim());
-    setPage(1);
-  };
-
-  const filtered = useMemo(() => {
-    if (!searchQuery) return qnaList;
-    const q = searchQuery.toLowerCase();
-    return qnaList.filter((item) => item.postSj.toLowerCase().includes(q));
-  }, [qnaList, searchQuery]);
-
-  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
-  const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const {
+    items,
+    totalCount,
+    loading,
+    page,
+    totalPages,
+    startPage,
+    endPage,
+    searchInput,
+    setSearchInput,
+    handleSearch,
+    setPage,
+  } = usePaginatedSearch<QnaItem>(
+    (page, size, keyword) =>
+      api
+        .get<PageResponse<QnaItem>>("/api/qna/paged", {
+          params: {
+            page,
+            size,
+            ...(keyword && { keyword }),
+            ...(myOnly && { myOnly: true }),
+          },
+        })
+        .then((r) => r.data),
+    { pageSize: 10, blockSize: 5, enabled: myOnly ? isAuthReady : true },
+  );
 
   return (
     <div className="min-h-screen bg-white">
@@ -92,19 +72,27 @@ export default function QnAPage({ myOnly = false }: QnaPageProps) {
                 <div>
                   <p className="text-xs font-bold text-gray-800">평일</p>
                   <p className="text-xs font-bold text-gray-800">09:00~24:00</p>
-                  <p className="text-[11px] text-gray-400">주말, 공휴일 답변불가</p>
+                  <p className="text-[11px] text-gray-400">
+                    주말, 공휴일 답변불가
+                  </p>
                 </div>
               </div>
               <div className="flex flex-col gap-2 justify-center text-xs text-gray-600">
                 <p>
                   1. 먼저, 고객센터 공지사항을 확인해보세요.{" "}
-                  <Link to="/customer/notice" className="text-blue-600 font-bold hover:underline">
+                  <Link
+                    to="/customer/notice"
+                    className="text-blue-600 font-bold hover:underline"
+                  >
                     공지사항 &gt;
                   </Link>
                 </p>
                 <p>
                   2. 자주하는 질문 FAQ 검색으로 궁금증을 쉽고 빠르게 해결하세요.{" "}
-                  <Link to="/customer/faq" className="text-blue-600 font-bold hover:underline">
+                  <Link
+                    to="/customer/faq"
+                    className="text-blue-600 font-bold hover:underline"
+                  >
                     자주하는 질문 FAQ &gt;
                   </Link>
                 </p>
@@ -115,7 +103,8 @@ export default function QnAPage({ myOnly = false }: QnaPageProps) {
             {/* 목록 상단 */}
             <div className="flex items-center justify-between mb-2">
               <p className="text-xs text-gray-500">
-                <span className="mr-1">≡</span>총 <strong className="text-blue-600">{filtered.length}</strong>개의
+                <span className="mr-1">≡</span>총{" "}
+                <strong className="text-blue-600">{totalCount}</strong>개의
                 질문글
               </p>
               {isAuthenticated && (
@@ -154,25 +143,45 @@ export default function QnAPage({ myOnly = false }: QnaPageProps) {
                 </colgroup>
                 <thead>
                   <tr className="bg-gray-50 border-b border-gray-200">
-                    <th className="py-2.5 px-3 text-xs font-semibold text-gray-600 text-center">번호</th>
-                    <th className="py-2.5 px-3 text-xs font-semibold text-gray-600 text-center">분류</th>
-                    <th className="py-2.5 px-3 text-xs font-semibold text-gray-600 text-left">제목</th>
-                    <th className="py-2.5 px-3 text-xs font-semibold text-gray-600 text-center">작성일</th>
-                    <th className="py-2.5 px-3 text-xs font-semibold text-gray-600 text-center">처리현황</th>
+                    <th className="py-2.5 px-3 text-xs font-semibold text-gray-600 text-center">
+                      번호
+                    </th>
+                    <th className="py-2.5 px-3 text-xs font-semibold text-gray-600 text-center">
+                      분류
+                    </th>
+                    <th className="py-2.5 px-3 text-xs font-semibold text-gray-600 text-left">
+                      제목
+                    </th>
+                    <th className="py-2.5 px-3 text-xs font-semibold text-gray-600 text-center">
+                      작성일
+                    </th>
+                    <th className="py-2.5 px-3 text-xs font-semibold text-gray-600 text-center">
+                      처리현황
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {loading ? (
                     <tr>
-                      <td colSpan={5} className="py-12 text-center text-sm text-gray-400">
+                      <td
+                        colSpan={5}
+                        className="py-12 text-center text-sm text-gray-400"
+                      >
                         불러오는 중...
                       </td>
                     </tr>
-                  ) : paged.length > 0 ? (
-                    paged.map((item) => (
-                      <tr key={item.postSn} className="hover:bg-gray-50 transition-colors">
-                        <td className="py-3 px-3 text-center text-xs text-gray-400">{item.postSn}</td>
-                        <td className="py-3 px-3 text-center text-xs text-gray-500">{item.qnaCtgNm}</td>
+                  ) : items.length > 0 ? (
+                    items.map((item) => (
+                      <tr
+                        key={item.postSn}
+                        className="hover:bg-gray-50 transition-colors"
+                      >
+                        <td className="py-3 px-3 text-center text-xs text-gray-400">
+                          {item.postSn}
+                        </td>
+                        <td className="py-3 px-3 text-center text-xs text-gray-500">
+                          {item.qnaCtgNm}
+                        </td>
                         <td className="py-3 px-3">
                           <Link
                             to={`/customer/qna/${item.postSn}`}
@@ -197,10 +206,14 @@ export default function QnAPage({ myOnly = false }: QnaPageProps) {
                             {item.postSj}
                           </Link>
                         </td>
-                        <td className="py-3 px-3 text-center text-xs text-gray-400">{item.regDt?.slice(0, 10)}</td>
+                        <td className="py-3 px-3 text-center text-xs text-gray-400">
+                          {item.regDt?.slice(0, 10)}
+                        </td>
                         <td className="py-3 px-3 text-center">
                           {item.answStatCd === "01" ? (
-                            <span className="text-xs text-gray-500 font-semibold">답변대기</span>
+                            <span className="text-xs text-gray-500 font-semibold">
+                              답변대기
+                            </span>
                           ) : (
                             <span className="text-xs bg-blue-50 text-blue-700 font-semibold px-2 py-0.5 rounded-full">
                               답변완료
@@ -211,7 +224,10 @@ export default function QnAPage({ myOnly = false }: QnaPageProps) {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={5} className="py-12 text-center text-sm text-gray-400">
+                      <td
+                        colSpan={5}
+                        className="py-12 text-center text-sm text-gray-400"
+                      >
                         검색 결과가 없습니다.
                       </td>
                     </tr>
@@ -223,9 +239,11 @@ export default function QnAPage({ myOnly = false }: QnaPageProps) {
             {/* 모바일 카드 리스트 */}
             <div className="md:hidden divide-y divide-gray-100 border-t-2 border-gray-800 mb-4">
               {loading ? (
-                <p className="py-12 text-center text-sm text-gray-400">불러오는 중...</p>
-              ) : paged.length > 0 ? (
-                paged.map((item) => (
+                <p className="py-12 text-center text-sm text-gray-400">
+                  불러오는 중...
+                </p>
+              ) : items.length > 0 ? (
+                items.map((item) => (
                   <Link
                     key={item.postSn}
                     to={`/customer/qna/${item.postSn}`}
@@ -233,9 +251,13 @@ export default function QnAPage({ myOnly = false }: QnaPageProps) {
                   >
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5 mb-0.5">
-                        <span className="text-[10px] text-gray-400">{item.qnaCtgNm}</span>
+                        <span className="text-[10px] text-gray-400">
+                          {item.qnaCtgNm}
+                        </span>
                         <span className="text-[10px] text-gray-300">·</span>
-                        <span className="text-[10px] text-gray-400">{item.regDt?.slice(0, 10)}</span>
+                        <span className="text-[10px] text-gray-400">
+                          {item.regDt?.slice(0, 10)}
+                        </span>
                         {item.secrYn === "Y" && (
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -253,10 +275,14 @@ export default function QnAPage({ myOnly = false }: QnaPageProps) {
                           </svg>
                         )}
                       </div>
-                      <p className="text-sm text-gray-800 truncate">{item.postSj}</p>
+                      <p className="text-sm text-gray-800 truncate">
+                        {item.postSj}
+                      </p>
                       <div className="mt-1">
                         {item.answStatCd === "01" ? (
-                          <span className="text-xs text-gray-500 font-semibold">답변대기</span>
+                          <span className="text-xs text-gray-500 font-semibold">
+                            답변대기
+                          </span>
                         ) : (
                           <span className="text-xs bg-blue-50 text-blue-700 font-semibold px-2 py-0.5 rounded-full">
                             답변완료
@@ -264,11 +290,15 @@ export default function QnAPage({ myOnly = false }: QnaPageProps) {
                         )}
                       </div>
                     </div>
-                    <span className="text-gray-300 text-sm flex-shrink-0 ml-2">&gt;</span>
+                    <span className="text-gray-300 text-sm flex-shrink-0 ml-2">
+                      &gt;
+                    </span>
                   </Link>
                 ))
               ) : (
-                <p className="py-12 text-center text-sm text-gray-400">검색 결과가 없습니다.</p>
+                <p className="py-12 text-center text-sm text-gray-400">
+                  검색 결과가 없습니다.
+                </p>
               )}
             </div>
 
@@ -282,12 +312,17 @@ export default function QnAPage({ myOnly = false }: QnaPageProps) {
                 >
                   ◀◀
                 </button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                {Array.from(
+                  { length: endPage - startPage + 1 },
+                  (_, i) => startPage + i,
+                ).map((p) => (
                   <button
                     key={p}
                     onClick={() => setPage(p)}
                     className={`px-2.5 py-1 text-xs rounded transition-colors cursor-pointer ${
-                      page === p ? "bg-blue-600 text-white font-bold" : "text-gray-500 hover:text-gray-900"
+                      page === p
+                        ? "bg-blue-600 text-white font-bold"
+                        : "text-gray-500 hover:text-gray-900"
                     }`}
                   >
                     {p}
@@ -305,20 +340,12 @@ export default function QnAPage({ myOnly = false }: QnaPageProps) {
 
             {/* 하단 검색 */}
             <div className="flex flex-wrap items-center gap-2 justify-center">
-              <select
-                value={searchType}
-                onChange={(e) => setSearchType(e.target.value as SearchType)}
-                className="border border-gray-300 rounded text-xs px-2 py-2 focus:outline-none text-gray-600 cursor-pointer"
-              >
-                <option>제목+내용</option>
-                <option>제목</option>
-              </select>
               <input
                 type="text"
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                placeholder="찾고 싶은 단어를 입력해주세요."
+                placeholder="검색어를 입력하세요."
                 className="border border-gray-300 rounded text-xs px-3 py-2 w-64 sm:w-72 focus:outline-none focus:border-blue-400 transition-colors"
               />
               <button

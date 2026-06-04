@@ -1,3 +1,5 @@
+import type { JSONContent } from "@tiptap/react";
+
 export interface QnaItem {
   postSn: number;
   qnaCtgCd: string;
@@ -5,11 +7,11 @@ export interface QnaItem {
   secrYn: string;
   answStatCd: string;
   answStatNm: string;
-  answCn: string;
+  answCn: JSONContent;
   answrUserId: string;
   answDt: string;
   postSj: string;
-  postCn: string;
+  postCn: JSONContent;
   wrtrUserId: string;
   regDt: string;
   mdfcnDt: string;
@@ -19,7 +21,7 @@ export interface QnaCreateRequest {
   qnaCtgCd: string;
   secrYn: string;
   postSj: string;
-  postCn: string;
+  postCn: JSONContent | null;
   wrtrUserId: string;
 }
 
