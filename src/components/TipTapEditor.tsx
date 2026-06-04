@@ -20,7 +20,6 @@ import {
   type JSONContent,
 } from "@tiptap/core";
 import StarterKit from "@tiptap/starter-kit";
-import Underline from "@tiptap/extension-underline";
 import TextAlign from "@tiptap/extension-text-align";
 import Placeholder from "@tiptap/extension-placeholder";
 import {
@@ -30,9 +29,17 @@ import {
   uploadFile,
 } from "../api/fileApi";
 
-interface TipTapEditorProps {
-  value: string;
-  onChange: (value: string) => void;
+const ImageTokenContext = createContext<Record<number, string> | null>(null);
+
+// --- Types ---
+
+type UploadStatus = "idle" | "uploading" | "done" | "error";
+
+interface ImageNodeAttrs {
+  src: string | null;
+  fileId: number | null;
+  alt: string | null;
+  uploadStatus: UploadStatus;
 }
 
 export interface TipTapEditorProps {
@@ -228,18 +235,16 @@ export default function TipTapEditor({
   }, []);
 
   const editor = useEditor({
+    editable,
     extensions: [
       StarterKit,
-      Underline,
       TextAlign.configure({ types: ["heading", "paragraph"] }),
-      Placeholder.configure({
-        placeholder: "내용을 입력하세요...",
-      }),
+      Placeholder.configure({ placeholder }),
+      ImageNode,
     ],
-    content: value || "",
+    content: initialContent,
     onUpdate: ({ editor }) => {
-      onChange(editor.getHTML());
-      setCharCount(editor.getText().length);
+      onChange?.(editor.getJSON(), pendingUploadsRef.current.size > 0);
     },
     editorProps: {
       attributes: {

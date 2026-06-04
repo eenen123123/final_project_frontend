@@ -1,11 +1,14 @@
 import "./App.css";
 import AppRoute from "./AppRoute";
 import Header from "./components/Header";
+import NewHeader from "./components/Header/NewHeader";
 
 function App() {
   return (
     <>
-      <Header />
+      {/* 이전 헤더 제거 */}
+      {/* <Header /> */}
+      <NewHeader />
       <AppRoute />
     </>
   );

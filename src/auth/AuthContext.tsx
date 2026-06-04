@@ -4,7 +4,7 @@ import api, { setApiAccessToken } from "../api/api";
 //  JWT 토큰 페이로드 인터페이스 정의
 interface TokenPayload {
   exp?: number;
-  role?: string;
+  role?: string[];
   sub?: string;
   userName?: string;
 }
@@ -17,7 +17,7 @@ interface AuthContextType {
   login: (accessToken: string) => void; // 로그인 처리 함수, 액세스 토큰을 인자로 받아 인증 상태를 업데이트
   logout: () => void; // 로그아웃 처리 함수, 인증 상태를 초기화하고 서버에 로그아웃 요청을 보냄
   getUserId: () => string | null; // 사용자 아이디를 반환하는 함수, 액세스 토큰에서 디코딩하여 사용자 아이디(sub) 추출
-  getRole: () => string | null; // 사용자 역할을 반환하는 함수, 액세스 토큰에서 디코딩하여 사용자 역할(role) 추출
+  getRole: () => string[] | null; // 사용자 역할을 반환하는 함수, 액세스 토큰에서 디코딩하여 사용자 역할(role) 추출
   getUserName: () => string | null; // 사용자 이름을 반환하는 함수, 액세스 토큰에서 디코딩하여 사용자 이름(userName) 추출
 }
 
@@ -99,7 +99,7 @@ export default function AuthProvider({
     const restoreSession = async () => {
       try {
         const response = await api.post(
-          "http://localhost:8081/api/auth/refresh",
+          "/api/auth/refresh",
           {},
           { withCredentials: true },
         );

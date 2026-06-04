@@ -21,6 +21,7 @@ export default function Header() {
               <button onClick={logout} className=" cursor-pointer">
                 로그아웃
               </button>
+              <Link to="/test/buy">상품 구매</Link>
             </>
           ) : (
             <Link to="/login">로그인</Link>

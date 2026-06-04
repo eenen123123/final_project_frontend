@@ -1,0 +1,73 @@
+@reference "../../index.css";
+
+@layer components {
+
+  /* 헤더 전체 래퍼 */
+  .site-header {
+    @apply sticky top-0 z-50 bg-white border-b border-gray-100 shadow-sm shadow-gray-50/40 relative;
+  }
+
+  /* 로고 */
+  .brand-logo {
+    @apply flex items-center gap-2.5 select-none;
+  }
+
+  .brand-logo-icon {
+    @apply w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors duration-200 group-hover:bg-blue-600;
+  }
+
+  .brand-logo-text {
+    @apply text-xl font-black tracking-widest text-gray-900 uppercase;
+  }
+
+  .brand-logo-dot {
+    @apply text-xl font-black text-blue-600 -ml-1;
+  }
+
+  /* 상단 유틸리티 영역 */
+  .header-util {
+    @apply flex items-center gap-4 text-xs text-gray-500;
+  }
+
+  .header-util-link {
+    @apply hover:text-gray-900 transition-colors;
+  }
+
+  .header-util-divider {
+    @apply w-px h-3 bg-gray-200;
+  }
+
+  /* 하단 네비바 */
+  .header-nav-bar {
+    @apply border-t border-gray-100;
+  }
+
+  /* 네비 링크 */
+  .nav-link {
+    @apply px-3.5 py-1.5 rounded-md text-sm font-bold text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors tracking-tight;
+  }
+
+  /* 햄버거 버튼 */
+  .sitemap-btn {
+    @apply flex items-center justify-center w-8 h-8 rounded transition-colors text-gray-600 hover:bg-gray-100;
+  }
+
+  .sitemap-btn-active {
+    @apply bg-gray-900 text-white;
+  }
+
+  /* 관리자 뱃지 */
+  .badge-admin {
+    @apply flex items-center gap-1.5 px-3 py-1 bg-violet-50 text-violet-600 rounded-lg text-xs font-bold hover:bg-violet-100 transition-all border border-violet-100;
+  }
+
+  /* 로그인 버튼 */
+  .btn-primary {
+    @apply cursor-pointer px-4 py-1.5 bg-gray-900 hover:bg-blue-600 text-white rounded-lg text-xs font-bold transition-all;
+  }
+
+  /* 로그아웃 버튼 */
+  .btn-ghost {
+    @apply cursor-pointer px-3 py-1.5 bg-gray-50 hover:bg-red-50 border border-gray-200 hover:border-red-200 rounded-lg text-xs font-bold text-gray-600 hover:text-red-600 transition-all;
+  }
+}
