@@ -1,4 +1,4 @@
-import { type ChangeEvent, useEffect, useRef, useState } from "react";
+import { type ChangeEvent, createContext, useContext, useEffect, useRef, useState } from "react";
 import {
   EditorContent,
   NodeViewWrapper,
@@ -6,12 +6,18 @@ import {
   useEditor,
 } from "@tiptap/react";
 import type { NodeViewProps } from "@tiptap/core";
-import { Node, mergeAttributes, type Editor, type JSONContent } from "@tiptap/core";
+import {
+  Node,
+  mergeAttributes,
+  type Editor,
+  type JSONContent,
+} from "@tiptap/core";
 import StarterKit from "@tiptap/starter-kit";
-import Underline from "@tiptap/extension-underline";
 import TextAlign from "@tiptap/extension-text-align";
 import Placeholder from "@tiptap/extension-placeholder";
-import { getFileToken, uploadFile } from "../api/fileApi";
+import { extractFileIds, getFileToken, getFilesToken, uploadFile } from "../api/fileApi";
+
+const ImageTokenContext = createContext<Record<number, string> | null>(null);
 
 // --- Types ---
 
@@ -38,18 +44,25 @@ export interface TipTapEditorProps {
 
 const ImageNodeView = ({ node }: NodeViewProps) => {
   const { src, fileId, uploadStatus, alt } = node.attrs as ImageNodeAttrs;
+  const tokenMap = useContext(ImageTokenContext);
 
-  const [displaySrc, setDisplaySrc] = useState<string | null>(
-    src?.startsWith("blob:") ? src : null
-  );
+  const [fetchedSrc, setFetchedSrc] = useState<string | null>(null);
+
+  const displaySrc = src?.startsWith("blob:")
+    ? src
+    : tokenMap !== null
+      ? (tokenMap[fileId ?? -1] ?? fetchedSrc)
+      : fetchedSrc;
 
   useEffect(() => {
-    if (fileId != null && !src?.startsWith("blob:")) {
-      getFileToken(fileId)
-        .then(({ viewUrl }) => setDisplaySrc(viewUrl))
-        .catch(() => {});
-    }
-  }, [fileId, src]);
+    if (fileId == null || src?.startsWith("blob:")) return;
+    if (tokenMap === null) return; // null은 배치 fetch 진행 중을 의미
+    if (tokenMap[fileId]) return;
+
+    getFileToken(fileId)
+      .then(({ viewUrl }) => setFetchedSrc(viewUrl))
+      .catch(() => {});
+  }, [fileId, src, tokenMap]);
 
   if (uploadStatus === "error") {
     return (
@@ -65,7 +78,11 @@ const ImageNodeView = ({ node }: NodeViewProps) => {
     <NodeViewWrapper>
       <div className="relative my-2">
         {displaySrc ? (
-          <img src={displaySrc} alt={alt ?? ""} className="max-w-full rounded" />
+          <img
+            src={displaySrc}
+            alt={alt ?? ""}
+            className="max-w-full rounded"
+          />
         ) : (
           <div className="flex h-32 items-center justify-center rounded bg-slate-100 text-sm text-slate-400">
             이미지 로딩 중...
@@ -124,7 +141,7 @@ function countImageNodes(editor: Editor): number {
 function updateImageNodeInEditor(
   editor: Editor,
   srcToFind: string,
-  newAttrs: Partial<ImageNodeAttrs>
+  newAttrs: Partial<ImageNodeAttrs>,
 ) {
   const { state, dispatch } = editor.view;
   const { tr, doc } = state;
@@ -147,16 +164,22 @@ interface ToolbarButtonProps {
   children: React.ReactNode;
 }
 
-const ToolbarButton = ({ onClick, isActive, title, children }: ToolbarButtonProps) => (
+const ToolbarButton = ({
+  onClick,
+  isActive,
+  title,
+  children,
+}: ToolbarButtonProps) => (
   <button
     type="button"
     onClick={onClick}
     title={title}
     className={`
       px-2.5 py-1.5 rounded text-sm font-medium transition-colors cursor-pointer
-      ${isActive
-        ? "bg-slate-800 text-white"
-        : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+      ${
+        isActive
+          ? "bg-slate-800 text-white"
+          : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
       }
     `}
   >
@@ -174,18 +197,31 @@ export default function TipTapEditor({
   editable = true,
   ctxType = "POST",
   ctxId = "0",
-  maxImages = 10,
+  maxImages = 5,
   placeholder = "내용을 입력하세요...",
 }: TipTapEditorProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pendingUploadsRef = useRef<Set<string>>(new Set());
   const [uploadingCount, setUploadingCount] = useState(0);
+  const [imageTokens, setImageTokens] = useState<Record<number, string> | null>(() => {
+    const fileIds = initialContent ? extractFileIds(initialContent) : [];
+    return fileIds.length === 0 ? {} : null;
+  });
+
+  useEffect(() => {
+    const fileIds = initialContent ? extractFileIds(initialContent) : [];
+    if (fileIds.length === 0) return;
+    getFilesToken(fileIds)
+      .then(setImageTokens)
+      .catch(() => setImageTokens({}));
+  // initialContent는 마운트 시 한 번만 사용
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const editor = useEditor({
     editable,
     extensions: [
       StarterKit,
-      Underline,
       TextAlign.configure({ types: ["heading", "paragraph"] }),
       Placeholder.configure({ placeholder }),
       ImageNode,
@@ -226,10 +262,19 @@ export default function TipTapEditor({
 
     const objectUrl = URL.createObjectURL(file);
 
-    editor.chain().focus().insertContent({
-      type: "image",
-      attrs: { src: objectUrl, uploadStatus: "uploading", fileId: null, alt: file.name },
-    }).run();
+    editor
+      .chain()
+      .focus()
+      .insertContent({
+        type: "image",
+        attrs: {
+          src: objectUrl,
+          uploadStatus: "uploading",
+          fileId: null,
+          alt: file.name,
+        },
+      })
+      .run();
 
     pendingUploadsRef.current.add(objectUrl);
     setUploadingCount((c) => c + 1);
@@ -238,7 +283,10 @@ export default function TipTapEditor({
       const fileId = await uploadFile(file, ctxType, ctxId);
       pendingUploadsRef.current.delete(objectUrl);
       setUploadingCount((c) => c - 1);
-      updateImageNodeInEditor(editor, objectUrl, { fileId, uploadStatus: "done" });
+      updateImageNodeInEditor(editor, objectUrl, {
+        fileId,
+        uploadStatus: "done",
+      });
     } catch {
       pendingUploadsRef.current.delete(objectUrl);
       setUploadingCount((c) => c - 1);
@@ -249,6 +297,7 @@ export default function TipTapEditor({
   if (!editor) return null;
 
   return (
+    <ImageTokenContext.Provider value={imageTokens}>
     <div className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm">
       {editable && (
         <div className="flex flex-wrap items-center gap-0.5 px-3 py-2 border-b border-slate-200 bg-slate-50">
@@ -293,21 +342,27 @@ export default function TipTapEditor({
 
           {/* 헤딩 */}
           <ToolbarButton
-            onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+            onClick={() =>
+              editor.chain().focus().toggleHeading({ level: 1 }).run()
+            }
             isActive={editor.isActive("heading", { level: 1 })}
             title="제목 1"
           >
             H1
           </ToolbarButton>
           <ToolbarButton
-            onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+            onClick={() =>
+              editor.chain().focus().toggleHeading({ level: 2 }).run()
+            }
             isActive={editor.isActive("heading", { level: 2 })}
             title="제목 2"
           >
             H2
           </ToolbarButton>
           <ToolbarButton
-            onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+            onClick={() =>
+              editor.chain().focus().toggleHeading({ level: 3 }).run()
+            }
             isActive={editor.isActive("heading", { level: 3 })}
             title="제목 3"
           >
@@ -340,8 +395,19 @@ export default function TipTapEditor({
             isActive={editor.isActive({ textAlign: "left" })}
             title="왼쪽 정렬"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-4">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth="1.5"
+              stroke="currentColor"
+              className="size-4"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12"
+              />
             </svg>
           </ToolbarButton>
           <ToolbarButton
@@ -349,8 +415,19 @@ export default function TipTapEditor({
             isActive={editor.isActive({ textAlign: "center" })}
             title="가운데 정렬"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-4">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth="1.5"
+              stroke="currentColor"
+              className="size-4"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
+              />
             </svg>
           </ToolbarButton>
           <ToolbarButton
@@ -358,8 +435,19 @@ export default function TipTapEditor({
             isActive={editor.isActive({ textAlign: "right" })}
             title="오른쪽 정렬"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-4">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5M12 17.25h8.25" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth="1.5"
+              stroke="currentColor"
+              className="size-4"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M3.75 6.75h16.5M3.75 12h16.5M12 17.25h8.25"
+              />
             </svg>
           </ToolbarButton>
 
@@ -371,8 +459,19 @@ export default function TipTapEditor({
             isActive={false}
             title="실행취소 (Ctrl+Z)"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="size-4">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth="2"
+              stroke="currentColor"
+              className="size-4"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"
+              />
             </svg>
           </ToolbarButton>
           <ToolbarButton
@@ -380,8 +479,19 @@ export default function TipTapEditor({
             isActive={false}
             title="다시실행 (Ctrl+Y)"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="size-4">
-              <path strokeLinecap="round" strokeLinejoin="round" d="m15 15 6-6m0 0-6-6m6 6H9a6 6 0 0 0 0 12h3" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth="2"
+              stroke="currentColor"
+              className="size-4"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="m15 15 6-6m0 0-6-6m6 6H9a6 6 0 0 0 0 12h3"
+              />
             </svg>
           </ToolbarButton>
 
@@ -393,8 +503,19 @@ export default function TipTapEditor({
             isActive={false}
             title="이미지 업로드"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth="1.5"
+              stroke="currentColor"
+              className="size-5"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"
+              />
             </svg>
           </ToolbarButton>
           <input
@@ -420,5 +541,6 @@ export default function TipTapEditor({
         </div>
       )}
     </div>
+    </ImageTokenContext.Provider>
   );
 }

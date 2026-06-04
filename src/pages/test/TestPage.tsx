@@ -1,6 +1,10 @@
 import { useState } from "react";
 import TipTapEditor from "../../components/TipTapEditor";
-import { extractFileIds, stripBlobUrls } from "../../api/fileApi";
+import {
+  extractFileIds,
+  stripBlobUrls,
+  type FileTokenResponse,
+} from "../../api/fileApi";
 import type { JSONContent } from "@tiptap/core";
 import api from "../../api/api";
 
@@ -134,7 +138,7 @@ function ReadExample() {
 }
 
 // ────────────────────────────────────────────────
-// DB 조회 테스트 (게시글 141번)
+// DB 조회 테스트 (게시글 162번)
 // ────────────────────────────────────────────────
 interface PostResponse {
   postSn: number;
@@ -146,7 +150,7 @@ function FetchPostExample() {
   const [post, setPost] = useState<PostResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [postId, setPostId] = useState(141);
+  const [postId, setPostId] = useState(162);
 
   const fetchPost = async () => {
     setLoading(true);
@@ -181,6 +185,25 @@ function FetchPostExample() {
         className="rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-slate-700 disabled:opacity-40"
       >
         {loading ? "불러오는 중..." : `GET /api/posts/example/${postId}`}
+      </button>
+
+      <button
+        className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-blue-500"
+        type="button"
+        onClick={async () => {
+          const ids = [184, 185, 186];
+          try {
+            const tokens = await api.post<Record<number, FileTokenResponse>>(
+              `/api/files/tokens`,
+              { ids },
+            );
+            console.log("getFilesToken response:", tokens);
+          } catch (e) {
+            console.error("이미지 토큰 불러오기 실패:", e);
+          }
+        }}
+      >
+        이미지 한번에 불러오기 테스트 184, 185, 186
       </button>
 
       {error && (

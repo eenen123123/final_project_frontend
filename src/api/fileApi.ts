@@ -3,13 +3,12 @@ import api from "./api";
 
 export interface FileTokenResponse {
   viewUrl: string;
-  downloadUrl: string;
 }
 
 export async function uploadFile(
   file: File,
   ctxType: string,
-  ctxId: string
+  ctxId: string,
 ): Promise<number> {
   const formData = new FormData();
   formData.append("file", file);
@@ -22,10 +21,20 @@ export async function uploadFile(
 }
 
 export async function getFileToken(
-  fileServerId: number
+  fileServerId: number,
 ): Promise<FileTokenResponse> {
   const res = await api.post<FileTokenResponse>(
-    `/api/files/${fileServerId}/token`
+    `/api/files/${fileServerId}/token`,
+  );
+  return res.data;
+}
+
+export async function getFilesToken(
+  fileServerIds: number[],
+): Promise<Record<number, string>> {
+  const res = await api.post<Record<number, string>>(
+    `/api/files/tokens`,
+    { ids: fileServerIds },
   );
   return res.data;
 }
