@@ -1,79 +1,59 @@
 import { useState, useRef, useEffect } from "react";
+import api from "../../../api/api";
 import MyPageSidebar from "./components/MyPageSidebar";
 import CalendarEventModal from "./components/CalendarEventModal";
-import type { CalendarEvent } from "../../../types/MyPageInterface";
+import type { CalendarEvent, CalendarEventResponse, CalendarScheduleResponse } from "../../../types/MyPageInterface";
 
 const DAYS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+const API_BASE = "http://localhost:8081";
 
 const TYPE_COLOR: Record<string, { dot: string; text: string; badge: string }> = {
-  event: { dot: "bg-red-500", text: "text-red-500", badge: "bg-red-50 text-red-600 border-red-100" },
+  holiday: { dot: "bg-red-400", text: "text-red-500", badge: "bg-red-50 text-red-600 border-red-100" },
+  event: { dot: "bg-orange-400", text: "text-orange-500", badge: "bg-orange-50 text-orange-600 border-orange-100" },
   academic: { dot: "bg-blue-400", text: "text-blue-500", badge: "bg-blue-50 text-blue-600 border-blue-100" },
-  personal: { dot: "bg-amber-400", text: "text-amber-500", badge: "bg-amber-50 text-amber-600 border-amber-100" },
+  personal: { dot: "bg-gray-800", text: "text-gray-800", badge: "bg-gray-900 text-white border-gray-700" },
 };
 
-const INITIAL_EVENTS: CalendarEvent[] = [
-  {
-    id: "1",
-    date: "2026-06-03",
-    startDate: "2026-06-03",
-    endDate: "2026-06-03",
-    type: "event",
-    title: "제9회 전국동시지방선거",
-  },
-  {
-    id: "2",
-    date: "2026-06-01",
-    startDate: "2026-06-01",
-    endDate: "2026-06-05",
-    type: "event",
-    title: "6모 100점 노리기 이벤트",
-  },
-  {
-    id: "3",
-    date: "2026-06-04",
-    startDate: "2026-06-04",
-    endDate: "2026-06-04",
-    type: "academic",
-    title: "[고3] 6월 모의고사",
-  },
-  {
-    id: "4",
-    date: "2026-06-04",
-    startDate: "2026-06-04",
-    endDate: "2026-06-04",
-    type: "academic",
-    title: "[고1/고2] 6월 모의고사",
-  },
-  { id: "5", date: "2026-06-06", startDate: "2026-06-06", endDate: "2026-06-06", type: "event", title: "현충일" },
-  {
-    id: "6",
-    date: "2026-06-17",
-    startDate: "2026-06-17",
-    endDate: "2026-06-17",
-    type: "academic",
-    title: "[고3] 7월 학력평가 공지",
-  },
-  {
-    id: "7",
-    date: "2026-06-24",
-    startDate: "2026-06-24",
-    endDate: "2026-06-24",
-    type: "academic",
-    title: "[고3] 7월 학력평가",
-  },
-];
+// ─── 백엔드 응답 → CalendarEvent 변환 ─────────────────
+function mapEventDto(dto: CalendarEventResponse): CalendarEvent {
+  return {
+    id: String(dto.eventSn),
+    date: dto.startDt,
+    startDate: dto.startDt,
+    endDate: dto.endDt,
+    type: dto.eventType,
+    title: dto.eventTitle,
+    content: dto.eventCont,
+    source: "admin",
+  };
+}
 
+function mapScheduleDto(dto: CalendarScheduleResponse): CalendarEvent {
+  return {
+    id: "S" + String(dto.scheduleSn),
+    date: dto.startDt,
+    startDate: dto.startDt,
+    endDate: dto.endDt,
+    type: dto.scheduleType,
+    title: dto.scheduleTitle,
+    content: dto.scheduleCont,
+    source: "user",
+  };
+}
+
+// ─── 유틸 ───────────────────────────────────────────────
 function toDateStr(y: number, m: number, d: number) {
   return `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 }
 
 function getEventsForDate(events: CalendarEvent[], dateStr: string) {
-  return events.filter((ev) => {
-    const sel = new Date(dateStr);
-    const start = new Date(ev.startDate);
-    const end = new Date(ev.endDate);
-    return sel >= start && sel <= end;
-  });
+  const order: Record<string, number> = { holiday: 0, event: 1, academic: 2, personal: 3 };
+  return events
+    .filter((ev) => {
+      const sel = new Date(dateStr);
+      return sel >= new Date(ev.startDate) && sel <= new Date(ev.endDate);
+    })
+    .sort((a, b) => (order[a.type] ?? 9) - (order[b.type] ?? 9));
 }
 
 function formatDisplayDate(dateStr: string) {
@@ -81,7 +61,7 @@ function formatDisplayDate(dateStr: string) {
   return `${d.getFullYear()}. ${d.getMonth() + 1}. ${d.getDate()} ${DAYS[d.getDay()]}`;
 }
 
-// ─── 년/월 선택 피커 ────────────────────────────────────
+// ─── 년/월 피커 ─────────────────────────────────────────
 function YearMonthPicker({
   year,
   month,
@@ -104,14 +84,11 @@ function YearMonthPicker({
     return () => document.removeEventListener("mousedown", handler);
   }, [onClose]);
 
-  const yearOptions = Array.from({ length: 11 }, (_, i) => year - 5 + i);
-
   return (
     <div
       ref={ref}
       className="absolute top-10 left-0 z-50 bg-white border border-gray-200 rounded-xl shadow-lg p-4 w-64"
     >
-      {/* 년도 선택 */}
       <div className="flex items-center justify-between mb-3">
         <button
           onClick={() => setPickerYear((y) => y - 1)}
@@ -127,25 +104,20 @@ function YearMonthPicker({
           ›
         </button>
       </div>
-
-      {/* 월 선택 그리드 */}
       <div className="grid grid-cols-4 gap-1.5">
-        {Array.from({ length: 12 }, (_, i) => i).map((m) => {
-          const isSelected = pickerYear === year && m === month;
-          return (
-            <button
-              key={m}
-              onClick={() => {
-                onSelect(pickerYear, m);
-                onClose();
-              }}
-              className={`py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer
-                ${isSelected ? "bg-gray-900 text-white" : "hover:bg-gray-100 text-gray-700"}`}
-            >
-              {m + 1}월
-            </button>
-          );
-        })}
+        {Array.from({ length: 12 }, (_, i) => i).map((m) => (
+          <button
+            key={m}
+            onClick={() => {
+              onSelect(pickerYear, m);
+              onClose();
+            }}
+            className={`py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer
+              ${pickerYear === year && m === month ? "bg-gray-900 text-white" : "hover:bg-gray-100 text-gray-700"}`}
+          >
+            {m + 1}월
+          </button>
+        ))}
       </div>
     </div>
   );
@@ -221,12 +193,9 @@ function CalendarGrid({
                 ${isSelected && !isOther ? "ring-1 ring-inset ring-gray-800" : ""}
               `}
             >
-              {/* 날짜 숫자 + Today 텍스트 */}
               <div className="flex items-center gap-1">
                 <span
-                  className={`text-xs font-medium
-                  ${isOther ? "text-gray-300" : isSun ? "text-red-500" : isSat ? "text-blue-500" : "text-gray-700"}
-                `}
+                  className={`text-xs font-medium ${isOther ? "text-gray-300" : isSun ? "text-red-500" : isSat ? "text-blue-500" : "text-gray-700"}`}
                 >
                   {cell.day}
                 </span>
@@ -262,7 +231,6 @@ function DayPanel({
   onAddClick: () => void;
 }) {
   if (!selectedDate) return null;
-
   const dayEvents = getEventsForDate(events, selectedDate);
 
   return (
@@ -290,6 +258,12 @@ function DayPanel({
               >
                 <span className={`w-2 h-2 rounded-full flex-shrink-0 ${c.dot}`} />
                 <span className="flex-1 truncate">{ev.title}</span>
+                {ev.startDate !== ev.endDate && (
+                  <span className="text-[10px] opacity-60 flex-shrink-0">
+                    {ev.startDate.slice(5).replace("-", ".")} ~ {ev.endDate.slice(5).replace("-", ".")}
+                  </span>
+                )}
+                {ev.type === "holiday" && <span className="text-[10px] text-gray-300">🔒</span>}
               </div>
             );
           })}
@@ -306,24 +280,51 @@ export default function MyCalendarPage() {
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [events, setEvents] = useState<CalendarEvent[]>(INITIAL_EVENTS);
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  // ── 년/월 변경 시 데이터 재조회 ──────────────────────
+  useEffect(() => {
+    const fetchCalendarData = async () => {
+      setLoading(true);
+      try {
+        const params = { year, month: month + 1 }; // 0-indexed → 1-indexed
+
+        const [eventRes, scheduleRes] = await Promise.all([
+          api.get<CalendarEventResponse[]>(`${API_BASE}/api/calendar/event`, { params }),
+          api.get<CalendarScheduleResponse[]>(`${API_BASE}/api/calendar/schedule`, { params }),
+        ]);
+
+        const adminEvents = eventRes.data.map(mapEventDto);
+        const userSchedules = scheduleRes.data.map(mapScheduleDto);
+
+        setEvents([...adminEvents, ...userSchedules]);
+      } catch (err) {
+        console.error("캘린더 데이터 로딩 실패:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCalendarData();
+  }, [year, month]);
 
   const handlePrev = () => {
+    setSelectedDate(null);
     if (month === 0) {
       setYear((y) => y - 1);
       setMonth(11);
     } else setMonth((m) => m - 1);
-    setSelectedDate(null);
   };
 
   const handleNext = () => {
+    setSelectedDate(null);
     if (month === 11) {
       setYear((y) => y + 1);
       setMonth(0);
     } else setMonth((m) => m + 1);
-    setSelectedDate(null);
   };
 
   return (
@@ -349,7 +350,6 @@ export default function MyCalendarPage() {
                     〈
                   </button>
 
-                  {/* 년/월 클릭 → 피커 */}
                   <div className="relative">
                     <button
                       onClick={() => setShowPicker((p) => !p)}
@@ -362,9 +362,9 @@ export default function MyCalendarPage() {
                         year={year}
                         month={month}
                         onSelect={(y, m) => {
+                          setSelectedDate(null);
                           setYear(y);
                           setMonth(m);
-                          setSelectedDate(null);
                         }}
                         onClose={() => setShowPicker(false)}
                       />
@@ -377,12 +377,18 @@ export default function MyCalendarPage() {
                   >
                     〉
                   </button>
+
+                  {loading && <span className="text-[11px] text-gray-400 ml-1">로딩중...</span>}
                 </div>
 
                 {/* 범례 */}
                 <div className="flex items-center gap-4 text-[11px] font-medium text-gray-500">
                   <span className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-red-500" />
+                    <span className="w-2 h-2 rounded-full bg-red-400" />
+                    공휴일
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-orange-400" />
                     혜택/이벤트
                   </span>
                   <span className="flex items-center gap-1.5">
