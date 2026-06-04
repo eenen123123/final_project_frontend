@@ -30,6 +30,7 @@ import DataRoomPage from "./pages/ServiceCenter/DataRoom/DataRoomPage";
 import DataRoomDetailPage from "./pages/ServiceCenter/DataRoom/DataRoomDetailPage";
 import VerifyPasswordPage from "./pages/User/VerifyPasswordPage";
 import ProfileEditPage from "./pages/User/ProfileEditPage";
+import NotFound from "./pages/NotFound";
 
 export default function AppRoute() {
   return (
@@ -75,6 +76,8 @@ export default function AppRoute() {
       <Route element={<ProtectedRouteAdmin />}>
         <Route path="/admin" element={<AdminPage />} />
       </Route>
+
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }
