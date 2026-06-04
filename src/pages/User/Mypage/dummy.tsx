@@ -1,534 +1,366 @@
-import { useState, useEffect } from "react";
-import MyPageSidebar from "../Mypage/components/MyPageSidebar";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useState } from "react";
+import MyPageSidebar from "./components/MyPageSidebar";
+// ◀ 지정하신 경로의 실제 MyPageSidebar 컴포넌트 호출
 
-type TabType = "active" | "rest" | "end" | "hidden";
-type SortType = "recent" | "order" | "expire";
+export default function MyCalendarPage() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<"study" | "personal">("study");
 
-interface Lecture {
-  id: string;
-  title: string;
-  teacher: string;
-  subject: string;
-  category: string;
-  progress: number;
-  totalCount: number;
-  currentCount: number;
-  expireDate: string;
-  dday: number | null;
-  thumbBg: string;
-  thumbLabel: string;
-  favorite: boolean;
-  status: TabType;
-}
-
-const DUMMY_LECTURES: Lecture[] = [
-  {
-    id: "1",
-    title: "[임정환] 2026 수능대비 사회문화 A 완성",
-    teacher: "임정환 선생님",
-    subject: "사회탐구",
-    category: "사탐",
-    progress: 65,
-    totalCount: 20,
-    currentCount: 13,
-    expireDate: "2026.08.31",
-    dday: null,
-    thumbBg: "#1E3A8A",
-    thumbLabel: "사회\n문화 A",
-    favorite: true,
-    status: "active",
-  },
-  {
-    id: "2",
-    title: "[이수학] 2026 수능대비 수학 완성 (수I+수II+확통)",
-    teacher: "이수학 선생님",
-    subject: "수학",
-    category: "수학",
-    progress: 30,
-    totalCount: 20,
-    currentCount: 6,
-    expireDate: "2026.12.31",
-    dday: null,
-    thumbBg: "#065F46",
-    thumbLabel: "수학\n완성",
-    favorite: false,
-    status: "active",
-  },
-  {
-    id: "3",
-    title: "[최영어] 영어 독해 + 문법 완성반",
-    teacher: "최영어 선생님",
-    subject: "영어",
-    category: "영어",
-    progress: 90,
-    totalCount: 20,
-    currentCount: 18,
-    expireDate: "2026.06.09",
-    dday: 7,
-    thumbBg: "#4B5563",
-    thumbLabel: "영어\n독해",
-    favorite: false,
-    status: "active",
-  },
-  {
-    id: "4",
-    title: "[김한국] 2026 한국사 개념완성",
-    teacher: "김한국 선생님",
-    subject: "한국사",
-    category: "한국사",
-    progress: 45,
-    totalCount: 12,
-    currentCount: 5,
-    expireDate: "2026.09.30",
-    dday: null,
-    thumbBg: "#7C3AED",
-    thumbLabel: "한국사\n완성",
-    favorite: false,
-    status: "active",
-  },
-  {
-    id: "5",
-    title: "[박국어] 국어 독해 심화 완성",
-    teacher: "박국어 선생님",
-    subject: "국어",
-    category: "국어",
-    progress: 100,
-    totalCount: 15,
-    currentCount: 15,
-    expireDate: "2026.05.01",
-    dday: null,
-    thumbBg: "#B45309",
-    thumbLabel: "국어\n독해",
-    favorite: false,
-    status: "end",
-  },
-  {
-    id: "6",
-    title: "[최과학] 생명과학 I 완성",
-    teacher: "최과학 선생님",
-    subject: "과학탐구",
-    category: "과탐",
-    progress: 78,
-    totalCount: 18,
-    currentCount: 14,
-    expireDate: "2026.04.01",
-    dday: null,
-    thumbBg: "#065F46",
-    thumbLabel: "생명\n과학",
-    favorite: false,
-    status: "end",
-  },
-  {
-    id: "7",
-    title: "[신수학] 확률과 통계 단기완성",
-    teacher: "신수학 선생님",
-    subject: "수학",
-    category: "수학",
-    progress: 20,
-    totalCount: 10,
-    currentCount: 2,
-    expireDate: "2026.07.15",
-    dday: null,
-    thumbBg: "#1E40AF",
-    thumbLabel: "확률\n통계",
-    favorite: true,
-    status: "rest",
-  },
-];
-
-const TAB_LABELS: { key: TabType; label: string }[] = [
-  { key: "active", label: "수강중인 강좌" },
-  { key: "rest", label: "휴강중인 강좌" },
-  { key: "end", label: "수강종료 강좌" },
-  { key: "hidden", label: "숨김 강좌" },
-];
-
-const LECTURE_TYPES = ["전체", "일반강좌/패키지", "PASS", "PAC", "무료강좌"];
-const CATEGORIES = ["전체", "국어", "수학", "영어", "사탐", "과탐", "한국사"];
-const SORT_LABELS: { key: SortType; label: string }[] = [
-  { key: "recent", label: "최근 수강일순" },
-  { key: "order", label: "신청일순" },
-  { key: "expire", label: "수강기간 임박순" },
-];
-
-const GUIDE_ITEMS = [
-  "강좌명을 클릭하면 강의를 수강하실 수 있습니다.",
-  "수강연장은 수강기간 중 최대 2회, 수강종료 후 30일 이내에 1회 가능합니다.",
-  "휴강은 최대 2회까지 가능하며, 수강 중(수강완료 1일 전까지)에만 신청이 가능합니다.",
-  "일부 기간제상품(PASS 상품 등) 및 패키지, 무료강좌, 이벤트성의 특정 강좌 등은 휴강&연장이 제공되지 않습니다.",
-  "당일 휴강후 휴강 해지 가능합니다.",
-  "강의 수강 후기를 작성하신 뒤 채택 되신 회원에게는 포인트 500점을 드립니다.",
-];
-
-// 📌 버튼 모양을 네모나게(rounded-md) 수정
-const FilterPill = ({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) => (
-  <button
-    onClick={onClick}
-    className={`text-xs px-3.5 py-1.5 rounded-md border transition-all cursor-pointer whitespace-nowrap
-      ${
-        active
-          ? "bg-blue-600 text-white border-blue-600 font-medium shadow-sm shadow-blue-100"
-          : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:text-gray-900"
-      }`}
-  >
-    {label}
-  </button>
-);
-
-export default function MyLecturePage() {
-  const [activeSection, setActiveSection] = useState("수강중 강좌");
-  const [activeTab, setActiveTab] = useState<TabType>("active");
-  const [lectureType, setLectureType] = useState("전체");
-  const [category, setCategory] = useState("전체");
-  const [sort, setSort] = useState<SortType>("recent");
-  const [lectures, setLectures] = useState<Lecture[]>(DUMMY_LECTURES);
-  const [guideOpen, setGuideOpen] = useState(true);
-  const [showFavOnly, setShowFavOnly] = useState(false);
-  const [toast, setToast] = useState<{ visible: boolean; message: string }>({ visible: false, message: "" });
-
-  const tabCount = (tab: TabType) => DUMMY_LECTURES.filter((l) => l.status === tab).length;
-
-  const filtered = lectures
-    .filter((l) => l.status === activeTab)
-    .filter((l) => category === "전체" || l.category === category)
-    .filter((l) => !showFavOnly || l.favorite)
-    .sort((a, b) => {
-      if (sort === "expire") return (a.dday ?? 999) - (b.dday ?? 999);
-      return 0;
-    });
-
-  const handleFavorite = (id: string) => {
-    const lecture = lectures.find((l) => l.id === id);
-    const isAdding = !lecture?.favorite;
-    setLectures((prev) => prev.map((l) => (l.id === id ? { ...l, favorite: !l.favorite } : l)));
-    setToast({ visible: true, message: isAdding ? "즐겨찾기에 등록되었습니다." : "즐겨찾기가 해제되었습니다." });
-  };
-
-  useEffect(() => {
-    if (toast.visible) {
-      const timer = setTimeout(() => setToast((t) => ({ ...t, visible: false })), 1800);
-      return () => clearTimeout(timer);
-    }
-  }, [toast.visible]);
+  // 1. 사이드바 에러를 해결하기 위한 껍데기용 State 추가!
+  // (만약 기존 Sidebar에서 "My 캘린더" 대신 다른 문자열이나 ENUM을 쓰신다면 그 값으로 초기화해주세요)
+  const [activeSection, setActiveSection] = useState("My 캘린더");
 
   return (
-    <div className="min-h-screen bg-gray-50/50">
-      <div className="max-w-6xl mx-auto px-6 py-10">
-        {/* 토스트 알림 */}
-        <div
-          className={`fixed top-6 left-1/2 z-50 transition-all duration-300 transform -translate-x-1/2
-            ${toast.visible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2 pointer-events-none"}`}
-        >
-          <div className="flex items-center gap-2 px-4 py-2.5 bg-gray-900/95 backdrop-blur-sm text-white text-sm rounded-xl shadow-lg">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="w-4 h-4 text-amber-400 flex-shrink-0"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-            >
-              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-            </svg>
-            {toast.message}
+    <div className="max-w-[1080px] mx-auto p-6 flex gap-6 items-start bg-gray-50/50 min-h-screen select-none">
+      {/* 2. 에러가 나던 호출 부분을 아래와 같이 Props를 채워서 수정 */}
+      <MyPageSidebar activeSection={activeSection} onSectionChange={setActiveSection} />
+
+      {/* 오른쪽 메인 콘텐츠 영역 (캘린더 UI 껍데기 - 기존 코드 동일) */}
+      <div className="flex-1 bg-white p-6 border border-gray-200 rounded-2xl shadow-xs text-xs font-sans">
+        {/* 상단 컨트롤 / 범례 */}
+        <div className="flex items-center justify-between mb-4 px-2">
+          <div className="flex items-center gap-6">
+            <button className="text-gray-400 hover:text-gray-600 text-sm font-bold">〈</button>
+            <span className="text-lg font-bold tracking-wide text-gray-800">2026.6</span>
+            <button className="text-gray-400 hover:text-gray-600 text-sm font-bold">〉</button>
+          </div>
+
+          <div className="flex items-center gap-4 text-[11px] font-medium">
+            <span className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-red-500"></span>혜택/이벤트
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-blue-400"></span>학사 일정
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-amber-400"></span>나의 일정
+            </span>
           </div>
         </div>
 
-        <div className="flex gap-8 items-start">
-          <MyPageSidebar activeSection={activeSection} onSectionChange={(section) => setActiveSection(section)} />
+        {/* 요일 헤더 */}
+        <div className="grid grid-cols-7 text-center font-medium text-gray-400 border-b border-gray-200 pb-2 mb-1">
+          <div className="text-red-500">SUN</div>
+          <div>MON</div>
+          <div>TUE</div>
+          <div>WED</div>
+          <div>THU</div>
+          <div>FRI</div>
+          <div>SAT</div>
+        </div>
 
-          <div className="flex-1 min-w-0">
-            {/* 상단 타이틀 */}
-            <div className="mb-6">
-              <h3 className="text-2xl font-bold text-gray-900 tracking-tight">나의 강의실</h3>
-              <p className="text-sm text-gray-500 mt-1">신청하신 강좌의 학습 현황을 관리하고 수강할 수 있습니다.</p>
+        {/* 달력 날짜 그리드 (2026년 6월 껍데기) */}
+        <div className="grid grid-cols-7 border-t border-l border-gray-200">
+          {/* 1주차 */}
+          <div className="border-r border-b border-gray-200 h-24 p-1.5 flex flex-col bg-gray-50/50 text-gray-300">
+            <span>31</span>
+          </div>
+          <div className="border-r border-b border-gray-200 h-24 p-1.5 flex flex-col gap-1 bg-white">
+            <span className="text-gray-700 font-medium">1</span>
+            <div className="text-[10px] text-red-500 font-medium truncate flex items-center gap-1">
+              <span className="w-1 h-1 rounded-full bg-red-500"></span>6모, 100점 노...
             </div>
-
-            {/* 메인 탭 컴포넌트 */}
-            <div className="flex border-b border-gray-200 mb-6 gap-2">
-              {TAB_LABELS.map(({ key, label }) => {
-                const isSelected = activeTab === key;
-                return (
-                  <button
-                    key={key}
-                    onClick={() => {
-                      setActiveTab(key);
-                      setCategory("전체");
-                      setLectureType("전체");
-                    }}
-                    className={`flex items-center gap-2 px-4 py-3 text-sm font-medium transition-all cursor-pointer relative top-[1px] border-b-2
-                      ${
-                        isSelected
-                          ? "border-blue-600 text-blue-600 font-semibold"
-                          : "border-transparent text-gray-500 hover:text-gray-800 hover:border-gray-300"
-                      }`}
-                  >
-                    {label}
-                    <span
-                      className={`text-xs px-2 py-0.5 rounded-full transition-colors
-                        ${isSelected ? "bg-blue-50 text-blue-600 font-bold" : "bg-gray-100 text-gray-400"}`}
-                    >
-                      {tabCount(key)}
-                    </span>
-                  </button>
-                );
-              })}
+          </div>
+          <div className="border-r border-b border-gray-200 h-24 p-1.5 flex flex-col gap-1 bg-white">
+            <span className="text-gray-700 font-medium">2</span>
+            <div className="text-[10px] text-red-500 font-medium truncate flex items-center gap-1">
+              <span className="w-1 h-1 rounded-full bg-red-500"></span>6모, 100점 노...
             </div>
-
-            {/* 표(Table) 형태의 필터 대시보드 */}
-            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden mb-5 shadow-sm">
-              <table className="w-full border-collapse text-left">
-                <tbody>
-                  <tr className="border-b border-gray-100">
-                    <th className="w-24 sm:w-28 bg-gray-50/80 px-4 py-3 text-xs font-bold text-gray-500 border-r border-gray-100 uppercase tracking-wider text-center select-none">
-                      수강유형
-                    </th>
-                    <td className="px-4 py-3.5">
-                      <div className="flex gap-1.5 flex-wrap">
-                        {LECTURE_TYPES.map((t) => (
-                          <FilterPill key={t} label={t} active={lectureType === t} onClick={() => setLectureType(t)} />
-                        ))}
-                      </div>
-                    </td>
-                  </tr>
-                  <tr>
-                    <th className="w-24 sm:w-28 bg-gray-50/80 px-4 py-3 text-xs font-bold text-gray-500 border-r border-gray-100 uppercase tracking-wider text-center select-none">
-                      과목영역
-                    </th>
-                    <td className="px-4 py-3.5">
-                      <div className="flex gap-1.5 flex-wrap">
-                        {CATEGORIES.map((c) => (
-                          <FilterPill key={c} label={c} active={category === c} onClick={() => setCategory(c)} />
-                        ))}
-                      </div>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+          </div>
+          <div className="border-r border-b border-gray-200 h-24 p-1.5 flex flex-col gap-1 bg-white">
+            <span className="text-red-500 font-medium">3</span>
+            <div className="text-[10px] text-red-500 font-medium truncate flex items-center gap-1">
+              <span className="w-1 h-1 rounded-full bg-red-500"></span>제9회 전국동시지방선거
             </div>
+            <div className="text-[10px] text-red-500 font-medium truncate flex items-center gap-1">
+              <span className="w-1 h-1 rounded-full bg-red-500"></span>6모, 100점 노...
+            </div>
+          </div>
+          <div className="border-r border-b border-gray-200 h-24 p-1.5 flex flex-col gap-1 bg-white">
+            <span className="text-gray-700 font-medium">4</span>
+            <div className="text-[10px] text-red-500 font-medium truncate flex items-center gap-1">
+              <span className="w-1 h-1 rounded-full bg-red-500"></span>6모, 100점 노...
+            </div>
+            <div className="text-[10px] text-blue-500 font-medium truncate flex items-center gap-1">
+              <span className="w-1 h-1 rounded-full bg-blue-400"></span>[고3] 6월 모의...
+            </div>
+            <div className="text-[10px] text-blue-500 font-medium truncate flex items-center gap-1">
+              <span className="w-1 h-1 rounded-full bg-blue-400"></span>[고1/고2] 6월 ...
+            </div>
+          </div>
+          <div className="border-r border-b border-gray-200 h-24 p-1.5 flex flex-col gap-1 bg-white">
+            <span className="text-gray-700 font-medium">5</span>
+            <div className="text-[10px] text-red-500 font-medium truncate flex items-center gap-1">
+              <span className="w-1 h-1 rounded-full bg-red-500"></span>6모, 100점 노...
+            </div>
+          </div>
+          <div className="border-r border-b border-gray-200 h-24 p-1.5 flex flex-col gap-1 bg-white">
+            <span className="text-red-500 font-medium">6</span>
+            <div className="text-[10px] text-red-500 font-medium truncate flex items-center gap-1">
+              <span className="w-1 h-1 rounded-full bg-red-500"></span>현충일
+            </div>
+          </div>
 
-            {/* 리스트 컨트롤 바 */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 px-1">
-              <div className="flex items-center gap-3">
-                <span className="text-sm text-gray-600">
-                  총 <b className="text-gray-900 font-semibold">{filtered.length}</b>개의 강좌
-                </span>
-                <div className="w-[1px] h-3 bg-gray-200" />
+          {/* 2주차 */}
+          <div className="border-r border-b border-gray-200 h-24 p-1.5 flex flex-col bg-white text-red-500 font-medium">
+            <span>7</span>
+          </div>
+          <div className="border-r border-b border-gray-200 h-24 p-1.5 flex flex-col bg-white text-gray-700">
+            <span>8</span>
+          </div>
+          <div className="border-r border-b border-gray-200 h-24 p-1.5 flex flex-col bg-white text-gray-700">
+            <span>9</span>
+          </div>
+          <div className="border-r border-b border-gray-200 h-24 p-1.5 flex flex-col bg-white text-gray-700">
+            <span>10</span>
+          </div>
+          <div className="border-r border-b border-gray-200 h-24 p-1.5 flex flex-col bg-white text-gray-700">
+            <span>11</span>
+          </div>
+          <div className="border-r border-b border-gray-200 h-24 p-1.5 flex flex-col bg-white text-gray-700">
+            <span>12</span>
+          </div>
+          <div className="border-r border-b border-gray-200 h-24 p-1.5 flex flex-col bg-white text-gray-700">
+            <span>13</span>
+          </div>
+
+          {/* 3주차 */}
+          <div className="border-r border-b border-gray-200 h-24 p-1.5 flex flex-col bg-white text-red-500 font-medium">
+            <span>14</span>
+          </div>
+          <div className="border-r border-b border-gray-200 h-24 p-1.5 flex flex-col bg-white text-gray-700">
+            <span>15</span>
+          </div>
+          <div className="border-r border-b border-gray-200 h-24 p-1.5 flex flex-col bg-white text-gray-700">
+            <span>16</span>
+          </div>
+          <div className="border-r border-b border-gray-200 h-24 p-1.5 flex flex-col gap-1 bg-white text-gray-700">
+            <span>17</span>
+            <div className="text-[10px] text-blue-500 font-medium truncate flex items-center gap-1">
+              <span className="w-1 h-1 rounded-full bg-blue-400"></span>[고3] 7월 학력...
+            </div>
+          </div>
+          <div className="border-r border-b border-gray-200 h-24 p-1.5 flex flex-col bg-white text-gray-700">
+            <span>18</span>
+          </div>
+          <div className="border-r border-b border-gray-200 h-24 p-1.5 flex flex-col bg-white text-gray-700">
+            <span>19</span>
+          </div>
+          <div className="border-r border-b border-gray-200 h-24 p-1.5 flex flex-col bg-white text-gray-700">
+            <span>20</span>
+          </div>
+
+          {/* 4주차 (22일 선택 표시) */}
+          <div className="border-r border-b border-gray-200 h-24 p-1.5 flex flex-col bg-white text-red-500 font-medium">
+            <span>21</span>
+          </div>
+          <div className="border-r border-b border-gray-200 h-24 p-1.5 flex flex-col bg-white text-gray-700 ring-2 ring-black ring-inset z-10">
+            <span className="font-bold">22</span>
+          </div>
+          <div className="border-r border-b border-gray-200 h-24 p-1.5 flex flex-col bg-white text-gray-700">
+            <span>23</span>
+          </div>
+          <div className="border-r border-b border-gray-200 h-24 p-1.5 flex flex-col gap-1 bg-white text-gray-700">
+            <span>24</span>
+            <div className="text-[10px] text-blue-500 font-medium truncate flex items-center gap-1">
+              <span className="w-1 h-1 rounded-full bg-blue-400"></span>[고3] 7월 학력...
+            </div>
+          </div>
+          <div className="border-r border-b border-gray-200 h-24 p-1.5 flex flex-col bg-white text-gray-700">
+            <span>25</span>
+          </div>
+          <div className="border-r border-b border-gray-200 h-24 p-1.5 flex flex-col bg-white text-gray-700">
+            <span>26</span>
+          </div>
+          <div className="border-r border-b border-gray-200 h-24 p-1.5 flex flex-col bg-white text-gray-700">
+            <span>27</span>
+          </div>
+
+          {/* 5주차 */}
+          <div className="border-r border-b border-gray-200 h-24 p-1.5 flex flex-col bg-white text-red-500 font-medium">
+            <span>28</span>
+          </div>
+          <div className="border-r border-b border-gray-200 h-24 p-1.5 flex flex-col bg-white text-gray-700">
+            <span>29</span>
+          </div>
+          <div className="border-r border-b border-gray-200 h-24 p-1.5 flex flex-col bg-white text-gray-700">
+            <span>30</span>
+          </div>
+          <div className="border-r border-b border-gray-200 h-24 p-1.5 flex flex-col bg-gray-50/50 text-gray-300">
+            <span>1</span>
+          </div>
+          <div className="border-r border-b border-gray-200 h-24 p-1.5 flex flex-col bg-gray-50/50 text-gray-300">
+            <span>2</span>
+          </div>
+          <div className="border-r border-b border-gray-200 h-24 p-1.5 flex flex-col bg-gray-50/50 text-gray-300">
+            <span>3</span>
+          </div>
+          <div className="border-r border-b border-gray-200 h-24 p-1.5 flex flex-col bg-gray-50/50 text-gray-300">
+            <span>4</span>
+          </div>
+        </div>
+
+        {/* 하단 정보 바 및 모달 오픈 버튼 */}
+        <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-200">
+          <div className="text-base font-bold text-gray-800 tracking-tight">22.MON</div>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="w-7 h-7 flex items-center justify-center border border-gray-300 rounded-lg text-gray-400 hover:text-gray-700 hover:border-gray-500 hover:bg-gray-50 transition-all font-semibold text-sm"
+          >
+            +
+          </button>
+        </div>
+      </div>
+
+      {/* =========================================================================
+          일정 관리 모달 팝업 UI 영역 (동일 파일 포함)
+         ========================================================================= */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl w-full max-w-xl shadow-2xl overflow-hidden text-xs text-left">
+            <div className="bg-gray-900 px-5 py-4 flex items-center justify-between text-white">
+              <h3 className="text-sm font-bold">일정 관리</h3>
+              <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-white text-base">
+                ✕
+              </button>
+            </div>
+            <div className="p-5">
+              <div className="flex border-b border-gray-200 mb-4">
                 <button
-                  onClick={() => setShowFavOnly(!showFavOnly)}
-                  className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-md border transition-all cursor-pointer
-                    ${
-                      showFavOnly
-                        ? "bg-amber-50 text-amber-700 border-amber-200 font-medium"
-                        : "bg-white text-gray-500 border-gray-200 hover:text-gray-700"
-                    }`}
+                  className={`flex-1 py-2.5 font-semibold text-center border-b-2 ${activeTab === "study" ? "border-blue-500 text-blue-600" : "border-transparent text-gray-400"}`}
+                  onClick={() => setActiveTab("study")}
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className={`w-3.5 h-3.5 ${showFavOnly ? "text-amber-500" : "text-gray-400"}`}
-                    viewBox="0 0 24 24"
-                    fill={showFavOnly ? "currentColor" : "none"}
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                  </svg>
-                  즐겨찾기만 보기
+                  학습 일정
+                </button>
+                <button
+                  className={`flex-1 py-2.5 font-semibold text-center border-b-2 ${activeTab === "personal" ? "border-blue-500 text-blue-600" : "border-transparent text-gray-400"}`}
+                  onClick={() => setActiveTab("personal")}
+                >
+                  개인 일정
                 </button>
               </div>
 
-              <div className="flex items-center gap-2">
-                {SORT_LABELS.map(({ key, label }, i) => (
-                  <div key={key} className="flex items-center">
-                    {i > 0 && <span className="text-gray-200 text-xs mx-2">·</span>}
-                    <button
-                      onClick={() => setSort(key)}
-                      className={`text-xs transition-all cursor-pointer font-medium
-                        ${sort === key ? "text-blue-600 font-semibold" : "text-gray-400 hover:text-gray-600"}`}
-                    >
-                      {label}
-                    </button>
+              {activeTab === "study" && (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-3 gap-2">
+                    <select className="border border-gray-300 rounded-lg p-2 bg-white">
+                      <option value="">영역 선택</option>
+                      <option value="0001">국어</option>
+                      <option value="0002">사회탐구</option>
+                    </select>
+                    <select className="border border-gray-300 rounded-lg p-2 bg-white" disabled>
+                      <option value="">선생님 선택</option>
+                    </select>
+                    <select className="border border-gray-300 rounded-lg p-2 bg-white" disabled>
+                      <option value="">강좌 선택</option>
+                    </select>
                   </div>
-                ))}
+                  <select className="w-full border border-gray-300 rounded-lg p-2 bg-white" disabled>
+                    <option value="">강의 선택</option>
+                  </select>
+                  <div className="flex items-center gap-2">
+                    <span className="w-10 text-gray-500">일자</span>
+                    <input
+                      type="date"
+                      defaultValue="2026-06-22"
+                      className="border border-gray-300 rounded-lg p-1.5 flex-1"
+                    />
+                    <span>-</span>
+                    <input
+                      type="date"
+                      defaultValue="2026-06-22"
+                      className="border border-gray-300 rounded-lg p-1.5 flex-1"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {activeTab === "personal" && (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-4 py-1">
+                    <span className="w-10 text-gray-500">구분</span>
+                    {["공부", "기념", "행사", "기타"].map((label, idx) => (
+                      <label key={idx} className="flex items-center gap-1.5 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="pType"
+                          defaultChecked={idx === 0}
+                          className="text-blue-500 focus:ring-blue-500"
+                        />
+                        {label}
+                      </label>
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-10 text-gray-500">일자</span>
+                    <input
+                      type="date"
+                      defaultValue="2026-06-22"
+                      className="border border-gray-300 rounded-lg p-1.5 flex-1"
+                    />
+                    <span>-</span>
+                    <input
+                      type="date"
+                      defaultValue="2026-06-22"
+                      className="border border-gray-300 rounded-lg p-1.5 flex-1"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-10 text-gray-500">내용</span>
+                    <input
+                      type="text"
+                      placeholder="최대 100자까지만 입력해 주세요."
+                      maxLength={100}
+                      className="border border-gray-300 rounded-lg p-2 flex-1"
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div className="flex justify-center gap-2 mt-4">
+                <button className="px-4 py-1.5 bg-gray-800 text-white rounded-lg hover:bg-gray-700 font-medium">
+                  추가 확인
+                </button>
               </div>
-            </div>
 
-            {/* 강좌 목록 영역 */}
-            {filtered.length === 0 ? (
-              <div className="bg-white border border-gray-100 rounded-2xl py-20 text-center shadow-sm mb-5">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="w-12 h-12 text-gray-200 mx-auto mb-3"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-                </svg>
-                <p className="text-sm text-gray-400 font-medium">조건에 맞는 강좌가 없습니다.</p>
+              <div className="mt-5 border border-gray-200 rounded-xl overflow-hidden bg-gray-50">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-gray-100 border-b border-gray-200 text-gray-600 font-semibold">
+                      <th className="p-2 w-12 text-center">순번</th>
+                      <th className="p-2 w-16">구분</th>
+                      <th className="p-2 w-32">일자</th>
+                      <th className="p-2">내용</th>
+                      <th className="p-2 w-12 text-center">삭제</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200 bg-white">
+                    <tr className="hover:bg-gray-50/50 text-gray-700">
+                      <td className="p-2 text-center font-medium text-gray-400">1</td>
+                      <td className="p-2 font-medium text-blue-600">사회탐구</td>
+                      <td className="p-2 text-gray-500 truncate">2026-06-22 ~ 2026-06-23</td>
+                      <td className="p-2 font-medium max-w-[150px] truncate">1강. 오리엔테이션 예시</td>
+                      <td className="p-2 text-center">
+                        <button className="text-red-500 hover:text-red-700 font-bold">✕</button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
-            ) : (
-              <div className="flex flex-col gap-3 mb-5">
-                {filtered.map((lecture) => {
-                  const isExpiring = lecture.dday !== null && lecture.dday <= 14;
-                  const accentColor = isExpiring ? "#EF4444" : "#3B82F6";
 
-                  return (
-                    <div
-                      key={lecture.id}
-                      className="bg-white rounded-2xl overflow-hidden shadow-sm transition-all border hover:shadow-md hover:border-gray-200"
-                      style={{ border: isExpiring ? "1px solid #FCA5A5" : "1px solid #F3F4F6" }}
-                    >
-                      <div className="flex items-center gap-5 p-5">
-                        {/* 썸네일 */}
-                        <div className="relative flex-shrink-0">
-                          <div
-                            className="w-24 h-24 rounded-xl flex items-center justify-center shadow-inner"
-                            style={{ background: lecture.thumbBg }}
-                          >
-                            <span className="text-xs font-semibold text-white text-center leading-tight whitespace-pre-line px-2">
-                              {lecture.thumbLabel}
-                            </span>
-                          </div>
-                          <button
-                            onClick={() => handleFavorite(lecture.id)}
-                            className="absolute top-1.5 left-1.5 cursor-pointer transition-transform hover:scale-110 p-1 bg-black/20 rounded-lg backdrop-blur-[2px]"
-                            aria-label={lecture.favorite ? "즐겨찾기 해제" : "즐겨찾기 등록"}
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              className="w-4 h-4"
-                              viewBox="0 0 24 24"
-                              fill={lecture.favorite ? "#F59E0B" : "none"}
-                              stroke={lecture.favorite ? "#F59E0B" : "white"}
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            >
-                              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                            </svg>
-                          </button>
-                        </div>
-
-                        {/* 강좌 세부정보 */}
-                        <div className="flex-1 min-w-0">
-                          {/* 📌 과목 우측으로 뱃지를 정렬한 상단 레이아웃 */}
-                          <div className="flex items-center gap-2 mb-1">
-                            <p className="text-xs font-bold text-blue-600">{lecture.subject}</p>
-                            <span
-                              className="text-[10px] px-1.5 py-0.5 rounded font-semibold tracking-wide"
-                              style={{
-                                background: isExpiring ? "#FEF2F2" : "#EBF5FF",
-                                color: isExpiring ? "#991B1B" : "#1D4ED8",
-                                border: `1px solid ${isExpiring ? "#FECACA" : "#BFDBFE"}`,
-                              }}
-                            >
-                              {isExpiring ? `만료임박 D-${lecture.dday}` : "수강중"}
-                            </span>
-                          </div>
-
-                          <p className="text-sm font-bold text-gray-900 mb-1 truncate cursor-pointer hover:text-blue-600 transition-colors">
-                            {lecture.title}
-                          </p>
-                          <p className="text-xs text-gray-400 mb-3 font-medium">{lecture.teacher}</p>
-
-                          {/* 10%마다 실선 구분선이 추가된 학습진도율 프로그레스 바 */}
-                          <div className="relative h-3.5 bg-gray-100 rounded-full overflow-hidden mb-2 border border-gray-200/30">
-                            {/* 실제 게이지 바 */}
-                            <div
-                              className="h-full rounded-full transition-all duration-500"
-                              style={{ width: `${lecture.progress}%`, background: accentColor }}
-                            />
-                            {/* 10% 단위 실선 구분 눈금 (10% ~ 90%) */}
-                            {[10, 20, 30, 40, 50, 60, 70, 80, 90].map((percent) => (
-                              <div
-                                key={percent}
-                                className="absolute top-0 bottom-0 w-[1px] bg-white/40 pointer-events-none"
-                                style={{ left: `${percent}%` }}
-                              />
-                            ))}
-                          </div>
-
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs text-gray-500 font-medium">
-                              {lecture.currentCount}강 / <span className="text-gray-400">{lecture.totalCount}강</span> ·{" "}
-                              <b style={{ color: accentColor }} className="font-semibold">
-                                {lecture.progress}% 완료
-                              </b>
-                            </span>
-                            <span
-                              className="text-xs"
-                              style={{ color: isExpiring ? "#EF4444" : "#9CA3AF", fontWeight: isExpiring ? 600 : 400 }}
-                            >
-                              ~{lecture.expireDate}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* 우측 액션 버튼 */}
-                        <div className="flex flex-col gap-2 flex-shrink-0">
-                          <button
-                            className="text-xs px-4 py-2.5 text-white rounded-xl font-semibold shadow-sm transition-all cursor-pointer whitespace-nowrap hover:opacity-90"
-                            style={{ background: accentColor }}
-                          >
-                            이어보기
-                          </button>
-                          <button className="text-xs px-4 py-2.5 border border-gray-200 rounded-xl font-medium text-gray-600 bg-white hover:bg-gray-50 transition-colors cursor-pointer whitespace-nowrap">
-                            강좌정보
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
-            {/* 이용안내 아코디언 */}
-            <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
-              <button
-                onClick={() => setGuideOpen((p) => !p)}
-                className="w-full flex items-center gap-2 px-5 py-4 text-left cursor-pointer hover:bg-gray-50/50 transition-colors"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/xl"
-                  className="w-4 h-4 text-blue-500 flex-shrink-0"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
+              <div className="flex justify-center mt-5 pt-3 border-t border-gray-100">
+                <button
+                  onClick={() => setIsModalOpen(false)}
+                  className="w-full py-2.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors shadow-sm"
                 >
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
-                </svg>
-                <span className="text-sm font-semibold text-gray-700">나의 강의실 이용안내</span>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className={`w-4 h-4 text-gray-400 ml-auto transition-transform duration-200 ${guideOpen ? "rotate-180" : ""}`}
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                >
-                  <polyline points="6 9 12 15 18 9" />
-                </svg>
-              </button>
-              <div
-                className="overflow-hidden transition-all duration-300 ease-in-out"
-                style={{ maxHeight: guideOpen ? "300px" : "0px" }}
-              >
-                <ul className="px-5 pb-5 space-y-2 border-t border-gray-50 pt-4 bg-gray-50/30">
-                  {GUIDE_ITEMS.map((item, i) => (
-                    <li key={i} className="flex items-start gap-2 text-xs text-gray-500 leading-relaxed">
-                      <span className="text-blue-400 flex-shrink-0 mt-0.5">·</span>
-                      {item}
-                    </li>
-                  ))}
-                </ul>
+                  나의 일정 등록완료
+                </button>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
