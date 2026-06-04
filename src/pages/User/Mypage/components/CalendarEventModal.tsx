@@ -1,4 +1,5 @@
 import { useState } from "react";
+import api from "../../../../api/api";
 import type { CalendarEvent } from "../../../../types/MyPageInterface";
 
 interface Props {
@@ -18,11 +19,6 @@ const TEACHERS_BY_AREA: Record<string, string[]> = {
   사탐: ["이지영", "임정환", "김현수"],
   과탐: ["이승후", "안성진", "엄영대"],
   한국사: ["김준창", "한세희"],
-};
-const CATEGORY_COLOR: Record<string, string> = {
-  academic: "text-blue-600",
-  event: "text-red-500",
-  personal: "text-amber-600",
 };
 
 interface FormState {
@@ -47,17 +43,30 @@ function getInitialForm(defaultDate?: string): FormState {
   };
 }
 
+function formatDateShort(dateStr: string) {
+  if (!dateStr) return "";
+  const [, m, d] = dateStr.split("-");
+  return `${m}.${d}`;
+}
+
 export default function CalendarEventModal({ isOpen, onClose, onSave, onDelete, defaultDate, events }: Props) {
   const [form, setForm] = useState<FormState>(() => getInitialForm(defaultDate));
+
+  // 임시 등록 목록 (등록완료 전까지 캘린더에 반영 안 됨)
+  const [pendingEvents, setPendingEvents] = useState<CalendarEvent[]>([]);
+  const [saving, setSaving] = useState(false);
 
   if (!isOpen) return null;
 
   const set = (partial: Partial<FormState>) => setForm((prev) => ({ ...prev, ...partial }));
 
+  // 추가확인 → pendingEvents 에만 추가
   const handleAdd = () => {
-    if (!form.startDate || !form.endDate) return;
+    if (!form.startDate || !form.endDate) return alert("일자를 입력해주세요.");
+    if (!form.content && form.activeTab === "personal") return alert("내용을 입력해주세요.");
+
     const newEvent: CalendarEvent = {
-      id: Date.now().toString(),
+      id: "pending-" + Date.now().toString(),
       date: form.startDate,
       startDate: form.startDate,
       endDate: form.endDate,
@@ -66,10 +75,43 @@ export default function CalendarEventModal({ isOpen, onClose, onSave, onDelete, 
         form.content ||
         (form.activeTab === "academic" ? `${form.area || "학습"} 일정` : `${form.personalCategory} 일정`),
       content: form.content,
+      source: "user",
     };
-    onSave([...events, newEvent]);
+    setPendingEvents((prev) => [...prev, newEvent]);
     set({ content: "", area: "", teacher: "" });
   };
+
+  // 등록완료 → 백엔드 POST + 캘린더 반영
+  const handleSave = async () => {
+    if (pendingEvents.length === 0) return onClose();
+
+    setSaving(true);
+    try {
+      // 각 일정 백엔드에 저장
+      await Promise.all(
+        pendingEvents.map((ev) =>
+          api.post("http://localhost:8081/api/calendar/schedule", {
+            scheduleType: ev.type,
+            scheduleTitle: ev.title,
+            scheduleCont: ev.content,
+            startDt: ev.startDate,
+            endDt: ev.endDate,
+          }),
+        ),
+      );
+      // 캘린더에 반영
+      onSave([...events, ...pendingEvents]);
+      onClose();
+    } catch (err) {
+      console.error("일정 저장 실패:", err);
+      alert("일정 저장에 실패했습니다. 다시 시도해주세요.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // 사용자 개인 일정만 필터링 (공휴일/이벤트/학사 제외)
+  const userEvents = events.filter((e) => e.source === "user");
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
@@ -156,6 +198,17 @@ export default function CalendarEventModal({ isOpen, onClose, onSave, onDelete, 
                   className="border border-gray-300 rounded-lg p-1.5 flex-1 text-xs cursor-pointer"
                 />
               </div>
+              <div className="flex items-center gap-2">
+                <span className="w-10 text-gray-500 flex-shrink-0">내용</span>
+                <input
+                  type="text"
+                  value={form.content}
+                  onChange={(e) => set({ content: e.target.value })}
+                  placeholder="일정 내용을 입력하세요"
+                  maxLength={100}
+                  className="border border-gray-300 rounded-lg p-2 flex-1 text-xs cursor-text"
+                />
+              </div>
             </div>
           )}
 
@@ -216,8 +269,39 @@ export default function CalendarEventModal({ isOpen, onClose, onSave, onDelete, 
             </button>
           </div>
 
-          {/* 일정 목록 */}
-          <div className="mt-5 border border-gray-200 rounded-xl overflow-hidden bg-gray-50">
+          {/* 임시 추가 목록 (등록완료 전) */}
+          {pendingEvents.length > 0 && (
+            <div className="mt-4">
+              <p className="text-[11px] font-semibold text-blue-600 mb-1.5">
+                ✓ 등록 예정 일정 ({pendingEvents.length}건)
+              </p>
+              <div className="border border-blue-100 rounded-xl overflow-hidden bg-blue-50/30">
+                <table className="w-full text-left border-collapse text-xs">
+                  <tbody className="divide-y divide-blue-100">
+                    {pendingEvents.map((ev) => (
+                      <tr key={ev.id} className="hover:bg-blue-50/50">
+                        <td className="p-2 pl-3 font-medium text-gray-700 flex-1">{ev.title}</td>
+                        <td className="p-2 text-gray-400 text-[10px] whitespace-nowrap">
+                          {formatDateShort(ev.startDate)} ~ {formatDateShort(ev.endDate)}
+                        </td>
+                        <td className="p-2 pr-3 text-center">
+                          <button
+                            onClick={() => setPendingEvents((prev) => prev.filter((e) => e.id !== ev.id))}
+                            className="text-red-400 hover:text-red-600 font-bold transition-colors cursor-pointer"
+                          >
+                            ✕
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* 기존 개인 일정 목록 (source === 'user' 만) */}
+          <div className="mt-4 border border-gray-200 rounded-xl overflow-hidden bg-gray-50">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
                 <tr className="bg-gray-100 border-b border-gray-200 text-gray-600 font-semibold">
@@ -229,35 +313,33 @@ export default function CalendarEventModal({ isOpen, onClose, onSave, onDelete, 
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 bg-white">
-                {events.filter((e) => e.type !== "event").length === 0 ? (
+                {userEvents.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="p-4 text-center text-gray-400">
-                      등록된 일정이 없습니다.
+                      등록된 개인 일정이 없습니다.
                     </td>
                   </tr>
                 ) : (
-                  events
-                    .filter((e) => e.type !== "event")
-                    .map((ev, i) => (
-                      <tr key={ev.id} className="hover:bg-gray-50/50 text-gray-700">
-                        <td className="p-2 text-center text-gray-400">{i + 1}</td>
-                        <td className={`p-2 font-medium ${CATEGORY_COLOR[ev.type] ?? "text-gray-600"}`}>
-                          {ev.type === "academic" ? "학습" : "개인"}
-                        </td>
-                        <td className="p-2 text-gray-500 truncate">
-                          {ev.startDate} ~ {ev.endDate}
-                        </td>
-                        <td className="p-2 font-medium max-w-[150px] truncate">{ev.title}</td>
-                        <td className="p-2 text-center">
-                          <button
-                            onClick={() => onDelete(ev.id)}
-                            className="text-red-400 hover:text-red-600 font-bold transition-colors cursor-pointer"
-                          >
-                            ✕
-                          </button>
-                        </td>
-                      </tr>
-                    ))
+                  userEvents.map((ev, i) => (
+                    <tr key={ev.id} className="hover:bg-gray-50/50 text-gray-700">
+                      <td className="p-2 text-center text-gray-400">{i + 1}</td>
+                      <td className={`p-2 font-medium ${ev.type === "academic" ? "text-blue-600" : "text-amber-600"}`}>
+                        {ev.type === "academic" ? "학습" : "개인"}
+                      </td>
+                      <td className="p-2 text-gray-500 truncate">
+                        {formatDateShort(ev.startDate)} ~ {formatDateShort(ev.endDate)}
+                      </td>
+                      <td className="p-2 font-medium max-w-[150px] truncate">{ev.title}</td>
+                      <td className="p-2 text-center">
+                        <button
+                          onClick={() => onDelete(ev.id)}
+                          className="text-red-400 hover:text-red-600 font-bold transition-colors cursor-pointer"
+                        >
+                          ✕
+                        </button>
+                      </td>
+                    </tr>
+                  ))
                 )}
               </tbody>
             </table>
@@ -265,10 +347,11 @@ export default function CalendarEventModal({ isOpen, onClose, onSave, onDelete, 
 
           <div className="flex justify-center mt-5 pt-3 border-t border-gray-100">
             <button
-              onClick={onClose}
-              className="w-full py-2.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors shadow-sm text-xs cursor-pointer"
+              onClick={handleSave}
+              disabled={saving}
+              className="w-full py-2.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors shadow-sm text-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              나의 일정 등록완료
+              {saving ? "저장 중..." : "나의 일정 등록완료"}
             </button>
           </div>
         </div>
