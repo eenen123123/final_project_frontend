@@ -27,9 +27,9 @@ const NAV: NavItem[] = [
     href: "#payment",
     children: [
       { label: "장바구니", href: "/mycart" },
-      { label: "주문/배송 조회", href: "#order" },
+      { label: "주문/배송 조회", href: "/mycart/orderhistory" },
       { label: "이용권 관리", href: "#voucher" },
-      { label: "쿠폰/포인트", href: "#coupon" },
+      { label: "쿠폰/포인트", href: "/mypage/couponpoint" },
     ],
   },
   {

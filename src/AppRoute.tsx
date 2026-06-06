@@ -38,6 +38,8 @@ import CartPage from "./pages/User/Mypage/CartPage";
 import DaesungMain from "./pages/Header/Instructors.tsx";
 import Instructors from "./pages/Header/Instructors.tsx";
 import EtoosBookMain from "./pages/Header/Books.tsx";
+import OrderHistoryPage from "./pages/User/Mypage/OrderHistoryPage";
+import CouponPointPage from "./pages/User/Mypage/CouponPointPage";
 
 export default function AppRoute() {
   return (
@@ -91,6 +93,8 @@ export default function AppRoute() {
         <Route path="/mylecture/book" element={<BookOrderPage />} />
         <Route path="/mylecture/history" element={<LectureHistoryPage />} />
         <Route path="/mycart" element={<CartPage />} />
+        <Route path="/mycart/orderhistory" element={<OrderHistoryPage />} />
+        <Route path="/mypage/couponpoint" element={<CouponPointPage />} />
       </Route>
 
       {/* 관리자 전용 라우트 */}
