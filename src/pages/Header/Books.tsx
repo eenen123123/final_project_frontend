@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { RefreshCw, ExternalLink, Navigation as NavIcon, HelpCircle, Heart } from 'lucide-react';
 
+// 1. 교재 정보 데이터 인터페이스 규격 선언
 interface BookItem {
   id: string;
   title: string;
@@ -12,6 +13,8 @@ interface BookItem {
   desc: string[];
   linkedLecture: string;
   coverColor: string;
+  teacherRealMatch?: string;   // 💡 선택적 속성(?)으로 명세서에 정식 등록합니다.
+  titleAlternative?: string;   // 💡 명세서에 등록해야 아래 더미데이터에서 에러가 안 납니다.
 }
 
 const FilterPill = ({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) => (
@@ -28,13 +31,13 @@ const FilterPill = ({ label, active, onClick }: { label: string; active: boolean
   </button>
 );
 
-export default function EtoosBookMain() {
+export default function BookMain() {
   const [selectedArea, setSelectedArea] = useState<string>('0001');
   const [selectedTeacher, setSelectedTeacher] = useState<string>('전체');
 
   const dDay = '166';
 
-  // 1. 상단 과목 탭 매핑 정보
+  // 상단 과목 탭 매핑 정보
   const subjectMap = [
     { id: '0001', name: '국어' },
     { id: '0003', name: '수학' },
@@ -47,7 +50,7 @@ export default function EtoosBookMain() {
     { id: '0008', name: '모의고사' },
   ];
 
-  // 2. [image_0f4e85.png] 이미지 도면과 100% 일치시킨 강사 필터 팩 데이터
+  // 강사 필터 데이터 세트
   const teachersBySubject: Record<string, string[]> = {
     '0001': ['전체', '박상호', '김국어', '이문학', '민국어', '송문학'],
     '0003': ['전체', '이지은', '이도현', '정유진', '주수학', '윤기하'],
@@ -60,7 +63,7 @@ export default function EtoosBookMain() {
     '0008': ['전체', '이감 모의고사', '상상 모의고사', '강대모의고사', '히든카이스', '더 프리미엄 모의고사']
   };
 
-  // 3. 이미지 속 강사 배정과 긴밀하게 연동된 도서 상세 더미 데이터 셋
+  // 도서 상세 더미 데이터 세트
   const fullBookListBySubject: Record<string, BookItem[]> = {
     '0001': [
       {
@@ -120,8 +123,9 @@ export default function EtoosBookMain() {
         id: 'EB-MA2',
         title: '개념공략법 단기 속성 완성 [확률과 통계]',
         teacher: '이do현',
-        teacherRealMatch: '이도현', // 데이터 필터용 식별 매칭
+        teacherRealMatch: '이도현', // 💡 선택적 속성 등록으로 에러가 완벽히 차단됩니다.
         titleAlternative: 'New 2027 개념공략법 [확통]',
+        subject: '수학',
         price: 25000,
         originalPrice: 25000,
         status: '입고완료',
@@ -174,7 +178,7 @@ export default function EtoosBookMain() {
     ]
   };
 
-  // '이도현' 이름 매핑 보정용 헬퍼 계산
+  // 필터 연산 조건 처리
   const currentBooks = (fullBookListBySubject[selectedArea] || []).filter(
     (b) => selectedTeacher === '전체' || b.teacher === selectedTeacher || (b.teacher === '이do현' && selectedTeacher === '이도현')
   );
@@ -195,11 +199,10 @@ export default function EtoosBookMain() {
           <p className="text-sm text-gray-500 mt-1">과목별, 강사별 최신 입고 완료 교재들을 한눈에 확인하고 구매하실 수 있습니다.</p>
         </div>
 
-        {/* 📌 [image_0f4e85.png] 명세 기반의 동적 연동 필터 테이블 */}
+        {/* 필터 테이블 단원 */}
         <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
           <table className="w-full border-collapse text-left">
             <tbody>
-              {/* 과목 행 분류 */}
               <tr className="border-b border-gray-100">
                 <th className="w-24 sm:w-28 bg-gray-50/80 px-4 py-3 text-xs font-bold text-gray-500 border-r border-gray-100 uppercase tracking-wider text-center select-none">
                   과목
@@ -213,14 +216,13 @@ export default function EtoosBookMain() {
                         active={selectedArea === tab.id}
                         onClick={() => {
                           setSelectedArea(tab.id);
-                          setSelectedTeacher('전체'); // 과목을 바꾸면 선생님 필터는 '전체'로 안전하게 초기화
+                          setSelectedTeacher('전체'); 
                         }}
                       />
                     ))}
                   </div>
                 </td>
               </tr>
-              {/* 강사 행 분류 (과목 선택 상태에 따라 동적 렌더링 가동) */}
               <tr>
                 <th className="w-24 sm:w-28 bg-gray-50/80 px-4 py-3 text-xs font-bold text-gray-500 border-r border-gray-100 uppercase tracking-wider text-center select-none">
                   선생님
@@ -242,7 +244,7 @@ export default function EtoosBookMain() {
           </table>
         </div>
 
-        {/* 교재 목록 컨텐츠 스펙 */}
+        {/* 교재 목록 */}
         <div className="space-y-4">
           <div className="flex items-center justify-between px-1">
             <span className="text-sm text-gray-600">
@@ -277,7 +279,7 @@ export default function EtoosBookMain() {
                 >
                   <div className="flex flex-col md:flex-row gap-8 p-8 items-start md:items-stretch">
 
-                    {/* 북 커버 디자인 팩 (실물 비율 입체 보존 레이아웃) */}
+                    {/* 북 커버 디자인 팩 */}
                     <div className="flex-shrink-0 flex justify-center md:justify-start">
                       <div className={`w-36 h-48 ${book.coverColor} rounded-r-xl shadow-md p-3 flex flex-col justify-between text-white relative overflow-hidden border-l-4 border-black/20`}>
                         <div className="space-y-1">
@@ -288,7 +290,7 @@ export default function EtoosBookMain() {
                       </div>
                     </div>
 
-                    {/* 중앙 교재 내용 상세 안내 서술부 */}
+                    {/* 중앙 본문 가이드 */}
                     <div className="flex-1 min-w-0 flex flex-col justify-between gap-4">
                       <div className="space-y-2">
                         <div className="flex items-center gap-2">
@@ -312,14 +314,13 @@ export default function EtoosBookMain() {
                         </ul>
                       </div>
                       
-                      {/* 수강 강좌 연결부 */}
                       <div className="text-xs pt-3 border-t border-gray-100">
                         <span className="font-semibold text-gray-700 block mb-1">[연결강좌]</span>
                         <span className="text-gray-500 hover:text-blue-600 hover:underline cursor-pointer transition-colors">{book.linkedLecture}</span>
                       </div>
                     </div>
 
-                    {/* 우측 도서 금액 결제 스택 패널 */}
+                    {/* 결제 판넬 */}
                     <div className="w-full md:w-52 flex flex-col justify-between items-end shrink-0 border-t md:border-t-0 md:border-l border-gray-100 pt-4 md:pt-0 md:pl-6">
                       <div className="text-right w-full mb-4">
                         <span className="text-xs text-gray-400 font-medium block mb-0.5">도서 판매가</span>
@@ -345,7 +346,6 @@ export default function EtoosBookMain() {
         </div>
       </main>
 
-      {/* 하단 고정 스티칭 푸터 */}
       <footer className="bg-gray-900 text-gray-400 text-xs border-t border-gray-800 mt-16">
         <div className="border-b border-gray-800">
           <div className="max-w-6xl mx-auto px-6 h-14 flex justify-between items-center">
