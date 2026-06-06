@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import CurriculumTab from './CurriculumTab';
 
-type SiteMapTab = '강좌' | '커리큘럼' | '사이트맵';
+type SiteMapTab = '강사' | '커리큘럼' | '사이트맵';
 
 // ── 더미 데이터 ───────────────────────────────────────────────────────────
 const SUBJECTS = [
@@ -140,7 +140,7 @@ interface SiteMapProps {
 }
 
 export default function SiteMap({ isOpen, onClose }: SiteMapProps) {
-  const [activeTab, setActiveTab] = useState<SiteMapTab>('강좌');
+  const [activeTab, setActiveTab] = useState<SiteMapTab>('강사');
 
   if (!isOpen) return null;
 
@@ -150,7 +150,7 @@ export default function SiteMap({ isOpen, onClose }: SiteMapProps) {
 
         {/* 탭 */}
         <div className="flex items-center gap-0 mb-6 border border-gray-200 rounded-lg w-fit overflow-hidden">
-          {(['강좌', '커리큘럼', '사이트맵'] as SiteMapTab[]).map((tab) => (
+          {(['강사', '커리큘럼', '사이트맵'] as SiteMapTab[]).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -166,7 +166,7 @@ export default function SiteMap({ isOpen, onClose }: SiteMapProps) {
         </div>
 
         {/* ── 강좌 탭 ── */}
-        {activeTab === '강좌' && (
+        {activeTab === '강사' && (
           <div className="overflow-x-auto">
             <div className="flex gap-0 min-w-max">
               {SUBJECTS.map((subject, si) => (

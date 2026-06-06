@@ -95,11 +95,9 @@ export default function NewHeader() {
           {/* 메인 네비 */}
           <nav className="flex items-center gap-0.5 flex-1">
             {[
-              { to: "/lectures", label: "전체 강좌" },
-              { to: "/mylecture", label: "나의 강의실" },
-              { to: "/qna", label: "Q&A" },
-              { to: "/dummy", label: "더미" },
-              { to: "/mypage", label: "마이페이지" },
+              { to: "/header/instructors", label: "강사" },
+              { to: "/mylecture", label: "전체 강좌" },
+              { to: "/mylecture", label: "강의교재" },
               ...(isAuthenticated ? [{ to: "/classroom/1", label: "Classroom" }] : []),
             ].map(({ to, label }) => (
               <Link key={to} to={to} className="nav-link">
