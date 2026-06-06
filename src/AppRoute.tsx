@@ -37,6 +37,7 @@ import MyCalendarPage from "./pages/User/Mypage/MyCalendarPage";
 import CartPage from "./pages/User/Mypage/CartPage";
 import DaesungMain from "./pages/Header/Instructors.tsx";
 import Instructors from "./pages/Header/Instructors.tsx";
+import EtoosBookMain from "./pages/Header/Books.tsx";
 
 export default function AppRoute() {
   return (
@@ -58,6 +59,7 @@ export default function AppRoute() {
       {/* 공용 라우트 */}
       <Route path="/test/toss-pay/fail" element={<TossPayFailTestPage />} />
       <Route path="/header/instructors" element={<Instructors />} />
+      <Route path="/header/books" element={<EtoosBookMain />} />
 
       {/* 고객센터 라우트 */}
       <Route path="/customer/faq" element={<FAQPage />} />

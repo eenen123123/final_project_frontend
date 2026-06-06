@@ -97,7 +97,7 @@ export default function NewHeader() {
             {[
               { to: "/header/instructors", label: "강사" },
               { to: "/mylecture", label: "전체 강좌" },
-              { to: "/mylecture", label: "강의교재" },
+              { to: "/header/books", label: "강의교재" },
               ...(isAuthenticated ? [{ to: "/classroom/1", label: "Classroom" }] : []),
             ].map(({ to, label }) => (
               <Link key={to} to={to} className="nav-link">

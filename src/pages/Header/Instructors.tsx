@@ -73,15 +73,13 @@ export default function Instructors() {
   ];
 
   return (
-    <div className="w-full min-h-screen bg-gray-50 text-gray-800 font-sans selection:bg-orange-500 selection:text-white">
-      
-      {/* 📌 MAIN AREA: 마이페이지 기준과 완벽 매칭되도록 max-w-6xl mx-auto px-6 규격으로 수정 */}
-      <main className="max-w-6xl mx-auto px-6 py-8 grid grid-cols-12 gap-6">
-        
-        {/* [좌측 영역] 과목 네비게이션 아코디언 바 */}
-        <aside className="col-span-12 md:col-span-3 bg-white border border-gray-200 rounded shadow-sm h-fit">
-          <div className="p-4 border-b border-gray-200 bg-gray-50">
-            <h2 className="font-bold text-base text-gray-900 text-center tracking-tight">HERMES 강사</h2>
+    <div className="w-full min-h-screen bg-gray-50/50 text-gray-800 font-sans">
+      <main className="max-w-6xl mx-auto px-6 py-10 grid grid-cols-12 gap-6">
+
+        {/* 좌측 과목 네비게이션 */}
+        <aside className="col-span-12 md:col-span-3 bg-white border border-gray-200 rounded-2xl shadow-sm h-fit overflow-hidden">
+          <div className="px-4 py-3.5 border-b border-gray-100 bg-gray-50/50">
+            <h2 className="font-bold text-sm text-gray-900 text-center tracking-tight">HERMES 강사</h2>
           </div>
           <nav className="divide-y divide-gray-100">
             {subjectTabs.map((tab) => {
@@ -90,42 +88,39 @@ export default function Instructors() {
                 <div key={tab.id} className="w-full">
                   <button
                     onClick={() => setSelectedSubject(tab.id)}
-                    className={`w-full text-left px-4 py-3 text-sm font-bold flex justify-between items-center transition-colors ${
-                      isSelected ? 'text-blue-600 bg-blue-50/50' : 'text-gray-700 hover:bg-gray-50'
+                    className={`w-full text-left px-4 py-3 text-sm font-medium flex justify-between items-center transition-colors cursor-pointer ${
+                      isSelected ? 'text-blue-600 bg-blue-50/50 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                     }`}
                   >
                     <span>{tab.name}</span>
-                    {isSelected ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                    {isSelected ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
                   </button>
 
                   {isSelected && (
                     <div className="px-4 pb-4 pt-2 bg-white text-xs space-y-3 border-t border-gray-50">
-                      {/* 기본 선생님 리스트 */}
                       <div className="flex flex-col gap-1.5 text-gray-600 font-medium">
-                        {dynamicTeachers[tab.id]?.main.map((t, idx) => (
-                          <span key={idx} className="hover:text-blue-600 cursor-pointer">{t}</span>
+                        {dynamicTeachers[tab.id]?.main.map((t) => (
+                          <span key={t} className="hover:text-blue-600 cursor-pointer transition-colors">{t}</span>
                         ))}
                       </div>
 
-                      {/* 2022 개정 분과 */}
                       {dynamicTeachers[tab.id]?.curri22 && (
                         <div className="pt-2 border-t border-dashed border-gray-200">
-                          <span className="inline-block text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded font-bold mb-1.5">2022 개정</span>
+                          <span className="inline-block text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-md font-semibold mb-1.5">2022 개정</span>
                           <div className="flex flex-col gap-1.5 text-gray-500">
-                            {dynamicTeachers[tab.id].curri22?.map((t, idx) => (
-                              <span key={idx} className="hover:text-blue-600 cursor-pointer">{t}</span>
+                            {dynamicTeachers[tab.id].curri22?.map((t) => (
+                              <span key={t} className="hover:text-blue-600 cursor-pointer transition-colors">{t}</span>
                             ))}
                           </div>
                         </div>
                       )}
 
-                      {/* 고1·2 분과 */}
                       {dynamicTeachers[tab.id]?.high12 && (
                         <div className="pt-2 border-t border-dashed border-gray-200">
-                          <span className="inline-block text-[10px] text-blue-600 font-bold mb-1.5">[고1·2]</span>
+                          <span className="inline-block text-[10px] text-blue-600 font-semibold mb-1.5">[고1·2]</span>
                           <div className="flex flex-col gap-1.5 text-gray-500">
-                            {dynamicTeachers[tab.id].high12?.map((t, idx) => (
-                              <span key={idx} className="hover:text-blue-600 cursor-pointer">{t}</span>
+                            {dynamicTeachers[tab.id].high12?.map((t) => (
+                              <span key={t} className="hover:text-blue-600 cursor-pointer transition-colors">{t}</span>
                             ))}
                           </div>
                         </div>
@@ -138,11 +133,11 @@ export default function Instructors() {
           </nav>
         </aside>
 
-        {/* [우측 영역] 탭 변환 가동 판넬 */}
-        <section className="col-span-12 md:col-span-9 space-y-4">
-          
-          {/* 상단 가로형 대분류 탭 제어바 */}
-          <div className="bg-white border border-gray-200 rounded shadow-sm overflow-hidden">
+        {/* 우측 콘텐츠 영역 */}
+        <section className="col-span-12 md:col-span-9 space-y-5">
+
+          {/* 상단 과목 탭 바 */}
+          <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
             <div className="flex border-b border-gray-200 overflow-x-auto scrollbar-none">
               {subjectTabs.map((tab) => {
                 const isSelected = selectedSubject === tab.id;
@@ -150,10 +145,10 @@ export default function Instructors() {
                   <button
                     key={tab.id}
                     onClick={() => setSelectedSubject(tab.id)}
-                    className={`flex-1 min-w-[80px] text-center py-3.5 text-sm font-bold transition-all border-b-2 whitespace-nowrap ${
-                      isSelected 
-                        ? 'border-blue-600 text-blue-600 bg-white' 
-                        : 'border-transparent text-gray-500 hover:text-gray-900 bg-gray-50/50'
+                    className={`flex-1 min-w-[80px] text-center py-3.5 text-sm font-medium transition-all border-b-2 whitespace-nowrap cursor-pointer ${
+                      isSelected
+                        ? 'border-blue-600 text-blue-600 font-semibold bg-white'
+                        : 'border-transparent text-gray-500 hover:text-gray-800 hover:border-gray-300'
                     }`}
                   >
                     {tab.name}
@@ -164,7 +159,7 @@ export default function Instructors() {
           </div>
 
           {/* 프로모션 슬라이더 */}
-          <div className="border border-gray-200 rounded-lg overflow-hidden shadow-sm bg-white">
+          <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
             <Swiper
               modules={[Autoplay, Navigation, Pagination]}
               autoplay={{ delay: 5000, disableOnInteraction: false }}
@@ -174,13 +169,13 @@ export default function Instructors() {
             >
               {mainBanners.map((banner) => (
                 <SwiperSlide key={banner.id}>
-                  <div className={`w-full h-full bg-gradient-to-r ${banner.bg} p-8 flex flex-col justify-center relative`}>
-                    <span className="text-xs font-bold text-purple-600 mb-1">{subjectTabs.find(t => t.id === selectedSubject)?.name} 특강 정보</span>
-                    <h3 className="text-2xl font-black text-gray-900 mb-2 tracking-tight">{banner.title}</h3>
-                    <p className="text-sm text-gray-600 mb-4 font-medium">{banner.desc}</p>
+                  <div className={`w-full h-full bg-gradient-to-r ${banner.bg} p-8 flex flex-col justify-center`}>
+                    <span className="text-xs font-semibold text-blue-600 mb-1">{subjectTabs.find(t => t.id === selectedSubject)?.name} 특강 정보</span>
+                    <h3 className="text-2xl font-bold text-gray-900 mb-2 tracking-tight">{banner.title}</h3>
+                    <p className="text-sm text-gray-500 mb-4 font-medium">{banner.desc}</p>
                     <div className="flex gap-2">
-                      <span className="text-xs bg-white border border-purple-200 text-purple-700 px-2 py-1 rounded font-semibold">{banner.tag}</span>
-                      <span className="text-xs bg-purple-600 text-white px-2 py-1 rounded font-semibold">{banner.discount}</span>
+                      <span className="text-xs bg-white border border-blue-200 text-blue-700 px-2.5 py-1 rounded-md font-semibold">{banner.tag}</span>
+                      <span className="text-xs bg-blue-600 text-white px-2.5 py-1 rounded-md font-semibold">{banner.discount}</span>
                     </div>
                   </div>
                 </SwiperSlide>
@@ -188,49 +183,53 @@ export default function Instructors() {
             </Swiper>
           </div>
 
-          {/* 실시간 알림 피드 바 */}
-          <div className="bg-gray-100 border border-gray-200 px-4 py-2.5 rounded flex items-center justify-between text-xs font-medium text-gray-700">
+          {/* 공지 바 */}
+          <div className="bg-white border border-gray-100 rounded-xl shadow-sm px-4 py-3 flex items-center justify-between text-xs font-medium text-gray-700">
             <div className="flex items-center gap-2 truncate">
-              <span className="bg-orange-500 text-white px-1.5 py-0.5 rounded text-[10px] font-bold">공지</span>
-              <p className="truncate">2027학년도 수능 대비 최신 평가원 모의평가 해설 패키지 배포 완료</p>
+              <span className="bg-blue-600 text-white px-1.5 py-0.5 rounded text-[10px] font-semibold flex-shrink-0">공지</span>
+              <p className="truncate text-gray-600">2027학년도 수능 대비 최신 평가원 모의평가 해설 패키지 배포 완료</p>
             </div>
-            <span className="text-orange-500 font-bold ml-2 shrink-0">NEW</span>
+            <span className="text-blue-500 font-semibold ml-2 shrink-0">NEW</span>
           </div>
 
-          {/* 메인 라인업 대시보드 그리드 뷰 */}
+          {/* 강사 라인업 */}
           <div className="space-y-4">
-            <div className="flex justify-between items-center border-b border-gray-200 pb-2">
-              <h3 className="text-lg font-black text-gray-900 tracking-tight">
-                {subjectTabs.find(t => t.id === selectedSubject)?.name} 라인업 명단
-              </h3>
-              <RefreshCw size={14} className="text-gray-400 cursor-pointer hover:rotate-180 transition-transform duration-500" />
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="text-xl font-bold text-gray-900 tracking-tight">
+                  {subjectTabs.find(t => t.id === selectedSubject)?.name} 라인업
+                </h3>
+                <p className="text-sm text-gray-500 mt-0.5">대표 강사진을 확인하고 강좌를 수강하세요.</p>
+              </div>
+              <button className="cursor-pointer">
+                <RefreshCw size={15} className="text-gray-400 hover:text-gray-600 hover:rotate-180 transition-all duration-500" />
+              </button>
             </div>
 
-            {/* 메인 리스트 렌더링 파트 */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
               {dynamicTeachers[selectedSubject]?.main.map((teacher, idx) => (
-                <div 
-                  key={idx} 
-                  className="border border-gray-200 rounded-xl overflow-hidden bg-white hover:border-blue-400 hover:shadow-md transition-all duration-300 group cursor-pointer relative"
+                <div
+                  key={idx}
+                  className="bg-white rounded-2xl overflow-hidden shadow-sm transition-all border border-gray-100 hover:shadow-md hover:border-gray-200 group cursor-pointer relative"
                 >
-                  <button className="absolute top-3 right-3 text-gray-300 hover:text-red-500 transition-colors z-10">
-                    <Heart size={16} />
+                  <button className="absolute top-3 right-3 text-gray-300 hover:text-red-400 transition-colors z-10 cursor-pointer">
+                    <Heart size={15} />
                   </button>
-                  <div className="p-5 bg-gray-50 flex items-center gap-4 border-b border-gray-100">
-                    <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center font-bold text-gray-400 text-xs">
+                  <div className="p-5 bg-gray-50/50 flex items-center gap-4 border-b border-gray-100">
+                    <div className="w-11 h-11 bg-gray-200 rounded-full flex items-center justify-center font-bold text-gray-400 text-xs flex-shrink-0">
                       T
                     </div>
                     <div className="min-w-0 flex-1">
                       <h4 className="font-bold text-gray-900 text-sm group-hover:text-blue-600 transition-colors truncate">
                         {teacher}
                       </h4>
-                      <p className="text-[11px] text-gray-400 mt-0.5">{subjectTabs.find(t => t.id === selectedSubject)?.name} 대표교수</p>
+                      <p className="text-[11px] text-gray-400 mt-0.5 font-medium">{subjectTabs.find(t => t.id === selectedSubject)?.name} 대표교수</p>
                     </div>
                   </div>
-                  <div className="p-3 bg-white flex justify-around text-xs font-semibold text-blue-600">
-                    <span className="hover:underline">강좌 홈</span>
+                  <div className="px-4 py-3 bg-white flex justify-around text-xs font-semibold text-blue-600">
+                    <span className="hover:underline cursor-pointer">강좌 홈</span>
                     <span className="text-gray-200">|</span>
-                    <span className="hover:underline">맛보기 강좌</span>
+                    <span className="hover:underline cursor-pointer">맛보기 강좌</span>
                   </div>
                 </div>
               ))}
@@ -240,23 +239,22 @@ export default function Instructors() {
         </section>
       </main>
 
-      {/* 4. FOOTER AREA: 마이페이지 기준 폭(max-w-6xl, px-6)으로 정렬선 강제 통일 */}
-      <footer className="bg-gray-900 text-gray-400 text-xs border-t border-gray-800 mt-20">
+      <footer className="bg-gray-900 text-gray-400 text-xs border-t border-gray-800 mt-16">
         <div className="border-b border-gray-800">
           <div className="max-w-6xl mx-auto px-6 h-14 flex justify-between items-center">
             <div className="flex gap-6 font-medium">
-              <button className="hover:text-white transition-colors">회사소개</button>
-              <button className="text-orange-400 font-bold hover:underline">개인정보처리방침</button>
-              <button className="hover:text-white transition-colors">이용약관</button>
+              <button className="hover:text-white transition-colors cursor-pointer">회사소개</button>
+              <button className="text-blue-400 font-semibold hover:underline cursor-pointer">개인정보처리방침</button>
+              <button className="hover:text-white transition-colors cursor-pointer">이용약관</button>
             </div>
-            <div className="flex gap-4">
-              <a href="#" className="p-2 bg-gray-800 rounded-full text-white hover:bg-gray-700 transition-colors"><Link size={14} /></a>
-              <a href="#" className="p-2 bg-gray-800 rounded-full text-white hover:bg-gray-700 transition-colors"><Globe size={14} /></a>
-              <a href="#" className="p-2 bg-gray-800 rounded-full text-white hover:bg-gray-700 transition-colors"><Info size={14} /></a>
+            <div className="flex gap-3">
+              <a href="#" className="p-2 bg-gray-800 rounded-full text-white hover:bg-gray-700 transition-colors"><Link size={13} /></a>
+              <a href="#" className="p-2 bg-gray-800 rounded-full text-white hover:bg-gray-700 transition-colors"><Globe size={13} /></a>
+              <a href="#" className="p-2 bg-gray-800 rounded-full text-white hover:bg-gray-700 transition-colors"><Info size={13} /></a>
             </div>
           </div>
         </div>
-        <div className="max-w-6xl mx-auto px-6 py-4 text-left">
+        <div className="max-w-6xl mx-auto px-6 py-4">
           <p className="text-gray-500">Copyright © since 2012 (주)디지털대성. All rights reserved.</p>
         </div>
       </footer>
