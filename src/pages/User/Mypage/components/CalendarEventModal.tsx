@@ -110,6 +110,18 @@ export default function CalendarEventModal({ isOpen, onClose, onSave, onDelete, 
     }
   };
 
+  const handleDelete = async (id: string) => {
+    if (!window.confirm("일정을 삭제하시겠습니까?")) return;
+    try {
+      const scheduleSn = id.replace("S", "");
+      await api.delete(`http://localhost:8081/api/calendar/schedule/${scheduleSn}`);
+      onDelete(id);
+    } catch (err) {
+      console.error("일정 삭제 실패:", err);
+      alert("삭제 중 오류가 발생했습니다.");
+    }
+  };
+
   // 사용자 개인 일정만 필터링 (공휴일/이벤트/학사 제외)
   const userEvents = events.filter((e) => e.source === "user");
 
@@ -332,7 +344,7 @@ export default function CalendarEventModal({ isOpen, onClose, onSave, onDelete, 
                       <td className="p-2 font-medium max-w-[150px] truncate">{ev.title}</td>
                       <td className="p-2 text-center">
                         <button
-                          onClick={() => onDelete(ev.id)}
+                          onClick={() => handleDelete(ev.id)}
                           className="text-red-400 hover:text-red-600 font-bold transition-colors cursor-pointer"
                         >
                           ✕
