@@ -34,6 +34,7 @@ import LectureEnrollPage from "./pages/User/Mypage/LectureEnrollPage";
 import BookOrderPage from "./pages/User/Mypage/BookOrderPage";
 import LectureHistoryPage from "./pages/User/Mypage/LectureHistoryPage";
 import MyCalendarPage from "./pages/User/Mypage/MyCalendarPage";
+import CartPage from "./pages/User/Mypage/CartPage";
 
 export default function AppRoute() {
   return (
@@ -48,7 +49,10 @@ export default function AppRoute() {
 
       <Route path="/test/buy" element={<BuyProduct />} />
       <Route path="/test/toss-pay" element={<TossPayTestPage />} />
-      <Route path="/test/toss-pay/success" element={<TossPaySuccessTestPage />} />
+      <Route
+        path="/test/toss-pay/success"
+        element={<TossPaySuccessTestPage />}
+      />
       {/* 공용 라우트 */}
       <Route path="/test/toss-pay/fail" element={<TossPayFailTestPage />} />
 
@@ -60,7 +64,10 @@ export default function AppRoute() {
       <Route path="/customer/qna" element={<QnAPage />} />
       <Route path="/customer/qna/:postSn" element={<QnaDetailPage />} />
       <Route path="/customer/resource" element={<DataRoomPage />} />
-      <Route path="/customer/resource/:postSn" element={<DataRoomDetailPage />} />
+      <Route
+        path="/customer/resource/:postSn"
+        element={<DataRoomDetailPage />}
+      />
       <Route path="/customer/*" element={<ServiceCenterPage />} />
       <Route path="/dummy" element={<DummyPage />} />
 
@@ -78,6 +85,7 @@ export default function AppRoute() {
         <Route path="/enroll" element={<LectureEnrollPage />} />
         <Route path="/mylecture/book" element={<BookOrderPage />} />
         <Route path="/mylecture/history" element={<LectureHistoryPage />} />
+        <Route path="/mycart" element={<CartPage />} />
       </Route>
 
       {/* 관리자 전용 라우트 */}
