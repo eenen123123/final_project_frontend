@@ -36,6 +36,7 @@ import LectureHistoryPage from "./pages/User/Mypage/LectureHistoryPage";
 import MyCalendarPage from "./pages/User/Mypage/MyCalendarPage";
 import CartPage from "./pages/User/Mypage/CartPage";
 import Instructors from "./pages/Header/Instructors.tsx";
+import EtoosBookMain from "./pages/Header/Books.tsx";
 import OrderHistoryPage from "./pages/User/Mypage/OrderHistoryPage";
 import CouponPointPage from "./pages/User/Mypage/CouponPointPage";
 import BookMain from "./pages/Header/Books.tsx";
