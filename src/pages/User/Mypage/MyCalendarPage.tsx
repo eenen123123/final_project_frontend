@@ -11,7 +11,7 @@ const TYPE_COLOR: Record<string, { dot: string; text: string; badge: string }> =
   holiday: { dot: "bg-red-400", text: "text-red-500", badge: "bg-red-50 text-red-600 border-red-100" },
   event: { dot: "bg-orange-400", text: "text-orange-500", badge: "bg-orange-50 text-orange-600 border-orange-100" },
   academic: { dot: "bg-blue-400", text: "text-blue-500", badge: "bg-blue-50 text-blue-600 border-blue-100" },
-  personal: { dot: "bg-gray-800", text: "text-gray-800", badge: "bg-gray-900 text-white border-gray-700" },
+  personal: { dot: "bg-teal-500", text: "text-teal-600", badge: "bg-teal-50 text-teal-700 border-teal-200" },
 };
 
 // ─── 백엔드 응답 → CalendarEvent 변환 ─────────────────
@@ -225,13 +225,27 @@ function DayPanel({
   selectedDate,
   events,
   onAddClick,
+  onDelete,
 }: {
   selectedDate: string | null;
   events: CalendarEvent[];
   onAddClick: () => void;
+  onDelete: (id: string) => void;
 }) {
   if (!selectedDate) return null;
   const dayEvents = getEventsForDate(events, selectedDate);
+
+  const handleDeleteSchedule = async (id: string) => {
+    if (!window.confirm("일정을 삭제하시겠습니까?")) return;
+    try {
+      const scheduleSn = id.replace("S", "");
+      await api.delete(`http://localhost:8081/api/calendar/schedule/${scheduleSn}`);
+      onDelete(id);
+    } catch (err) {
+      console.error("일정 삭제 실패:", err);
+      alert("삭제 중 오류가 발생했습니다.");
+    }
+  };
 
   return (
     <div className="mt-5 pt-4 border-t border-gray-200">
@@ -251,6 +265,10 @@ function DayPanel({
         <div className="flex flex-col gap-2">
           {dayEvents.map((ev) => {
             const c = TYPE_COLOR[ev.type];
+            const dateLabel =
+              ev.startDate === ev.endDate
+                ? ev.startDate.slice(5).replace("-", ".")
+                : `${ev.startDate.slice(5).replace("-", ".")}~${ev.endDate.slice(5).replace("-", ".")}`;
             return (
               <div
                 key={ev.id}
@@ -258,12 +276,15 @@ function DayPanel({
               >
                 <span className={`w-2 h-2 rounded-full flex-shrink-0 ${c.dot}`} />
                 <span className="flex-1 truncate">{ev.title}</span>
-                {ev.startDate !== ev.endDate && (
-                  <span className="text-[10px] opacity-60 flex-shrink-0">
-                    {ev.startDate.slice(5).replace("-", ".")} ~ {ev.endDate.slice(5).replace("-", ".")}
-                  </span>
+                <span className="text-[11px] text-gray-500 flex-shrink-0">{dateLabel}</span>
+                {ev.source === "user" && (
+                  <button
+                    onClick={() => handleDeleteSchedule(ev.id)}
+                    className="text-gray-400 hover:text-red-500 font-bold text-xs transition-colors cursor-pointer flex-shrink-0"
+                  >
+                    ✕
+                  </button>
                 )}
-                {ev.type === "holiday" && <span className="text-[10px] text-gray-300">🔒</span>}
               </div>
             );
           })}
@@ -396,7 +417,7 @@ export default function MyCalendarPage() {
                     학사 일정
                   </span>
                   <span className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-amber-400" />
+                    <span className="w-2 h-2 rounded-full bg-teal-500" />
                     나의 일정
                   </span>
                 </div>
@@ -410,7 +431,12 @@ export default function MyCalendarPage() {
                 onDateClick={setSelectedDate}
               />
 
-              <DayPanel selectedDate={selectedDate} events={events} onAddClick={() => setIsModalOpen(true)} />
+              <DayPanel
+                selectedDate={selectedDate}
+                events={events}
+                onAddClick={() => setIsModalOpen(true)}
+                onDelete={(id) => setEvents((prev) => prev.filter((e) => e.id !== id))}
+              />
             </div>
           </div>
         </div>
