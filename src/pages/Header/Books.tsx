@@ -19,8 +19,8 @@ interface BookItem {
   desc: string[];
   linkedLecture: string;
   coverColor: string;
-  teacherRealMatch?: string;   // 💡 선택적 속성(?)으로 명세서에 정식 등록합니다.
-  titleAlternative?: string;   // 💡 명세서에 등록해야 아래 더미데이터에서 에러가 안 납니다.
+  teacherRealMatch?: string; // 💡 선택적 속성(?)으로 명세서에 정식 등록합니다.
+  titleAlternative?: string; // 💡 명세서에 등록해야 아래 더미데이터에서 에러가 안 납니다.
 }
 
 const FilterPill = ({
@@ -46,8 +46,8 @@ const FilterPill = ({
 );
 
 export default function BookMain() {
-  const [selectedArea, setSelectedArea] = useState<string>('0001');
-  const [selectedTeacher, setSelectedTeacher] = useState<string>('전체');
+  const [selectedArea, setSelectedArea] = useState<string>("0001");
+  const [selectedTeacher, setSelectedTeacher] = useState<string>("전체");
 
   const dDay = "166";
 
@@ -178,12 +178,12 @@ export default function BookMain() {
         coverColor: "bg-emerald-800",
       },
       {
-        id: 'EB-MA2',
-        title: '개념공략법 단기 속성 완성 [확률과 통계]',
-        teacher: '이do현',
-        teacherRealMatch: '이도현', // 💡 선택적 속성 등록으로 에러가 완벽히 차단됩니다.
-        titleAlternative: 'New 2027 개념공략법 [확통]',
-        subject: '수학',
+        id: "EB-MA2",
+        title: "개념공략법 단기 속성 완성 [확률과 통계]",
+        teacher: "이do현",
+        teacherRealMatch: "이도현", // 💡 선택적 속성 등록으로 에러가 완벽히 차단됩니다.
+        titleAlternative: "New 2027 개념공략법 [확통]",
+        subject: "수학",
         price: 25000,
         originalPrice: 25000,
         status: "입고완료",
@@ -295,7 +295,7 @@ export default function BookMain() {
                         active={selectedArea === tab.id}
                         onClick={() => {
                           setSelectedArea(tab.id);
-                          setSelectedTeacher('전체'); 
+                          setSelectedTeacher("전체");
                         }}
                       />
                     ))}
@@ -368,7 +368,6 @@ export default function BookMain() {
                   className="bg-white rounded-2xl overflow-hidden shadow-sm transition-all border border-gray-100 hover:shadow-md hover:border-gray-200"
                 >
                   <div className="flex flex-col md:flex-row gap-8 p-8 items-start md:items-stretch">
-
                     {/* 북 커버 디자인 팩 */}
                     <div className="flex-shrink-0 flex justify-center md:justify-start">
                       <div
@@ -422,7 +421,7 @@ export default function BookMain() {
                           ))}
                         </ul>
                       </div>
-                      
+
                       <div className="text-xs pt-3 border-t border-gray-100">
                         <span className="font-semibold text-gray-700 block mb-1">
                           [연결강좌]
