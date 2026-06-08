@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../../../auth/AuthContext";
 
 interface NavItem {
   label: string;
@@ -52,6 +53,7 @@ export default function MyPageSidebar({
   onSectionChange,
 }: MyPageSidebarProps) {
   const navigate = useNavigate();
+  const { getRole } = useAuth();
   const [openMenus, setOpenMenus] = useState<string[]>([
     "내 강의실",
     "주문·결제·혜택",
@@ -74,7 +76,17 @@ export default function MyPageSidebar({
     }
   };
 
+  const ALLOWED_ROLES = ["ROLE_USER", "ROLE_STUDENT", "ROLE_PARENT"];
+
   const handleChildClick = (href: string, label: string) => {
+    if (href === "/mypage/verify") {
+      const roleRaw = getRole();
+      const roles = Array.isArray(roleRaw) ? roleRaw : roleRaw ? [roleRaw as unknown as string] : [];
+      if (!roles.some((r) => ALLOWED_ROLES.includes(r))) {
+        alert("일반 회원만 접근 가능합니다.");
+        return;
+      }
+    }
     if (href.startsWith("/")) {
       navigate(href);
     } else {

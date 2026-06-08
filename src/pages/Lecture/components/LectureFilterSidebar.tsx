@@ -1,9 +1,22 @@
+import { useState, useEffect } from "react";
+import api from "../../../api/api";
+
+interface SubjectClassification {
+  subjClId: number;
+  subjClNm: string;
+}
+
+interface Instructor {
+  userId: string;
+  userName: string;
+}
+
 interface Props {
   grade: string;
   category: string;
   teacher: string;
   onGradeChange: (grade: string) => void;
-  onCategoryChange: (category: string) => void;
+  onCategoryChange: (category: string, subjClId: number | null) => void;
   onTeacherChange: (teacher: string) => void;
   onReset: () => void;
 }
@@ -14,17 +27,6 @@ const GRADES = [
   { key: "go1", label: "고1" },
 ];
 
-const CATEGORIES = ["전체", "국어", "수학", "영어", "사탐", "과탐", "한국사"];
-
-const TEACHERS_BY_CATEGORY: Record<string, string[]> = {
-  국어: ["박광일", "김민정", "신영균"],
-  수학: ["정승제", "강윤구", "이하영"],
-  영어: ["주혜연", "김범구", "오채은"],
-  사탐: ["이지영", "임정환", "김현수"],
-  과탐: ["이승후", "안성진", "엄영대"],
-  한국사: ["김준창", "한세희"],
-};
-
 export default function LectureFilterSidebar({
   grade,
   category,
@@ -34,10 +36,37 @@ export default function LectureFilterSidebar({
   onTeacherChange,
   onReset,
 }: Props) {
-  const teachers =
-    category !== "전체"
-      ? ["전체", ...(TEACHERS_BY_CATEGORY[category] ?? [])]
-      : [];
+  const [categories, setCategories] = useState<SubjectClassification[]>([]);
+  const [instructors, setInstructors] = useState<Instructor[]>([]);
+  const [selectedSubjClId, setSelectedSubjClId] = useState<number | null>(null);
+
+  // 과목 분류 목록 API 호출
+  useEffect(() => {
+    api
+      .get("/api/course/subject-classification")
+      .then((res) => setCategories(res.data))
+      .catch((e) => console.error("과목 분류 조회 실패", e));
+  }, []);
+
+  // 영역 선택 시 강사 목록 API 호출
+  useEffect(() => {
+    if (!selectedSubjClId) return; // null 이면 그냥 return
+    api
+      .get("/api/course/instructors", {
+        params: { subjClId: selectedSubjClId },
+      })
+      .then((res) => setInstructors(res.data))
+      .catch((e) => console.error("강사 목록 조회 실패", e));
+  }, [selectedSubjClId]);
+
+  const handleCategoryChange = (
+    categoryNm: string,
+    subjClId: number | null,
+  ) => {
+    setSelectedSubjClId(subjClId);
+    if (!subjClId) setInstructors([]); // 전체 선택 시 강사 목록 초기화
+    onCategoryChange(categoryNm, subjClId);
+  };
 
   return (
     <aside className="w-56 flex-shrink-0">
@@ -46,7 +75,11 @@ export default function LectureFilterSidebar({
         <div className="px-4 py-3 bg-blue-950 text-white flex items-center justify-between">
           <span className="text-sm font-bold tracking-wide">강좌 찾기</span>
           <button
-            onClick={onReset}
+            onClick={() => {
+              setSelectedSubjClId(null);
+              setInstructors([]);
+              onReset();
+            }}
             className="text-[11px] text-blue-200 hover:text-amber-400 transition-colors cursor-pointer flex items-center gap-1"
           >
             <svg
@@ -91,18 +124,29 @@ export default function LectureFilterSidebar({
         <div className="px-4 py-3 border-b border-gray-100">
           <p className="text-xs font-bold text-gray-700 mb-2.5">영역 선택</p>
           <div className="flex gap-1.5 flex-wrap">
-            {CATEGORIES.map((c) => (
+            <button
+              onClick={() => handleCategoryChange("", null)}
+              className={`text-xs px-3 py-1.5 rounded-full border transition-all cursor-pointer font-medium
+                ${
+                  !category
+                    ? "bg-blue-950 text-white border-blue-950"
+                    : "bg-white text-gray-600 border-gray-300 hover:border-blue-950 hover:text-blue-950"
+                }`}
+            >
+              전체
+            </button>
+            {categories.map((c) => (
               <button
-                key={c}
-                onClick={() => onCategoryChange(c)}
+                key={c.subjClId}
+                onClick={() => handleCategoryChange(c.subjClNm, c.subjClId)}
                 className={`text-xs px-3 py-1.5 rounded-full border transition-all cursor-pointer font-medium
                   ${
-                    category === c
+                    category === c.subjClNm
                       ? "bg-blue-950 text-white border-blue-950"
                       : "bg-white text-gray-600 border-gray-300 hover:border-blue-950 hover:text-blue-950"
                   }`}
               >
-                {c}
+                {c.subjClNm}
               </button>
             ))}
           </div>
@@ -111,22 +155,35 @@ export default function LectureFilterSidebar({
         {/* 선생님 선택 */}
         <div className="px-4 py-3 border-b border-gray-100">
           <p className="text-xs font-bold text-gray-700 mb-2.5">선생님 선택</p>
-          {category === "전체" || !category ? (
+          {!category ? (
             <p className="text-xs text-gray-400">영역을 먼저 선택해주세요.</p>
+          ) : instructors.length === 0 ? (
+            <p className="text-xs text-gray-400">등록된 강사가 없습니다.</p>
           ) : (
             <div className="flex gap-1.5 flex-wrap">
-              {teachers.map((t) => (
+              <button
+                onClick={() => onTeacherChange("")}
+                className={`text-xs px-3 py-1.5 rounded-full border transition-all cursor-pointer font-medium
+                  ${
+                    !teacher
+                      ? "bg-blue-950 text-white border-blue-950"
+                      : "bg-white text-gray-600 border-gray-300 hover:border-blue-950 hover:text-blue-950"
+                  }`}
+              >
+                전체
+              </button>
+              {instructors.map((i) => (
                 <button
-                  key={t}
-                  onClick={() => onTeacherChange(t)}
+                  key={i.userId}
+                  onClick={() => onTeacherChange(i.userName)}
                   className={`text-xs px-3 py-1.5 rounded-full border transition-all cursor-pointer font-medium
                     ${
-                      teacher === t
+                      teacher === i.userName
                         ? "bg-blue-950 text-white border-blue-950"
                         : "bg-white text-gray-600 border-gray-300 hover:border-blue-950 hover:text-blue-950"
                     }`}
                 >
-                  {t}
+                  {i.userName}
                 </button>
               ))}
             </div>
@@ -134,7 +191,7 @@ export default function LectureFilterSidebar({
         </div>
 
         {/* 단계 선택 */}
-        {category && category !== "전체" && (
+        {category && (
           <div className="px-4 py-3">
             <p className="text-xs font-bold text-gray-700 mb-2.5">단계 선택</p>
             <div className="flex gap-1.5 flex-wrap">
