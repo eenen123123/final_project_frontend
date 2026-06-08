@@ -42,6 +42,7 @@ import OrderHistoryPage from "./pages/User/Mypage/OrderHistoryPage";
 import CouponPointPage from "./pages/User/Mypage/CouponPointPage";
 import BookMain from "./pages/Header/Books.tsx";
 import ParentPage from "./ParentPage/ParentPage.tsx";
+import AiNavigator from "./pages/Header/AiNavigator.tsx";
 
 export default function AppRoute() {
   return (
@@ -64,6 +65,8 @@ export default function AppRoute() {
       <Route path="/test/toss-pay/fail" element={<TossPayFailTestPage />} />
       <Route path="/header/instructors" element={<Instructors />} />
       <Route path="/header/books" element={<BookMain />} />
+      <Route path="/header/Ainavigator" element={<AiNavigator />} />
+
 
       {/* 고객센터 라우트 */}
       <Route path="/customer/faq" element={<FAQPage />} />
