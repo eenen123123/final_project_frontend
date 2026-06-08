@@ -38,10 +38,10 @@ import LectureHistoryPage from "./pages/User/Mypage/LectureHistoryPage";
 import MyCalendarPage from "./pages/User/Mypage/MyCalendarPage";
 import CartPage from "./pages/User/Mypage/CartPage";
 import Instructors from "./pages/Header/Instructors.tsx";
-import EtoosBookMain from "./pages/Header/Books.tsx";
 import OrderHistoryPage from "./pages/User/Mypage/OrderHistoryPage";
 import CouponPointPage from "./pages/User/Mypage/CouponPointPage";
 import BookMain from "./pages/Header/Books.tsx";
+import ParentPage from "./ParentPage/ParentPage.tsx";
 
 export default function AppRoute() {
   return (
@@ -82,6 +82,9 @@ export default function AppRoute() {
 
       {/* 인증이 필요한 라우트 */}
       <Route element={<ProtectedRoute />}>
+        <Route path="/parentroom" element={<ParentPage />} />
+
+        {/* 마이페이지 라우트 */}
         <Route path="/mypage" element={<MyPage />} />
         <Route path="/mycalendar" element={<MyCalendarPage />} />
         <Route path="/mylecture" element={<MyLecturePage />} />

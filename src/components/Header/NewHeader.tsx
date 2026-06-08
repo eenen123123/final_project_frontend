@@ -11,6 +11,7 @@ export default function NewHeader() {
   const currentRoles = getRole() || "";
   const isAdmin = currentRoles.includes("ROLE_ADMIN");
   const isStudent = currentRoles.includes("ROLE_STUDENT");
+  const isParent = currentRoles.includes("ROLE_PARENT");
   const userName = getUserName();
 
   const [siteMapOpen, setSiteMapOpen] = useState(false);
@@ -74,6 +75,16 @@ export default function NewHeader() {
               </Link>
             </>
           )}
+
+          {isParent && (
+            <>
+              <div className="header-util-divider" />
+              <Link to="/parentroom" className="badge-parent">
+                <i className="fa-solid fa-child text-[10px]" />
+                자녀 학습 현황
+              </Link>
+            </>
+          )}
         </div>
       </div>
 
@@ -85,7 +96,9 @@ export default function NewHeader() {
             onClick={() => setSiteMapOpen((v) => !v)}
             className={`sitemap-btn ${siteMapOpen ? "sitemap-btn-active" : ""}`}
           >
-            <i className={`fa-solid ${siteMapOpen ? "fa-xmark" : "fa-bars"} text-sm`} />
+            <i
+              className={`fa-solid ${siteMapOpen ? "fa-xmark" : "fa-bars"} text-sm`}
+            />
           </button>
 
           {/* 사이트맵 드롭다운 */}
@@ -99,7 +112,9 @@ export default function NewHeader() {
               { to: "/header/instructors", label: "강사" },
               { to: "/mylecture", label: "전체 강좌" },
               { to: "/header/books", label: "강의교재" },
-              ...(isStudent ? [{ to: "/my-classrooms", label: "Classroom" }] : []),
+              ...(isStudent
+                ? [{ to: "/my-classrooms", label: "Classroom" }]
+                : []),
             ].map(({ to, label }) => (
               <Link key={to} to={to} className="nav-link">
                 {label}
