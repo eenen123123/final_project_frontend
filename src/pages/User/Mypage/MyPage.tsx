@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../auth/AuthContext";
 import StudyStatus from "../Mypage/components/StudyStatus";
 import StudyCalendar from "../Mypage/components/StudyCalendar";
@@ -163,6 +164,7 @@ const roleBadgeClass: Record<string, string> = {
 };
 
 export default function MyPage() {
+  const navigate = useNavigate();
   const { getRole, getUserName } = useAuth();
   const userName = getUserName();
   const role = getRole();
@@ -226,12 +228,21 @@ export default function MyPage() {
 
             <div className="w-px h-4 bg-gray-200" />
 
-            <a
-              href="/mypage/verify"
-              className="text-xs text-gray-400 hover:text-gray-700 transition-colors"
+            <button
+              onClick={() => {
+                const roleRaw = getRole();
+                const roles = Array.isArray(roleRaw) ? roleRaw : roleRaw ? [roleRaw as unknown as string] : [];
+                const ALLOWED = ["ROLE_USER", "ROLE_STUDENT", "ROLE_PARENT"];
+                if (!roles.some((r) => ALLOWED.includes(r))) {
+                  alert("일반 회원만 접근 가능합니다.");
+                  return;
+                }
+                navigate("/mypage/verify");
+              }}
+              className="text-xs text-gray-400 hover:text-gray-700 transition-colors cursor-pointer"
             >
               개인 정보 수정 ⚙
-            </a>
+            </button>
           </div>
         </div>
 
