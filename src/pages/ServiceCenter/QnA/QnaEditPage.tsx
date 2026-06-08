@@ -6,7 +6,7 @@ import { useAuth } from "../../../auth/AuthContext";
 import api from "../../../api/api";
 import type { QnaItem } from "../../../types/board/QnaInterface";
 import type { JSONContent } from "@tiptap/react";
-import TipTapEditor from "../../../components/TipTapEditor";
+import TipTapEditor from "../../../components/TipTapEditor/TipTapEditor";
 import { extractFileIds, stripBlobUrls } from "../../../api/fileApi";
 
 const QNA_CATEGORIES = [
@@ -55,7 +55,10 @@ export default function QnaEditPage() {
           qnaCtgCd: data.qnaCtgCd,
           secrYn: data.secrYn,
           postSj: data.postSj,
-          postCn: typeof data.postCn === "string" ? JSON.parse(data.postCn) : data.postCn,
+          postCn:
+            typeof data.postCn === "string"
+              ? JSON.parse(data.postCn)
+              : data.postCn,
           wrtrUserId: data.wrtrUserId,
         });
       } catch (err) {
@@ -67,12 +70,14 @@ export default function QnaEditPage() {
     fetchQna();
   }, [postSn]);
 
-  const isEmpty = !form.postCn || !form.postCn.content?.some((n) => n.content?.length);
+  const isEmpty =
+    !form.postCn || !form.postCn.content?.some((n) => n.content?.length);
 
   const handleSubmit = async () => {
     if (!form.postSj.trim()) return alert("제목을 입력하세요.");
     if (isEmpty) return alert("내용을 입력하세요.");
-    if (hasPendingUploads) return alert("이미지 업로드가 완료될 때까지 기다려주세요.");
+    if (hasPendingUploads)
+      return alert("이미지 업로드가 완료될 때까지 기다려주세요.");
 
     const cleanContent = stripBlobUrls(form.postCn!);
     const fileIds = extractFileIds(cleanContent);
@@ -121,7 +126,9 @@ export default function QnaEditPage() {
                 </label>
                 <select
                   value={form.qnaCtgCd}
-                  onChange={(e) => setForm((prev) => ({ ...prev, qnaCtgCd: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((prev) => ({ ...prev, qnaCtgCd: e.target.value }))
+                  }
                   className="border border-gray-300 rounded text-sm px-3 py-2 focus:outline-none focus:border-blue-400 transition-colors cursor-pointer w-40"
                 >
                   {QNA_CATEGORIES.map((cat) => (
@@ -140,7 +147,9 @@ export default function QnaEditPage() {
                 <input
                   type="text"
                   value={form.postSj}
-                  onChange={(e) => setForm((prev) => ({ ...prev, postSj: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((prev) => ({ ...prev, postSj: e.target.value }))
+                  }
                   placeholder="제목을 입력하세요."
                   className="w-full border border-gray-300 rounded text-sm px-3 py-2 focus:outline-none focus:border-blue-400 transition-colors"
                 />
@@ -167,7 +176,10 @@ export default function QnaEditPage() {
                   id="secrYn"
                   checked={form.secrYn === "Y"}
                   onChange={() =>
-                    setForm((prev) => ({ ...prev, secrYn: prev.secrYn === "Y" ? "N" : "Y" }))
+                    setForm((prev) => ({
+                      ...prev,
+                      secrYn: prev.secrYn === "Y" ? "N" : "Y",
+                    }))
                   }
                   className="w-4 h-4 accent-blue-600 cursor-pointer"
                 />

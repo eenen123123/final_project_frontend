@@ -1,5 +1,5 @@
 import { useState } from "react";
-import TipTapEditor from "../../components/TipTapEditor";
+import TipTapEditor from "../../components/TipTapEditor/TipTapEditor";
 import {
   extractFileIds,
   stripBlobUrls,

@@ -5,7 +5,7 @@ import QnaHeader from "./components/QnaHeader";
 import { useAuth } from "../../../auth/AuthContext";
 import api from "../../../api/api";
 import type { QnaItem } from "../../../types/board/QnaInterface";
-import TipTapEditor from "../../../components/TipTapEditor";
+import TipTapEditor from "../../../components/TipTapEditor/TipTapEditor";
 import axios from "axios";
 
 export default function QnaDetailPage() {

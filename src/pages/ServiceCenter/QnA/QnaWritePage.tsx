@@ -8,7 +8,7 @@ import { useAuth } from "../../../auth/AuthContext";
 import api from "../../../api/api";
 import type { QnaCreateRequest } from "../../../types/board/QnaInterface";
 import type { JSONContent } from "@tiptap/react";
-import TipTapEditor from "../../../components/TipTapEditor";
+import TipTapEditor from "../../../components/TipTapEditor/TipTapEditor";
 
 const QNA_CATEGORIES = [
   { code: "01", name: "수강문의" },
