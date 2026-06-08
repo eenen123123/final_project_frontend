@@ -43,6 +43,7 @@ import CouponPointPage from "./pages/User/Mypage/CouponPointPage";
 import BookMain from "./pages/Header/Books.tsx";
 import ParentPage from "./ParentPage/ParentPage.tsx";
 import AiNavigator from "./pages/Header/AiNavigator.tsx";
+import LectureListPage from "./pages/Lecture/LectureListPage.tsx";
 
 export default function AppRoute() {
   return (
@@ -66,7 +67,7 @@ export default function AppRoute() {
       <Route path="/header/instructors" element={<Instructors />} />
       <Route path="/header/books" element={<BookMain />} />
       <Route path="/header/Ainavigator" element={<AiNavigator />} />
-
+      <Route path="/lecturelist" element={<LectureListPage />} />
 
       {/* 고객센터 라우트 */}
       <Route path="/customer/faq" element={<FAQPage />} />
