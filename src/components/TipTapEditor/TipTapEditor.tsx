@@ -28,7 +28,7 @@ import {
   getFileToken,
   getFilesToken,
   uploadFile,
-} from "../api/fileApi";
+} from "../../api/fileApi";
 
 const ImageTokenContext = createContext<Record<number, string> | null>(null);
 
@@ -319,7 +319,13 @@ export default function TipTapEditor({
 
   return (
     <ImageTokenContext.Provider value={imageTokens}>
-      <div className={editable ? "border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm" : ""}>
+      <div
+        className={
+          editable
+            ? "border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm"
+            : ""
+        }
+      >
         {editable && (
           <div className="flex flex-wrap items-center gap-0.5 px-3 py-2 border-b border-slate-200 bg-slate-50">
             {/* 텍스트 스타일 */}
