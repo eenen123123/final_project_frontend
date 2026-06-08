@@ -1,6 +1,6 @@
 import "./App.css";
 import AppRoute from "./AppRoute";
-import Header from "./components/Header";
+import Header from "./components/_deprecated/Header";
 import NewHeader from "./components/Header/NewHeader";
 
 function App() {
