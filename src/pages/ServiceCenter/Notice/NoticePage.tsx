@@ -1,8 +1,8 @@
-import { Link } from 'react-router-dom';
+﻿import { Link } from 'react-router-dom';
 import ServiceSidebar from '../components/ServiceSidebar';
 import NoticeHeader from './components/NoticeHeader';
 import api from '../../../api/api';
-import type { NoticeItem } from '../../../types/board/NoticeInterface';
+import type { NoticeItem } from '../../../types/CustomerServiceInterface';
 import { usePaginatedSearch, type PageResponse } from '../../../hooks/usePaginatedSearch';
 
 const PAGE_SIZE = 15;
@@ -160,3 +160,4 @@ export default function NoticePage() {
     </div>
   );
 }
+
