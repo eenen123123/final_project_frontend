@@ -110,7 +110,7 @@ export default function NewHeader() {
           <nav className="flex items-center gap-0.5 flex-1">
             {[
               { to: "/header/instructors", label: "강사" },
-              { to: "/mylecture", label: "전체 강좌" },
+              { to: "/lecturelist", label: "전체 강좌" },
               { to: "/header/books", label: "강의교재" },
               { to: "/header/Ainavigator", label: "AI 입시정보" },
               { to: "/header/books", label: "HERMES 패스" },
