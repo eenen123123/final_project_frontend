@@ -1,14 +1,15 @@
 import "./App.css";
 import AppRoute from "./AppRoute";
-import Header from "./components/_deprecated/Header";
 import NewHeader from "./components/Header/NewHeader";
+import { useLocation } from "react-router-dom";
 
 function App() {
+  const { pathname } = useLocation();
+  const hideHeader = pathname.startsWith("/classroom/");
+
   return (
     <>
-      {/* 이전 헤더 제거 */}
-      {/* <Header /> */}
-      <NewHeader />
+      {!hideHeader && <NewHeader />}
       <AppRoute />
     </>
   );

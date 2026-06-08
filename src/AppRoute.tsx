@@ -1,6 +1,8 @@
 import { Route, Routes } from "react-router-dom";
 import Home from "./pages/Home";
 import ClassroomPage from "./pages/Classroom/ClassroomPage";
+import MyClassroomsPage from "./pages/Classroom/MyClassroomsPage";
+import ClassroomLayout from "./layouts/ClassroomLayout";
 import ProtectedRoute from "./auth/ProtectedRoute";
 import MyPage from "./pages/User/Mypage/MyPage";
 import ProtectedRouteAdmin from "./auth/ProtectedRouteAdmin";
@@ -85,7 +87,10 @@ export default function AppRoute() {
         <Route path="/mylecture" element={<MyLecturePage />} />
         <Route path="/mypage/verify" element={<VerifyPasswordPage />} />
         <Route path="/mypage/profile/edit" element={<ProfileEditPage />} />
-        <Route path="/classroom/:classId" element={<ClassroomPage />} />
+        <Route path="/my-classrooms" element={<MyClassroomsPage />} />
+        <Route path="/classroom/:classId" element={<ClassroomLayout />}>
+          <Route index element={<ClassroomPage />} />
+        </Route>
         <Route path="/customer/qna/write" element={<QnaWritePage />} />
         <Route path="/customer/qna/my" element={<QnAPage myOnly />} />
         <Route path="/customer/qna/:postSn/edit" element={<QnaEditPage />} />

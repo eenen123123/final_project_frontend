@@ -10,6 +10,7 @@ export default function NewHeader() {
   const { isAuthenticated, logout, getUserName, getRole } = useAuth();
   const currentRoles = getRole() || "";
   const isAdmin = currentRoles.includes("ROLE_ADMIN");
+  const isStudent = currentRoles.includes("ROLE_STUDENT");
   const userName = getUserName();
 
   const [siteMapOpen, setSiteMapOpen] = useState(false);
@@ -98,7 +99,7 @@ export default function NewHeader() {
               { to: "/header/instructors", label: "강사" },
               { to: "/mylecture", label: "전체 강좌" },
               { to: "/header/books", label: "강의교재" },
-              ...(isAuthenticated ? [{ to: "/classroom/1", label: "Classroom" }] : []),
+              ...(isStudent ? [{ to: "/my-classrooms", label: "Classroom" }] : []),
             ].map(({ to, label }) => (
               <Link key={to} to={to} className="nav-link">
                 {label}
