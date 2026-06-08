@@ -1,7 +1,5 @@
 import { useState } from "react";
 import { useAuth } from "../../../auth/AuthContext";
-import Badge from "../../../components/Badge/Badge";
-
 import StudyStatus from "../Mypage/components/StudyStatus";
 import StudyCalendar from "../Mypage/components/StudyCalendar";
 import StudyReport from "../Mypage/components//StudyReport";
@@ -158,10 +156,10 @@ const roleLabel: Record<string, string> = {
   ROLE_OFFLINE: "오프라인 회원",
 };
 
-const roleBadgeVariant: Record<string, "primary" | "secondary" | "danger"> = {
-  ROLE_ADMIN: "danger",
-  ROLE_USER: "primary",
-  ROLE_OFFLINE: "secondary",
+const roleBadgeClass: Record<string, string> = {
+  ROLE_ADMIN: "bg-red-100 text-red-700",
+  ROLE_USER: "bg-blue-100 text-blue-700",
+  ROLE_OFFLINE: "bg-gray-100 text-gray-700",
 };
 
 export default function MyPage() {
@@ -173,9 +171,9 @@ export default function MyPage() {
   const displayRole = primaryRole
     ? (roleLabel[primaryRole] ?? primaryRole)
     : "-";
-  const badgeVariant = primaryRole
-    ? (roleBadgeVariant[primaryRole] ?? "secondary")
-    : "secondary";
+  const badgeClass = primaryRole
+    ? (roleBadgeClass[primaryRole] ?? "bg-gray-100 text-gray-700")
+    : "bg-gray-100 text-gray-700";
 
   const [activeSection, setActiveSection] = useState("마이룸");
   const [notifications, setNotifications] =
@@ -197,9 +195,11 @@ export default function MyPage() {
             <span className="text-gray-900 font-semibold">
               {userName ?? "-"}님
             </span>
-            <Badge variant={badgeVariant} className="ml-1">
+            <span
+              className={`ml-1 inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-bold ${badgeClass}`}
+            >
               {displayRole}
-            </Badge>
+            </span>
           </div>
           <div className="flex items-center gap-5 text-sm text-gray-500">
             {/* 쪽지 */}
