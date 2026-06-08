@@ -4,8 +4,8 @@ import ServiceSidebar from "../components/ServiceSidebar";
 import QnaHeader from "./components/QnaHeader";
 import { useAuth } from "../../../auth/AuthContext";
 import api from "../../../api/api";
+import TipTapEditor from "../../../components/TipTapEditor/TipTapEditor";
 import type { QnaItem } from "../../../types/CustomerServiceInterface";
-import TipTapEditor from "../../../components/TipTapEditor";
 import axios from "axios";
 
 export default function QnaDetailPage() {
