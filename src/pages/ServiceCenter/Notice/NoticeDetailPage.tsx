@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import ServiceSidebar from "../components/ServiceSidebar";
 import NoticeHeader from "./components/NoticeHeader";
 import api from "../../../api/api";
-import type { NoticeItem } from "../../../types/board/NoticeInterface";
+import type { NoticeItem } from '../../../types/CustomerServiceInterface';
 
 const TYPE_BADGE: Record<string, string> = {
   "01": "bg-blue-50 text-blue-600",
@@ -160,3 +160,4 @@ export default function NoticeDetailPage() {
     </div>
   );
 }
+

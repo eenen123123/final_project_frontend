@@ -1,4 +1,4 @@
-/* cSpell:disable */
+﻿/* cSpell:disable */
 import { extractFileIds, stripBlobUrls } from "../../../api/fileApi";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -6,7 +6,7 @@ import ServiceSidebar from "../components/ServiceSidebar";
 import QnaHeader from "./components/QnaHeader";
 import { useAuth } from "../../../auth/AuthContext";
 import api from "../../../api/api";
-import type { QnaCreateRequest } from "../../../types/board/QnaInterface";
+import type { QnaCreateRequest } from '../../../types/CustomerServiceInterface';
 import type { JSONContent } from "@tiptap/react";
 import TipTapEditor from "../../../components/TipTapEditor";
 
@@ -217,3 +217,4 @@ export default function QnaWritePage() {
     </div>
   );
 }
+

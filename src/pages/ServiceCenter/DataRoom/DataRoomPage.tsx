@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import ServiceSidebar from '../components/ServiceSidebar';
 import api from '../../../api/api';
-import type { DataRoomItem } from '../../../types/board/DataRoomInterface';
+import type { DataRoomItem } from '../../../types/CustomerServiceInterface';
 import type { PageResponse } from '../../../hooks/usePaginatedSearch';
 
 const PAGE_SIZE = 15;
@@ -217,3 +217,4 @@ export default function DataRoomPage() {
     </div>
   );
 }
+

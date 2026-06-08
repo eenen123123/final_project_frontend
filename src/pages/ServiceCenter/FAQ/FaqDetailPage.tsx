@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import ServiceSidebar from "../components/ServiceSidebar";
-import type { FaqItem } from "../../../types/board/FaqInterface";
+import type { FaqItem } from '../../../types/CustomerServiceInterface';
 import FAQHeader from "./components/FAQHeader";
 import api from "../../../api/api";
 
@@ -150,3 +150,4 @@ export default function FaqDetailPage() {
     </div>
   );
 }
+

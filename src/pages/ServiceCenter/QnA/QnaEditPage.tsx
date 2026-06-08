@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import ServiceSidebar from "../components/ServiceSidebar";
 import QnaHeader from "./components/QnaHeader";
 import { useAuth } from "../../../auth/AuthContext";
 import api from "../../../api/api";
-import type { QnaItem } from "../../../types/board/QnaInterface";
+import type { QnaItem } from '../../../types/CustomerServiceInterface';
 import type { JSONContent } from "@tiptap/react";
 import TipTapEditor from "../../../components/TipTapEditor";
 import { extractFileIds, stripBlobUrls } from "../../../api/fileApi";
@@ -216,3 +216,4 @@ export default function QnaEditPage() {
     </div>
   );
 }
+

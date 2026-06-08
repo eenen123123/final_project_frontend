@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import ServiceSidebar from '../components/ServiceSidebar';
 import FAQCategoryTabs from './components/FAQCategoryTabs';
 import { CATEGORY_CODE_MAP, SUB_CATEGORY_CODE_MAP, type MainCategory } from './constants/faqConstants';
-import type { FaqItem } from '../../../types/board/FaqInterface';
+import type { FaqItem } from '../../../types/CustomerServiceInterface';
 import FAQHeader from './components/FAQHeader';
 import api from '../../../api/api';
 import type { PageResponse } from '../../../hooks/usePaginatedSearch';
@@ -266,3 +266,4 @@ export default function FAQPage() {
     </div>
   );
 }
+
