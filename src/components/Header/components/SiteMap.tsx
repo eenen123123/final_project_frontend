@@ -80,14 +80,7 @@ const SUBJECTS = [
       { label: '구술면접', items: ['유제승'] },
     ],
   },
-  {
-    name: '모의고사',
-    groups: [
-      { label: '국어', items: ['이감 모의고사', '상상 모의고사'] },
-      { label: '수학', items: ['강대모의고사', '히든카이스'] },
-      { label: '전과목', items: ['더 프리미엄 모의고사'] },
-    ],
-  },
+  
 ];
 
 const SITEMAP_LINKS = [
@@ -110,10 +103,6 @@ const SITEMAP_LINKS = [
   {
     category: '대학별 고사',
     items: ['시즌 기획전', '대학별고사 기출문제', '대학별고사 공지사항'],
-  },
-  {
-    category: '모의고사',
-    items: ['모의고사 한눈에 보기', '이감 국어', '상상 국어', '더 프리미엄 모의고사', 'D. 과목별 모의고사'],
   },
   {
     category: '입시정보',
