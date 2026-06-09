@@ -45,6 +45,7 @@ import BookMain from "./pages/Header/Books.tsx";
 import ParentPage from "./ParentPage/ParentPage.tsx";
 import AiNavigator from "./pages/Header/AiNavigator.tsx";
 import LectureListPage from "./pages/Lecture/LectureListPage.tsx";
+import ParentJoinPage from "./pages/User/ParentJoinPage.tsx";
 
 export default function AppRoute() {
   return (
@@ -52,6 +53,8 @@ export default function AppRoute() {
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<SignUp />} />
+
+      <Route path="/parent/join" element={<ParentJoinPage />} />
 
       <Route path="/test/editor" element={<TestPage />} />
       <Route path="/test/upload" element={<FileUploadTest />} />
