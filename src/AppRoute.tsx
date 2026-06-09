@@ -42,6 +42,7 @@ import InstructorDetailPage from "./pages/Instructor/InstructorDetailPage";
 import InstructorBoardLayout from "./pages/Instructor/InstructorBoardLayout";
 import CoursesTab from "./pages/Instructor/InstructorBoard/CoursesTab";
 import BoardTab from "./pages/Instructor/InstructorBoard/BoardTab";
+import BoardPostDetailPage from "./pages/Instructor/InstructorBoard/BoardPostDetailPage";
 import OrderHistoryPage from "./pages/User/Mypage/OrderHistoryPage";
 import CouponPointPage from "./pages/User/Mypage/CouponPointPage";
 import BookMain from "./pages/Books/BooksPage";
@@ -79,6 +80,7 @@ export default function AppRoute() {
           <Route path="notice" element={<BoardTab key="notice" boardType="notice" title="공지사항" />} />
           <Route path="qna" element={<BoardTab key="qna" boardType="qna" title="선생님 Q&A" />} />
           <Route path="material" element={<BoardTab key="material" boardType="material" title="학습자료실" />} />
+          <Route path=":boardType/:postSn" element={<BoardPostDetailPage />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Route>
