@@ -72,12 +72,14 @@ export default function AppRoute() {
       {/* 공용 라우트 */}
       <Route path="/test/toss-pay/fail" element={<TossPayFailTestPage />} />
       <Route path="/header/instructors" element={<Instructors />} />
-      <Route path="/instructor/:instrUuid" element={<InstructorDetailPage />} />
-      <Route path="/instructor/:instrUuid" element={<InstructorBoardLayout />}>
-        <Route path="courses" element={<CoursesTab />} />
-        <Route path="notice" element={<BoardTab boardType="notice" title="공지사항" />} />
-        <Route path="qna" element={<BoardTab boardType="qna" title="선생님 Q&A" />} />
-        <Route path="material" element={<BoardTab boardType="material" title="학습자료실" />} />
+      <Route path="/instructor/:instrUuid">
+        <Route index element={<InstructorDetailPage />} />
+        <Route element={<InstructorBoardLayout />}>
+          <Route path="courses" element={<CoursesTab />} />
+          <Route path="notice" element={<BoardTab boardType="notice" title="공지사항" />} />
+          <Route path="qna" element={<BoardTab boardType="qna" title="선생님 Q&A" />} />
+          <Route path="material" element={<BoardTab boardType="material" title="학습자료실" />} />
+        </Route>
       </Route>
       <Route path="/header/books" element={<BookMain />} />
       <Route path="/header/Ainavigator" element={<AiNavigator />} />

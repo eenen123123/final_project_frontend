@@ -33,6 +33,10 @@ export default function BoardTab({ boardType, title }: Props) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setPage(0);
+  }, [boardType]);
+
+  useEffect(() => {
     if (!instrUuid) return;
     let cancelled = false;
     api
