@@ -1,17 +1,9 @@
-import { useState, useEffect, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+﻿import { Link } from 'react-router-dom';
 import ServiceSidebar from '../components/ServiceSidebar';
 import NoticeHeader from './components/NoticeHeader';
 import api from '../../../api/api';
-import type { NoticeItem } from '../../../types/board/NoticeInterface';
-
-{/*
-  * 변경사항 *
-1. 사이드바 hidden md:block 모바일 숨김
-2. 레이아웃 flex-col md:flex-row 반응형
-3. 테이블 모바일 카드 리스트로 전환
-4. 버튼 cursor-pointer 추가
-*/}
+import type { NoticeItem } from '../../../types/CustomerServiceInterface';
+import { usePaginatedSearch, type PageResponse } from '../../../hooks/usePaginatedSearch';
 
 const PAGE_SIZE = 15;
 
@@ -22,41 +14,25 @@ const TYPE_BADGE: Record<string, string> = {
 };
 
 export default function NoticePage() {
-  const [noticeList,  setNoticeList]  = useState<NoticeItem[]>([]);
-  const [loading,     setLoading]     = useState(false);
-  const [searchInput, setSearchInput] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [page,        setPage]        = useState(1);
-
-  useEffect(() => {
-    const fetchNoticeList = async () => {
-      setLoading(true);
-      try {
-        const res = await api.get('/api/notice');
-        setNoticeList(res.data);
-      } catch (err) {
-        console.error('공지사항 조회 실패:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchNoticeList();
-  }, []);
-
-  const handleSearch = () => {
-    if (!searchInput.trim()) { alert('검색값을 입력하세요'); return; }
-    setSearchQuery(searchInput.trim());
-    setPage(1);
-  };
-
-  const filtered = useMemo(() => {
-    if (!searchQuery) return noticeList;
-    const q = searchQuery.toLowerCase();
-    return noticeList.filter((n) => n.postSj.toLowerCase().includes(q));
-  }, [noticeList, searchQuery]);
-
-  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
-  const paged      = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const {
+    items,
+    totalCount,
+    loading,
+    page,
+    totalPages,
+    startPage,
+    endPage,
+    searchInput,
+    setSearchInput,
+    handleSearch,
+    setPage,
+  } = usePaginatedSearch<NoticeItem>(
+    (page, size, keyword) =>
+      api.get<PageResponse<NoticeItem>>('/api/notice/paged', {
+        params: { page, size, ...(keyword && { keyword }) },
+      }).then(r => r.data),
+    { pageSize: PAGE_SIZE, blockSize: 5 }
+  );
 
   return (
     <div className="min-h-screen bg-white">
@@ -88,10 +64,10 @@ export default function NoticePage() {
                 <tbody className="divide-y divide-gray-100">
                   {loading ? (
                     <tr><td colSpan={3} className="py-12 text-center text-sm text-gray-400">불러오는 중...</td></tr>
-                  ) : paged.length > 0 ? paged.map((item, idx) => (
+                  ) : items.length > 0 ? items.map((item, idx) => (
                     <tr key={item.postSn} className="hover:bg-gray-50 transition-colors">
                       <td className="py-3 px-3 text-center text-xs text-gray-400">
-                        {filtered.length - ((page - 1) * PAGE_SIZE) - idx}
+                        {totalCount - ((page - 1) * PAGE_SIZE) - idx}
                       </td>
                       <td className="py-3 px-3">
                         <Link
@@ -121,7 +97,7 @@ export default function NoticePage() {
             <div className="md:hidden divide-y divide-gray-100 border-t-2 border-gray-800 mt-4 mb-4">
               {loading ? (
                 <p className="py-12 text-center text-sm text-gray-400">불러오는 중...</p>
-              ) : paged.length > 0 ? paged.map((item) => (
+              ) : items.length > 0 ? items.map((item) => (
                 <Link key={item.postSn} to={`/customer/notice/${item.postSn}`}
                   className="flex items-center justify-between py-3 px-2 hover:bg-gray-50 transition-colors cursor-pointer">
                   <div className="flex-1 min-w-0">
@@ -149,7 +125,7 @@ export default function NoticePage() {
                   className="px-2 py-1 text-xs text-gray-400 hover:text-gray-700 disabled:opacity-30 cursor-pointer">◀◀</button>
                 <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
                   className="px-2 py-1 text-xs text-gray-400 hover:text-gray-700 disabled:opacity-30 cursor-pointer">◀</button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                {Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i).map((p) => (
                   <button key={p} onClick={() => setPage(p)}
                     className={`px-2.5 py-1 text-xs rounded transition-colors cursor-pointer ${
                       page === p ? 'bg-blue-600 text-white font-bold' : 'text-gray-500 hover:text-gray-900'
@@ -184,3 +160,4 @@ export default function NoticePage() {
     </div>
   );
 }
+

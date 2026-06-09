@@ -1,10 +1,12 @@
-import { useState, useEffect, useMemo } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import ServiceSidebar from '../components/ServiceSidebar';
 import api from '../../../api/api';
-import type { DataRoomItem } from '../../../types/board/DataRoomInterface';
+import type { DataRoomItem } from '../../../types/CustomerServiceInterface';
+import type { PageResponse } from '../../../hooks/usePaginatedSearch';
 
 const PAGE_SIZE = 15;
+const BLOCK_SIZE = 5;
 
 const CTG_OPTIONS = [
   { code: '', label: '전체' },
@@ -15,44 +17,50 @@ const CTG_OPTIONS = [
 ];
 
 export default function DataRoomPage() {
-  const [list, setList]               = useState<DataRoomItem[]>([]);
-  const [loading, setLoading]         = useState(false);
-  const [ctg, setCtg]                 = useState('');
+  const [items,       setItems]       = useState<DataRoomItem[]>([]);
+  const [totalCount,  setTotalCount]  = useState(0);
+  const [loading,     setLoading]     = useState(false);
+  const [ctg,         setCtg]         = useState('');
   const [searchInput, setSearchInput] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [page, setPage]               = useState(1);
+  const [keyword,     setKeyword]     = useState('');
+  const [page,        setPage]        = useState(1);
+
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+  const endPage    = Math.min(totalPages, Math.ceil(page / BLOCK_SIZE) * BLOCK_SIZE);
+  const startPage  = Math.max(1, endPage - BLOCK_SIZE + 1);
 
   useEffect(() => {
-    const fetchList = async () => {
+    let cancelled = false;
+    const load = async () => {
       setLoading(true);
       try {
-        const params = ctg ? { dataCtg: ctg } : {};
-        const res = await api.get('/api/dataroom', { params });
-        setList(res.data);
-        setPage(1);
+        const res = await api.get<PageResponse<DataRoomItem>>('/api/dataroom/paged', {
+          params: {
+            page,
+            size: PAGE_SIZE,
+            ...(keyword && { keyword }),
+            ...(ctg     && { dataCtg: ctg }),
+          },
+        });
+        if (!cancelled) {
+          setItems(res.data.items);
+          setTotalCount(res.data.totalCount);
+        }
       } catch (err) {
         console.error('자료실 조회 실패:', err);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
-    fetchList();
-  }, [ctg]);
+    load();
+    return () => { cancelled = true; };
+  }, [page, keyword, ctg]);
 
   const handleSearch = () => {
     if (!searchInput.trim()) { alert('검색값을 입력하세요'); return; }
-    setSearchQuery(searchInput.trim());
+    setKeyword(searchInput.trim());
     setPage(1);
   };
-
-  const filtered = useMemo(() => {
-    if (!searchQuery) return list;
-    const q = searchQuery.toLowerCase();
-    return list.filter((item) => item.postSj.toLowerCase().includes(q));
-  }, [list, searchQuery]);
-
-  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
-  const paged      = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
     <div className="min-h-screen bg-white">
@@ -70,7 +78,7 @@ export default function DataRoomPage() {
                 {CTG_OPTIONS.map((opt) => (
                   <button
                     key={opt.code}
-                    onClick={() => { setCtg(opt.code); setSearchQuery(''); setSearchInput(''); }}
+                    onClick={() => { setCtg(opt.code); setKeyword(''); setSearchInput(''); setPage(1); }}
                     className={`text-xs px-3 py-1.5 rounded-full border transition-colors cursor-pointer ${
                       ctg === opt.code
                         ? 'bg-blue-600 text-white border-blue-600 font-semibold'
@@ -105,10 +113,10 @@ export default function DataRoomPage() {
                 <tbody className="divide-y divide-gray-100">
                   {loading ? (
                     <tr><td colSpan={5} className="py-12 text-center text-sm text-gray-400">불러오는 중...</td></tr>
-                  ) : paged.length > 0 ? paged.map((item, idx) => (
+                  ) : items.length > 0 ? items.map((item, idx) => (
                     <tr key={item.postSn} className="hover:bg-gray-50 transition-colors">
                       <td className="py-3 px-3 text-center text-xs text-gray-400">
-                        {filtered.length - ((page - 1) * PAGE_SIZE) - idx}
+                        {totalCount - ((page - 1) * PAGE_SIZE) - idx}
                       </td>
                       <td className="py-3 px-3 text-center">
                         <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-50 text-blue-600">
@@ -149,7 +157,7 @@ export default function DataRoomPage() {
             <div className="md:hidden divide-y divide-gray-100 border-t-2 border-gray-800 mb-4">
               {loading ? (
                 <p className="py-12 text-center text-sm text-gray-400">불러오는 중...</p>
-              ) : paged.length > 0 ? paged.map((item) => (
+              ) : items.length > 0 ? items.map((item) => (
                 <Link key={item.postSn} to={`/customer/resource/${item.postSn}`}
                   className="flex items-center justify-between py-3 px-2 hover:bg-gray-50 transition-colors cursor-pointer">
                   <div className="flex-1 min-w-0">
@@ -175,7 +183,7 @@ export default function DataRoomPage() {
                   className="px-2 py-1 text-xs text-gray-400 hover:text-gray-700 disabled:opacity-30 cursor-pointer">◀◀</button>
                 <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
                   className="px-2 py-1 text-xs text-gray-400 hover:text-gray-700 disabled:opacity-30 cursor-pointer">◀</button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                {Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i).map((p) => (
                   <button key={p} onClick={() => setPage(p)}
                     className={`px-2.5 py-1 text-xs rounded transition-colors cursor-pointer ${
                       page === p ? 'bg-blue-600 text-white font-bold' : 'text-gray-500 hover:text-gray-900'
@@ -209,3 +217,4 @@ export default function DataRoomPage() {
     </div>
   );
 }
+

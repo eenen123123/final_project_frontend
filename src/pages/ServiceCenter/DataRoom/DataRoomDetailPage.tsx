@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ServiceSidebar from '../components/ServiceSidebar';
 import api from '../../../api/api';
-import type { DataRoomItem } from '../../../types/board/DataRoomInterface';
+import type { DataRoomItem } from '../../../types/CustomerServiceInterface';
 
 export default function DataRoomDetailPage() {
   const { postSn } = useParams<{ postSn: string }>();
@@ -120,3 +120,4 @@ export default function DataRoomDetailPage() {
     </div>
   );
 }
+

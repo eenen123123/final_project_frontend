@@ -1,83 +1,84 @@
-import { useState, useEffect, useMemo } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import ServiceSidebar from '../components/ServiceSidebar';
 import FAQCategoryTabs from './components/FAQCategoryTabs';
 import { CATEGORY_CODE_MAP, SUB_CATEGORY_CODE_MAP, type MainCategory } from './constants/faqConstants';
-import type { FaqItem } from '../../../types/board/FaqInterface';
+import type { FaqItem } from '../../../types/CustomerServiceInterface';
 import FAQHeader from './components/FAQHeader';
 import api from '../../../api/api';
-
-{/*
-  *변경사항
-1. button 에 cursor-pointer 추가
-2. 사이드바 모바일에서 hidden md:block 처리
-3. 테이블 모바일에서 카드 리스트로 전환 (hidden md:block / md:hidden)
-4. 검색창 w-64 sm:w-72 반응형.
-*/}
+import type { PageResponse } from '../../../hooks/usePaginatedSearch';
 
 type SearchType = '제목+내용' | '제목';
 
 const PAGE_SIZE = 10;
+const BLOCK_SIZE = 5;
 
 export default function FAQPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const activeMain = (searchParams.get('category') ?? '강의/교재') as MainCategory;
   const activeSub  = searchParams.get('sub') ?? '전체';
 
-  const [faqList,     setFaqList]     = useState<FaqItem[]>([]);
+  const [items,       setItems]       = useState<FaqItem[]>([]);
+  const [totalCount,  setTotalCount]  = useState(0);
   const [loading,     setLoading]     = useState(false);
   const [searchType,  setSearchType]  = useState<SearchType>('제목+내용');
   const [searchInput, setSearchInput] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [keyword,     setKeyword]     = useState('');
   const [page,        setPage]        = useState(1);
 
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+  const endPage    = Math.min(totalPages, Math.ceil(page / BLOCK_SIZE) * BLOCK_SIZE);
+  const startPage  = Math.max(1, endPage - BLOCK_SIZE + 1);
+
   useEffect(() => {
-    const fetchFaqList = async () => {
+    let cancelled = false;
+    const load = async () => {
       setLoading(true);
       try {
         const ctgCd    = CATEGORY_CODE_MAP[activeMain];
-        const subCtgCd = activeSub !== '전체' ? SUB_CATEGORY_CODE_MAP[activeSub] : '';
-
-        const params: Record<string, string> = {};
-        if (ctgCd)    params.faqCtgCd    = ctgCd;
-        if (subCtgCd) params.faqSubCtgCd = subCtgCd;
-
-        const res = await api.get('/api/faq', { params });
-        setFaqList(res.data);
-        setPage(1);
+        const subCtgCd = activeSub !== '전체' ? SUB_CATEGORY_CODE_MAP[activeSub] : undefined;
+        const res = await api.get<PageResponse<FaqItem>>('/api/faq/paged', {
+          params: {
+            page,
+            size: PAGE_SIZE,
+            ...(keyword  && { keyword }),
+            ...(ctgCd    && { faqCtgCd: ctgCd }),
+            ...(subCtgCd && { faqSubCtgCd: subCtgCd }),
+          },
+        });
+        if (!cancelled) {
+          setItems(res.data.items);
+          setTotalCount(res.data.totalCount);
+        }
       } catch (err) {
         console.error('FAQ 조회 실패:', err);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
-    fetchFaqList();
-  }, [activeMain, activeSub]);
+    load();
+    return () => { cancelled = true; };
+  }, [page, keyword, activeMain, activeSub]);
 
   const handleMainChange = (cat: MainCategory) => {
     setSearchParams({ category: cat });
-    setSearchQuery('');
+    setKeyword('');
+    setSearchInput('');
+    setPage(1);
   };
 
   const handleSubChange = (sub: string) => {
     setSearchParams({ category: activeMain, sub });
-    setSearchQuery('');
+    setKeyword('');
+    setSearchInput('');
+    setPage(1);
   };
 
   const handleSearch = () => {
     if (!searchInput.trim()) { alert('검색값을 입력하세요'); return; }
-    setSearchQuery(searchInput.trim());
+    setKeyword(searchInput.trim());
     setPage(1);
   };
-
-  const filtered = useMemo(() => {
-    if (!searchQuery) return faqList;
-    const q = searchQuery.toLowerCase();
-    return faqList.filter((f) => f.postSj.toLowerCase().includes(q));
-  }, [faqList, searchQuery]);
-
-  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
-  const paged      = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
     <div className="min-h-screen bg-white">
@@ -103,7 +104,7 @@ export default function FAQPage() {
             <div className="mb-4">
               <div className="flex items-center justify-between mb-2">
                 <p className="text-xs text-gray-500">
-                  총 <strong className="text-blue-600">{filtered.length}</strong>개의 자주하는 질문(FAQ)
+                  총 <strong className="text-blue-600">{totalCount}</strong>개의 자주하는 질문(FAQ)
                 </p>
               </div>
 
@@ -127,7 +128,7 @@ export default function FAQPage() {
                   <tbody className="divide-y divide-gray-100">
                     {loading ? (
                       <tr><td colSpan={4} className="py-12 text-center text-sm text-gray-400">불러오는 중...</td></tr>
-                    ) : paged.length > 0 ? paged.map((item) => (
+                    ) : items.length > 0 ? items.map((item) => (
                       <tr key={item.postSn} className="hover:bg-gray-50 transition-colors">
                         <td className="py-3 px-3 text-center">
                           {item.topFixYn === 'Y' ? (
@@ -156,7 +157,7 @@ export default function FAQPage() {
               <div className="md:hidden divide-y divide-gray-100 border-t-2 border-gray-800">
                 {loading ? (
                   <p className="py-12 text-center text-sm text-gray-400">불러오는 중...</p>
-                ) : paged.length > 0 ? paged.map((item) => (
+                ) : items.length > 0 ? items.map((item) => (
                   <Link key={item.postSn} to={`/customer/faq/${item.postSn}`}
                     className="flex items-start gap-3 py-3 px-2 hover:bg-gray-50 transition-colors cursor-pointer">
                     <div className="flex-1 min-w-0">
@@ -183,12 +184,16 @@ export default function FAQPage() {
               <div className="flex items-center justify-center gap-1 mb-6">
                 <button onClick={() => setPage(1)} disabled={page === 1}
                   className="px-2 py-1 text-xs text-gray-400 hover:text-gray-700 disabled:opacity-30 cursor-pointer">◀◀</button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
+                  className="px-2 py-1 text-xs text-gray-400 hover:text-gray-700 disabled:opacity-30 cursor-pointer">◀</button>
+                {Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i).map((p) => (
                   <button key={p} onClick={() => setPage(p)}
                     className={`px-2.5 py-1 text-xs rounded transition-colors cursor-pointer ${
                       page === p ? 'bg-blue-600 text-white font-bold' : 'text-gray-500 hover:text-gray-900'
                     }`}>{p}</button>
                 ))}
+                <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
+                  className="px-2 py-1 text-xs text-gray-400 hover:text-gray-700 disabled:opacity-30 cursor-pointer">▶</button>
                 <button onClick={() => setPage(totalPages)} disabled={page === totalPages}
                   className="px-2 py-1 text-xs text-gray-400 hover:text-gray-700 disabled:opacity-30 cursor-pointer">▶▶</button>
               </div>
@@ -261,3 +266,4 @@ export default function FAQPage() {
     </div>
   );
 }
+

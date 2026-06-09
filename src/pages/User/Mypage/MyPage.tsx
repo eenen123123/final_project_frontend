@@ -1,13 +1,16 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../auth/AuthContext";
-import Badge from "../../../components/Badge/Badge";
-
 import StudyStatus from "../Mypage/components/StudyStatus";
 import StudyCalendar from "../Mypage/components/StudyCalendar";
 import StudyReport from "../Mypage/components//StudyReport";
 import AlertDropdown from "../Mypage/components/AlertDropdown";
 import type { AlertItem } from "../Mypage/components/AlertDropdown";
-import type { CalendarEvent, CourseStatus, StudySubject, TeacherRank } from "../../../types/MyPageInterface";
+import type {
+  CourseStatus,
+  StudySubject,
+  TeacherRank,
+} from "../../../types/MyPageInterface";
 import MyPageSidebar from "../Mypage/components/MyPageSidebar";
 
 // ── 더미 데이터 ───────────────────────────────────────────────────────────
@@ -22,57 +25,6 @@ const COURSE_STATUS: CourseStatus = {
   coupon: 1,
   point: 0,
 };
-
-const CALENDAR_EVENTS: CalendarEvent[] = [
-  {
-    id: "1",
-    date: "2026-05-01",
-    startDate: "2026-05-01",
-    endDate: "2026-05-01",
-    type: "event",
-    title: "5월 수강생 이벤트 시작",
-  },
-  {
-    id: "2",
-    date: "2026-05-05",
-    startDate: "2026-05-05",
-    endDate: "2026-05-05",
-    type: "academic",
-    title: "어린이날 (휴일)",
-  },
-  {
-    id: "3",
-    date: "2026-05-07",
-    startDate: "2026-05-07",
-    endDate: "2026-05-07",
-    type: "personal",
-    title: "사회문화 A — 2강 복습",
-  },
-  {
-    id: "4",
-    date: "2026-05-14",
-    startDate: "2026-05-14",
-    endDate: "2026-05-14",
-    type: "academic",
-    title: "5월 모의고사",
-  },
-  {
-    id: "5",
-    date: "2026-05-22",
-    startDate: "2026-05-22",
-    endDate: "2026-05-22",
-    type: "event",
-    title: "헤르메스에서 놓친 혜택 자수하고 선물 받자!",
-  },
-  {
-    id: "6",
-    date: "2026-05-25",
-    startDate: "2026-05-25",
-    endDate: "2026-05-25",
-    type: "personal",
-    title: "1단원 마무리 + 5월 학평 복습",
-  },
-];
 
 const SUBJECTS: StudySubject[] = [
   { name: "국어", percent: 65, minutes: 127 },
@@ -120,8 +72,20 @@ const INIT_NOTIFICATIONS: AlertItem[] = [
     important: true,
     date: "2026.05.04",
   },
-  { id: "a5", message: "QnA #005번 질문에 답변이 등록되었습니다.", read: true, important: false, date: "2026.05.03" },
-  { id: "a6", message: "수강 기간 연장 정책이 변경되었습니다.", read: true, important: false, date: "2026.04.28" },
+  {
+    id: "a5",
+    message: "QnA #005번 질문에 답변이 등록되었습니다.",
+    read: true,
+    important: false,
+    date: "2026.05.03",
+  },
+  {
+    id: "a6",
+    message: "수강 기간 연장 정책이 변경되었습니다.",
+    read: true,
+    important: false,
+    date: "2026.04.28",
+  },
 ];
 
 const INIT_MESSAGES: AlertItem[] = [
@@ -160,10 +124,30 @@ const INIT_MESSAGES: AlertItem[] = [
 ];
 
 const NOTICES = [
-  { id: "n1", title: "[공지] 5/14(목) 02시~03시 사이트 통합 회원 기능 점검...", date: "2026.05.11", isNew: true },
-  { id: "n2", title: "[사전공지] PCPLAYER 업데이트 예정 안내(2026/0...", date: "2026.04.29", isNew: true },
-  { id: "n3", title: "[공지] 3/19(수) 02시~06시 사이트 점검 작업", date: "2026.03.18", isNew: false },
-  { id: "n4", title: "[공지] 3/11(수) 00시~06시 사이트 일부 메뉴 점검 작업", date: "2026.02.27", isNew: false },
+  {
+    id: "n1",
+    title: "[공지] 5/14(목) 02시~03시 사이트 통합 회원 기능 점검...",
+    date: "2026.05.11",
+    isNew: true,
+  },
+  {
+    id: "n2",
+    title: "[사전공지] PCPLAYER 업데이트 예정 안내(2026/0...",
+    date: "2026.04.29",
+    isNew: true,
+  },
+  {
+    id: "n3",
+    title: "[공지] 3/19(수) 02시~06시 사이트 점검 작업",
+    date: "2026.03.18",
+    isNew: false,
+  },
+  {
+    id: "n4",
+    title: "[공지] 3/11(수) 00시~06시 사이트 일부 메뉴 점검 작업",
+    date: "2026.02.27",
+    isNew: false,
+  },
 ];
 // ──────────────────────────────────────────────────────────────────────────
 
@@ -173,23 +157,29 @@ const roleLabel: Record<string, string> = {
   ROLE_OFFLINE: "오프라인 회원",
 };
 
-const roleBadgeVariant: Record<string, "primary" | "secondary" | "danger"> = {
-  ROLE_ADMIN: "danger",
-  ROLE_USER: "primary",
-  ROLE_OFFLINE: "secondary",
+const roleBadgeClass: Record<string, string> = {
+  ROLE_ADMIN: "bg-red-100 text-red-700",
+  ROLE_USER: "bg-blue-100 text-blue-700",
+  ROLE_OFFLINE: "bg-gray-100 text-gray-700",
 };
 
 export default function MyPage() {
+  const navigate = useNavigate();
   const { getRole, getUserName } = useAuth();
   const userName = getUserName();
   const role = getRole();
   const primaryRole = role?.[0] ?? null; // 배열에서 첫 번째 role 가져오기
   const initial = userName ? userName.charAt(0).toUpperCase() : "?";
-  const displayRole = primaryRole ? (roleLabel[primaryRole] ?? primaryRole) : "-";
-  const badgeVariant = primaryRole ? (roleBadgeVariant[primaryRole] ?? "secondary") : "secondary";
+  const displayRole = primaryRole
+    ? (roleLabel[primaryRole] ?? primaryRole)
+    : "-";
+  const badgeClass = primaryRole
+    ? (roleBadgeClass[primaryRole] ?? "bg-gray-100 text-gray-700")
+    : "bg-gray-100 text-gray-700";
 
   const [activeSection, setActiveSection] = useState("마이룸");
-  const [notifications, setNotifications] = useState<AlertItem[]>(INIT_NOTIFICATIONS);
+  const [notifications, setNotifications] =
+    useState<AlertItem[]>(INIT_NOTIFICATIONS);
   const [messages, setMessages] = useState<AlertItem[]>(INIT_MESSAGES);
 
   return (
@@ -204,19 +194,31 @@ export default function MyPage() {
             <div className="w-10 h-10 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-700 font-bold text-sm flex-shrink-0">
               {initial}
             </div>
-            <span className="text-gray-900 font-semibold">{userName ?? "-"}님</span>
-            <Badge variant={badgeVariant} className="ml-1">
+            <span className="text-gray-900 font-semibold">
+              {userName ?? "-"}님
+            </span>
+            <span
+              className={`ml-1 inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-bold ${badgeClass}`}
+            >
               {displayRole}
-            </Badge>
+            </span>
           </div>
           <div className="flex items-center gap-5 text-sm text-gray-500">
             {/* 쪽지 */}
-            <AlertDropdown type="message" items={messages} onChange={setMessages} />
+            <AlertDropdown
+              type="message"
+              items={messages}
+              onChange={setMessages}
+            />
 
             <div className="w-px h-4 bg-gray-200" />
 
             {/* 알림 */}
-            <AlertDropdown type="notification" items={notifications} onChange={setNotifications} />
+            <AlertDropdown
+              type="notification"
+              items={notifications}
+              onChange={setNotifications}
+            />
 
             <div className="w-px h-4 bg-gray-200" />
 
@@ -226,32 +228,53 @@ export default function MyPage() {
 
             <div className="w-px h-4 bg-gray-200" />
 
-            <a href="/mypage/verify" className="text-xs text-gray-400 hover:text-gray-700 transition-colors">
+            <button
+              onClick={() => {
+                const roleRaw = getRole();
+                const roles = Array.isArray(roleRaw) ? roleRaw : roleRaw ? [roleRaw as unknown as string] : [];
+                const ALLOWED = ["ROLE_USER", "ROLE_STUDENT", "ROLE_PARENT"];
+                if (!roles.some((r) => ALLOWED.includes(r))) {
+                  alert("일반 회원만 접근 가능합니다.");
+                  return;
+                }
+                navigate("/mypage/verify");
+              }}
+              className="text-xs text-gray-400 hover:text-gray-700 transition-colors cursor-pointer"
+            >
               개인 정보 수정 ⚙
-            </a>
+            </button>
           </div>
         </div>
 
         {/* 본문: 사이드바 + 메인 */}
         <div className="flex gap-5 items-start">
-          <MyPageSidebar activeSection={activeSection} onSectionChange={setActiveSection} />
+          <MyPageSidebar
+            activeSection={activeSection}
+            onSectionChange={setActiveSection}
+          />
 
           <div className="flex-1 min-w-0">
             <StudyStatus status={COURSE_STATUS} />
-            <StudyCalendar events={CALENDAR_EVENTS} />
+            <StudyCalendar />
             <StudyReport subjects={SUBJECTS} teachers={TEACHERS} />
 
             {/* 내 학습기기 + 학습지원 */}
             <div className="grid grid-cols-2 gap-5 mt-5">
               <div className="border border-gray-200 rounded-xl p-6">
-                <h3 className="text-sm font-semibold text-gray-900 mb-4">내 학습기기</h3>
+                <h3 className="text-sm font-semibold text-gray-900 mb-4">
+                  내 학습기기
+                </h3>
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 border-2 border-dashed border-gray-200 rounded-lg flex items-center justify-center text-gray-300 text-xl flex-shrink-0">
                     +
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">등록된 기기가 없습니다.</p>
-                    <p className="text-xs text-gray-400">(한 ID당 1개만 등록 가능)</p>
+                    <p className="text-sm text-gray-500">
+                      등록된 기기가 없습니다.
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      (한 ID당 1개만 등록 가능)
+                    </p>
                   </div>
                   <button className="ml-auto text-xs text-gray-500 border border-gray-200 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors flex-shrink-0">
                     학습기기 이용안내
@@ -260,7 +283,9 @@ export default function MyPage() {
               </div>
 
               <div className="border border-gray-200 rounded-xl p-6">
-                <h3 className="text-sm font-semibold text-gray-900 mb-4">학습지원</h3>
+                <h3 className="text-sm font-semibold text-gray-900 mb-4">
+                  학습지원
+                </h3>
                 <div className="grid grid-cols-2 gap-2">
                   {[
                     { icon: "💬", label: "자주하는 질문(FAQ)" },
@@ -284,8 +309,12 @@ export default function MyPage() {
             <div className="grid grid-cols-2 gap-5 mt-5">
               <div className="border border-gray-200 rounded-xl p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-semibold text-gray-900">공지사항</h3>
-                  <button className="text-gray-300 hover:text-gray-500 text-lg leading-none">+</button>
+                  <h3 className="text-sm font-semibold text-gray-900">
+                    공지사항
+                  </h3>
+                  <button className="text-gray-300 hover:text-gray-500 text-lg leading-none">
+                    +
+                  </button>
                 </div>
                 <div className="space-y-3">
                   {NOTICES.map((n) => (
@@ -298,19 +327,25 @@ export default function MyPage() {
                           N
                         </span>
                       )}
-                      <span className="text-xs text-gray-400 flex-shrink-0">{n.date}</span>
+                      <span className="text-xs text-gray-400 flex-shrink-0">
+                        {n.date}
+                      </span>
                     </div>
                   ))}
                 </div>
               </div>
 
               <div className="border border-gray-200 rounded-xl p-6">
-                <h3 className="text-sm font-semibold text-gray-900 mb-5">고객센터</h3>
+                <h3 className="text-sm font-semibold text-gray-900 mb-5">
+                  고객센터
+                </h3>
                 <div className="space-y-4">
                   <div className="flex items-start justify-between">
                     <div>
                       <p className="text-xs text-gray-400 mb-1">전화</p>
-                      <p className="text-2xl font-bold text-blue-500">1599-6405</p>
+                      <p className="text-2xl font-bold text-blue-500">
+                        1599-6405
+                      </p>
                     </div>
                     <div className="text-xs text-gray-400 text-right">
                       <p>평일 9시~18시(점심 12시~13시)</p>
@@ -319,7 +354,9 @@ export default function MyPage() {
                   </div>
                   <div className="border-t border-gray-100 pt-4 flex items-start justify-between">
                     <div>
-                      <p className="text-2xl font-bold text-blue-500">1:1 게시판 상담</p>
+                      <p className="text-2xl font-bold text-blue-500">
+                        1:1 게시판 상담
+                      </p>
                     </div>
                     <div className="text-xs text-gray-400 text-right">
                       <p>평일 9시~24시</p>

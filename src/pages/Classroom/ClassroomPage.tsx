@@ -2,10 +2,23 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { useOutletContext } from "react-router-dom";
 import ClassroomLeftPanel from "./components/ClassroomLeftPanel";
-import { HomeTab, NoticeTab, LectureTab, AssignTab, QnaTab, ScoreTab } from "./components/ClassroomTabs";
+import {
+  HomeTab,
+  NoticeTab,
+  LectureTab,
+  AssignTab,
+  QnaTab,
+  ScoreTab,
+} from "./components/ClassroomTabs";
 import type { ClassroomInfo } from "../../types/ClassroomInterface";
 
-export type TabType = "home" | "notice" | "lecture" | "assign" | "qna" | "score";
+export type TabType =
+  | "home"
+  | "notice"
+  | "lecture"
+  | "assign"
+  | "qna"
+  | "score";
 
 const TABS: { id: TabType; label: string; badge?: number }[] = [
   { id: "home", label: "홈" },
@@ -13,7 +26,7 @@ const TABS: { id: TabType; label: string; badge?: number }[] = [
   { id: "lecture", label: "온라인 강의" },
   { id: "assign", label: "과제 제출", badge: 2 },
   { id: "qna", label: "1:1 Q&A" },
-  { id: "score", label: "성적 관리" },
+  { id: "score", label: "성적 조회" },
 ];
 
 export default function ClassroomPage() {
@@ -29,7 +42,6 @@ export default function ClassroomPage() {
 
       <main className="flex-1 overflow-y-auto p-6 bg-[#F8FAFC]">
         <div className="max-w-[1000px] w-full flex flex-col gap-5">
-
           {/* 탭바 */}
           <nav className="flex items-center gap-1 bg-slate-200/60 p-1 rounded-xl w-fit border border-slate-200/10 relative">
             {TABS.map((tab) => {
@@ -45,15 +57,21 @@ export default function ClassroomPage() {
                     <motion.div
                       layoutId="activeTabIndicator"
                       className="absolute inset-0 bg-blue-600 rounded-lg -z-10 shadow-sm shadow-blue-500/20"
-                      transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 380,
+                        damping: 30,
+                      }}
                     />
                   )}
 
                   <span>{tab.label}</span>
 
                   {tab.badge && (
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold leading-none transition-colors duration-200
-                      ${isActive ? "bg-white/20 text-white" : "bg-red-50 text-red-500"}`}>
+                    <span
+                      className={`text-[10px] px-1.5 py-0.5 rounded font-bold leading-none transition-colors duration-200
+                      ${isActive ? "bg-white/20 text-white" : "bg-red-50 text-red-500"}`}
+                    >
                       {tab.badge}
                     </span>
                   )}
@@ -72,17 +90,22 @@ export default function ClassroomPage() {
             >
               {(() => {
                 switch (activeTab) {
-                  case "home":    return <HomeTab onTabChange={(tab) => setActiveTab(tab)} />;
-                  case "notice":  return <NoticeTab />;
-                  case "lecture": return <LectureTab />;
-                  case "assign":  return <AssignTab />;
-                  case "qna":     return <QnaTab />;
-                  case "score":   return <ScoreTab />;
+                  case "home":
+                    return <HomeTab onTabChange={(tab) => setActiveTab(tab)} />;
+                  case "notice":
+                    return <NoticeTab />;
+                  case "lecture":
+                    return <LectureTab />;
+                  case "assign":
+                    return <AssignTab />;
+                  case "qna":
+                    return <QnaTab />;
+                  case "score":
+                    return <ScoreTab />;
                 }
               })()}
             </motion.div>
           </div>
-
         </div>
       </main>
     </div>

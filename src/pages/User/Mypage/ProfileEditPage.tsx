@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import WithdrawSection from "./components/WithdrawSection";
 import api from "../../../api/api";
 import { useAuth } from "../../../auth/AuthContext";
+import NotFound from "../../NotFound";
 
 interface ProfileData {
   userId: string;
@@ -57,9 +58,11 @@ const EyeIcon = ({ show }: { show: boolean }) => (
   </svg>
 );
 
+const ALLOWED_ROLES = ["ROLE_USER", "ROLE_STUDENT", "ROLE_PARENT"];
+
 export default function ProfileEditPage() {
   const navigate = useNavigate();
-  const { getUserName, getUserId } = useAuth();
+  const { getUserName, getUserId, getRole } = useAuth();
   const userName = getUserName();
   const userId = getUserId();
   const initial = userName ? userName.charAt(0).toUpperCase() : "?";
@@ -92,9 +95,6 @@ export default function ProfileEditPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
 
-  const isWithdraw = activeMenu === "withdraw";
-  const accentColor = isWithdraw ? "#EF4444" : "#3B82F6";
-
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -107,6 +107,15 @@ export default function ProfileEditPage() {
     };
     fetchProfile();
   }, []);
+
+  const roleRaw = getRole();
+  const roles = Array.isArray(roleRaw) ? roleRaw : roleRaw ? [roleRaw as unknown as string] : [];
+  if (!roles.some((r) => ALLOWED_ROLES.includes(r))) {
+    return <NotFound />;
+  }
+
+  const isWithdraw = activeMenu === "withdraw";
+  const accentColor = isWithdraw ? "#EF4444" : "#3B82F6";
 
   const handleChange = (field: keyof ProfileData, value: string) => {
     setProfileData((prev) => ({ ...prev, [field]: value }));

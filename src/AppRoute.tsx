@@ -1,6 +1,8 @@
 import { Route, Routes } from "react-router-dom";
 import Home from "./pages/Home";
 import ClassroomPage from "./pages/Classroom/ClassroomPage";
+import MyClassroomsPage from "./pages/Classroom/MyClassroomsPage";
+import ClassroomLayout from "./layouts/ClassroomLayout";
 import ProtectedRoute from "./auth/ProtectedRoute";
 import MyPage from "./pages/User/Mypage/MyPage";
 import ProtectedRouteAdmin from "./auth/ProtectedRouteAdmin";
@@ -34,6 +36,15 @@ import LectureEnrollPage from "./pages/User/Mypage/LectureEnrollPage";
 import BookOrderPage from "./pages/User/Mypage/BookOrderPage";
 import LectureHistoryPage from "./pages/User/Mypage/LectureHistoryPage";
 import MyCalendarPage from "./pages/User/Mypage/MyCalendarPage";
+import CartPage from "./pages/User/Mypage/CartPage";
+import Instructors from "./pages/Header/Instructors.tsx";
+import InstructorDetailPage from "./pages/Header/InstructorDetailPage";
+import OrderHistoryPage from "./pages/User/Mypage/OrderHistoryPage";
+import CouponPointPage from "./pages/User/Mypage/CouponPointPage";
+import BookMain from "./pages/Header/Books.tsx";
+import ParentPage from "./ParentPage/ParentPage.tsx";
+import AiNavigator from "./pages/Header/AiNavigator.tsx";
+import LectureListPage from "./pages/Lecture/LectureListPage.tsx";
 
 export default function AppRoute() {
   return (
@@ -48,9 +59,17 @@ export default function AppRoute() {
 
       <Route path="/test/buy" element={<BuyProduct />} />
       <Route path="/test/toss-pay" element={<TossPayTestPage />} />
-      <Route path="/test/toss-pay/success" element={<TossPaySuccessTestPage />} />
+      <Route
+        path="/test/toss-pay/success"
+        element={<TossPaySuccessTestPage />}
+      />
       {/* 공용 라우트 */}
       <Route path="/test/toss-pay/fail" element={<TossPayFailTestPage />} />
+      <Route path="/header/instructors" element={<Instructors />} />
+      <Route path="/instructor/:instrUuid" element={<InstructorDetailPage />} />
+      <Route path="/header/books" element={<BookMain />} />
+      <Route path="/header/Ainavigator" element={<AiNavigator />} />
+      <Route path="/lecturelist" element={<LectureListPage />} />
 
       {/* 고객센터 라우트 */}
       <Route path="/customer/faq" element={<FAQPage />} />
@@ -60,24 +79,36 @@ export default function AppRoute() {
       <Route path="/customer/qna" element={<QnAPage />} />
       <Route path="/customer/qna/:postSn" element={<QnaDetailPage />} />
       <Route path="/customer/resource" element={<DataRoomPage />} />
-      <Route path="/customer/resource/:postSn" element={<DataRoomDetailPage />} />
+      <Route
+        path="/customer/resource/:postSn"
+        element={<DataRoomDetailPage />}
+      />
       <Route path="/customer/*" element={<ServiceCenterPage />} />
       <Route path="/dummy" element={<DummyPage />} />
 
       {/* 인증이 필요한 라우트 */}
       <Route element={<ProtectedRoute />}>
+        <Route path="/parentroom" element={<ParentPage />} />
+
+        {/* 마이페이지 라우트 */}
         <Route path="/mypage" element={<MyPage />} />
         <Route path="/mycalendar" element={<MyCalendarPage />} />
         <Route path="/mylecture" element={<MyLecturePage />} />
         <Route path="/mypage/verify" element={<VerifyPasswordPage />} />
         <Route path="/mypage/profile/edit" element={<ProfileEditPage />} />
-        <Route path="/classroom/:classId" element={<ClassroomPage />} />
+        <Route path="/my-classrooms" element={<MyClassroomsPage />} />
+        <Route path="/classroom/:classId" element={<ClassroomLayout />}>
+          <Route index element={<ClassroomPage />} />
+        </Route>
         <Route path="/customer/qna/write" element={<QnaWritePage />} />
         <Route path="/customer/qna/my" element={<QnAPage myOnly />} />
         <Route path="/customer/qna/:postSn/edit" element={<QnaEditPage />} />
         <Route path="/enroll" element={<LectureEnrollPage />} />
         <Route path="/mylecture/book" element={<BookOrderPage />} />
         <Route path="/mylecture/history" element={<LectureHistoryPage />} />
+        <Route path="/mycart" element={<CartPage />} />
+        <Route path="/mycart/orderhistory" element={<OrderHistoryPage />} />
+        <Route path="/mypage/couponpoint" element={<CouponPointPage />} />
       </Route>
 
       {/* 관리자 전용 라우트 */}

@@ -61,6 +61,11 @@
     @apply flex items-center gap-1.5 px-3 py-1 bg-violet-50 text-violet-600 rounded-lg text-xs font-bold hover:bg-violet-100 transition-all border border-violet-100;
   }
 
+    /* 학부모 뱃지 */
+    .badge-parent {
+      @apply flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500 text-white rounded-lg text-xs font-bold hover:bg-emerald-600 transition-all border border-emerald-500;
+  }
+
   /* 로그인 버튼 */
   .btn-primary {
     @apply cursor-pointer px-4 py-1.5 bg-gray-900 hover:bg-blue-600 text-white rounded-lg text-xs font-bold transition-all;

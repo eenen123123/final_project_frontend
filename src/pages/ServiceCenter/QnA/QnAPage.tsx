@@ -1,8 +1,8 @@
-import { Link } from "react-router-dom";
+﻿import { Link } from "react-router-dom";
 import ServiceSidebar from "../components/ServiceSidebar";
 import { useAuth } from "../../../auth/AuthContext";
 import api from "../../../api/api";
-import type { QnaItem, QnaPageProps } from "../../../types/board/QnaInterface";
+import type { QnaItem, QnaPageProps } from '../../../types/CustomerServiceInterface';
 import QnaHeader from "./components/QnaHeader";
 import {
   usePaginatedSearch,
@@ -361,3 +361,4 @@ export default function QnAPage({ myOnly = false }: QnaPageProps) {
     </div>
   );
 }
+
