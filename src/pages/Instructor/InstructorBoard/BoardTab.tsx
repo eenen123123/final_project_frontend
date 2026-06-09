@@ -30,11 +30,7 @@ export default function BoardTab({ boardType, title }: Props) {
   const [posts, setPosts] = useState<BoardPost[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [page, setPage] = useState(0);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    setPage(0);
-  }, [boardType]);
+  const [loading, setLoading] = useState(!!instrUuid);
 
   useEffect(() => {
     if (!instrUuid) return;

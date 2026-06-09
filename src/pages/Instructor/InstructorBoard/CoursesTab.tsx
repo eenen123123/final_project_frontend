@@ -15,7 +15,7 @@ interface Course {
 export default function CoursesTab() {
   const { instrUuid } = useParams<{ instrUuid: string }>();
   const [courses, setCourses] = useState<Course[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!!instrUuid);
 
   useEffect(() => {
     if (!instrUuid) return;

@@ -10,30 +10,10 @@ import CurriculumSection from "./InstructorDetail/CurriculumSection";
 type ModalType = "careerBook" | null;
 
 const NAV_LINKS = [
-  {
-    id: "courses",
-    label: "개설강좌",
-    count: null,
-    path: (uuid: string) => `/instructor/${uuid}/courses`,
-  },
-  {
-    id: "notice",
-    label: "공지사항",
-    count: null,
-    path: (uuid: string) => `/instructor/${uuid}/notice`,
-  },
-  {
-    id: "qna",
-    label: "선생님 Q&A",
-    count: null,
-    path: (uuid: string) => `/instructor/${uuid}/qna`,
-  },
-  {
-    id: "material",
-    label: "학습자료실",
-    count: null,
-    path: (uuid: string) => `/instructor/${uuid}/material`,
-  },
+  { id: "courses", label: "개설강좌", path: (uuid: string) => `/instructor/${uuid}/courses` },
+  { id: "notice", label: "공지사항", path: (uuid: string) => `/instructor/${uuid}/notice` },
+  { id: "qna", label: "선생님 Q&A", path: (uuid: string) => `/instructor/${uuid}/qna` },
+  { id: "material", label: "학습자료실", path: (uuid: string) => `/instructor/${uuid}/material` },
 ];
 
 const CARD_COLORS = [
@@ -56,17 +36,16 @@ export default function InstructorDetailPage() {
 
   useEffect(() => {
     if (!uuid) return;
-    Promise.all([
+    Promise.allSettled([
       api.get<InstructorDetail>(`/api/instructors/${uuid}`),
       api.get<FeaturedCourse[]>(`/api/instructors/${uuid}/featured-courses`),
       api.get<Post[]>(`/api/instructors/${uuid}/posts?size=5`),
     ])
       .then(([instrRes, featuredRes, postsRes]) => {
-        setInstructor(instrRes.data);
-        setFeaturedCourses(featuredRes.data);
-        setPosts(postsRes.data);
+        if (instrRes.status === "fulfilled") setInstructor(instrRes.value.data);
+        if (featuredRes.status === "fulfilled") setFeaturedCourses(featuredRes.value.data);
+        if (postsRes.status === "fulfilled") setPosts(postsRes.value.data);
       })
-      .catch((e) => console.error("강사 정보 조회 실패", e))
       .finally(() => setLoading(false));
   }, [uuid]);
 
@@ -132,16 +111,10 @@ export default function InstructorDetailPage() {
                 >
                   <span>
                     {link.label}
-                    {link.id === "courses" ? (
+                    {link.id === "courses" && (
                       <span className="ml-1.5 text-gray-500">
                         ({instructor.lectureCount})
                       </span>
-                    ) : (
-                      link.count !== null && (
-                        <span className="ml-1.5 text-gray-500">
-                          ({link.count})
-                        </span>
-                      )
                     )}
                   </span>
                   <ChevronRight

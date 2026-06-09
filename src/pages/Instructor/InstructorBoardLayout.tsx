@@ -33,7 +33,7 @@ export default function InstructorBoardLayout() {
   }, [uuid]);
 
   const activeTab =
-    TABS.find((tab) => location.pathname.endsWith(`/${tab.id}`))?.id ?? "courses";
+    TABS.find((tab) => location.pathname.includes(`/${tab.id}`))?.id ?? "courses";
 
   return (
     <div className="w-full min-h-screen bg-gray-50 font-sans">
