@@ -38,6 +38,7 @@ import LectureHistoryPage from "./pages/User/Mypage/LectureHistoryPage";
 import MyCalendarPage from "./pages/User/Mypage/MyCalendarPage";
 import CartPage from "./pages/User/Mypage/CartPage";
 import Instructors from "./pages/Header/Instructors.tsx";
+import InstructorDetailPage from "./pages/Header/InstructorDetailPage";
 import OrderHistoryPage from "./pages/User/Mypage/OrderHistoryPage";
 import CouponPointPage from "./pages/User/Mypage/CouponPointPage";
 import BookMain from "./pages/Header/Books.tsx";
@@ -65,6 +66,7 @@ export default function AppRoute() {
       {/* 공용 라우트 */}
       <Route path="/test/toss-pay/fail" element={<TossPayFailTestPage />} />
       <Route path="/header/instructors" element={<Instructors />} />
+      <Route path="/instructor/:instrUuid" element={<InstructorDetailPage />} />
       <Route path="/header/books" element={<BookMain />} />
       <Route path="/header/Ainavigator" element={<AiNavigator />} />
       <Route path="/lecturelist" element={<LectureListPage />} />

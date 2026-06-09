@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 // Swiper 슬라이더 라이브러리 임포트
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Navigation, Pagination } from 'swiper/modules';
@@ -11,6 +12,7 @@ import 'swiper/css/pagination';
 
 export default function Instructors() {
   // 상태 관리 정의
+  const navigate = useNavigate();
   const [selectedSubject, setSelectedSubject] = useState<string>('01'); // 기본값: 국어
 
   // 상단 과목 탭 배열 정보
@@ -210,6 +212,7 @@ export default function Instructors() {
               {dynamicTeachers[selectedSubject]?.main.map((teacher, idx) => (
                 <div
                   key={idx}
+                  onClick={() => navigate(`/instructor/${encodeURIComponent(teacher)}`)}
                   className="bg-white rounded-2xl overflow-hidden shadow-sm transition-all border border-gray-100 hover:shadow-md hover:border-gray-200 group cursor-pointer relative"
                 >
                   <button className="absolute top-3 right-3 text-gray-300 hover:text-red-400 transition-colors z-10 cursor-pointer">
