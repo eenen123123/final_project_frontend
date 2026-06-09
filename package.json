@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite --host 0.0.0.0 --port 9001",
     "build": "tsc -b && vite build",
+    "build:editor": "vite build --config vite.config.editor.ts && cp ./dist-editor/tiptap-editor.iife.js ../backend/admin/src/main/resources/static/js/tiptap/tiptap-editor.iife.js",
     "lint": "eslint .",
     "preview": "vite preview"
   },

@@ -31,6 +31,7 @@ import {
 } from "../../api/fileApi";
 
 const ImageTokenContext = createContext<Record<number, string> | null>(null);
+const ImageUrlResolverContext = createContext<((fileId: number) => string) | null>(null);
 
 // --- Types ---
 
@@ -52,6 +53,7 @@ export interface TipTapEditorProps {
   maxImages?: number;
   placeholder?: string;
   editorMaxHeight?: string;
+  imageUrlResolver?: (fileId: number) => string;
 }
 
 // --- ImageNodeView ---
@@ -59,24 +61,28 @@ export interface TipTapEditorProps {
 const ImageNodeView = ({ node }: NodeViewProps) => {
   const { src, fileId, uploadStatus, alt } = node.attrs as ImageNodeAttrs;
   const tokenMap = useContext(ImageTokenContext);
+  const resolver = useContext(ImageUrlResolverContext);
 
   const [fetchedSrc, setFetchedSrc] = useState<string | null>(null);
 
   const displaySrc = src?.startsWith("blob:")
     ? src
-    : tokenMap !== null
-      ? (tokenMap[fileId ?? -1] ?? fetchedSrc)
-      : fetchedSrc;
+    : resolver && fileId != null
+      ? resolver(fileId)
+      : tokenMap !== null
+        ? (tokenMap[fileId ?? -1] ?? fetchedSrc)
+        : fetchedSrc;
 
   useEffect(() => {
+    if (resolver) return; // resolver 있으면 토큰 fetch 불필요
     if (fileId == null || src?.startsWith("blob:")) return;
-    if (tokenMap === null) return; // null은 배치 fetch 진행 중을 의미
+    if (tokenMap === null) return;
     if (tokenMap[fileId]) return;
 
     getFileToken(fileId)
       .then(({ viewUrl }) => setFetchedSrc(viewUrl))
       .catch(() => {});
-  }, [fileId, src, tokenMap]);
+  }, [fileId, src, tokenMap, resolver]);
 
   if (uploadStatus === "error") {
     return (
@@ -214,18 +220,21 @@ export default function TipTapEditor({
   maxImages = 5,
   placeholder = "내용을 입력하세요...",
   editorMaxHeight = "480px",
+  imageUrlResolver,
 }: TipTapEditorProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pendingUploadsRef = useRef<Set<string>>(new Set());
   const [uploadingCount, setUploadingCount] = useState(0);
   const [imageTokens, setImageTokens] = useState<Record<number, string> | null>(
     () => {
+      if (imageUrlResolver) return {}; // resolver 있으면 토큰 불필요
       const fileIds = initialContent ? extractFileIds(initialContent) : [];
       return fileIds.length === 0 ? {} : null;
     },
   );
 
   useEffect(() => {
+    if (imageUrlResolver) return; // resolver 있으면 배치 fetch 스킵
     const fileIds = initialContent ? extractFileIds(initialContent) : [];
     if (fileIds.length === 0) return;
     getFilesToken(fileIds)
@@ -318,6 +327,7 @@ export default function TipTapEditor({
   if (!editor) return null;
 
   return (
+    <ImageUrlResolverContext.Provider value={imageUrlResolver ?? null}>
     <ImageTokenContext.Provider value={imageTokens}>
       <div
         className={
@@ -582,5 +592,6 @@ export default function TipTapEditor({
         )}
       </div>
     </ImageTokenContext.Provider>
+    </ImageUrlResolverContext.Provider>
   );
 }
