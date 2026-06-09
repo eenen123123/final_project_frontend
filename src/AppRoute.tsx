@@ -37,13 +37,15 @@ import BookOrderPage from "./pages/User/Mypage/BookOrderPage";
 import LectureHistoryPage from "./pages/User/Mypage/LectureHistoryPage";
 import MyCalendarPage from "./pages/User/Mypage/MyCalendarPage";
 import CartPage from "./pages/User/Mypage/CartPage";
-import Instructors from "./pages/Header/Instructors.tsx";
+import Instructors from "./pages/Instructor/InstructorsPage";
+import InstructorDetailPage from "./pages/Instructor/InstructorDetailPage";
 import OrderHistoryPage from "./pages/User/Mypage/OrderHistoryPage";
 import CouponPointPage from "./pages/User/Mypage/CouponPointPage";
-import BookMain from "./pages/Header/Books.tsx";
+import BookMain from "./pages/Books/BooksPage";
 import ParentPage from "./ParentPage/ParentPage.tsx";
-import AiNavigator from "./pages/Header/AiNavigator.tsx";
+import AiNavigator from "./pages/AiNavigator/AiNavigatorPage";
 import LectureListPage from "./pages/Lecture/LectureListPage.tsx";
+import ParentJoinPage from "./pages/User/ParentJoinPage.tsx";
 
 export default function AppRoute() {
   return (
@@ -51,6 +53,8 @@ export default function AppRoute() {
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<SignUp />} />
+
+      <Route path="/parent/join" element={<ParentJoinPage />} />
 
       <Route path="/test/editor" element={<TestPage />} />
       <Route path="/test/upload" element={<FileUploadTest />} />
@@ -65,6 +69,7 @@ export default function AppRoute() {
       {/* 공용 라우트 */}
       <Route path="/test/toss-pay/fail" element={<TossPayFailTestPage />} />
       <Route path="/header/instructors" element={<Instructors />} />
+      <Route path="/instructor/:instrUuid" element={<InstructorDetailPage />} />
       <Route path="/header/books" element={<BookMain />} />
       <Route path="/header/Ainavigator" element={<AiNavigator />} />
       <Route path="/lecturelist" element={<LectureListPage />} />

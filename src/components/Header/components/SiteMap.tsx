@@ -6,7 +6,7 @@ import api from '../../../api/api';
 type SiteMapTab = '강사' | '커리큘럼' | '사이트맵';
 
 interface InstructorInfo {
-  instrUserId: string;
+  instrUuid: string;
   userName: string;
   instrProfileImg: string;
 }
@@ -201,8 +201,8 @@ export default function SiteMap({ isOpen, onClose }: SiteMapProps) {
                     <div className="space-y-1">
                       {instructors.map((instr) => (
                         <Link
-                          key={instr.instrUserId}
-                          to={`/header/instructors`}
+                          key={instr.instrUuid}
+                          to={`/instructor/${instr.instrUuid}`}
                           onClick={onClose}
                           className="block text-xs text-gray-600 hover:text-blue-600 transition-colors leading-relaxed"
                         >
