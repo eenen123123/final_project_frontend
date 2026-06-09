@@ -11,16 +11,16 @@ type ModalType = "careerBook" | null;
 
 const NAV_LINKS = [
   {
-    id: "lecture",
+    id: "courses",
     label: "개설강좌",
     count: null,
-    path: (uuid: string) => `/instructor/${uuid}/lectures`,
+    path: (uuid: string) => `/instructor/${uuid}/courses`,
   },
   {
     id: "notice",
     label: "공지사항",
     count: null,
-    path: (uuid: string) => `/instructor/${uuid}/notices`,
+    path: (uuid: string) => `/instructor/${uuid}/notice`,
   },
   {
     id: "qna",
@@ -32,7 +32,7 @@ const NAV_LINKS = [
     id: "material",
     label: "학습자료실",
     count: null,
-    path: (uuid: string) => `/instructor/${uuid}/materials`,
+    path: (uuid: string) => `/instructor/${uuid}/material`,
   },
 ];
 
@@ -132,7 +132,7 @@ export default function InstructorDetailPage() {
                 >
                   <span>
                     {link.label}
-                    {link.id === "lecture" ? (
+                    {link.id === "courses" ? (
                       <span className="ml-1.5 text-gray-500">
                         ({instructor.lectureCount})
                       </span>
