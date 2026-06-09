@@ -37,13 +37,13 @@ import BookOrderPage from "./pages/User/Mypage/BookOrderPage";
 import LectureHistoryPage from "./pages/User/Mypage/LectureHistoryPage";
 import MyCalendarPage from "./pages/User/Mypage/MyCalendarPage";
 import CartPage from "./pages/User/Mypage/CartPage";
-import Instructors from "./pages/Header/Instructors.tsx";
-import InstructorDetailPage from "./pages/Header/InstructorDetailPage";
+import Instructors from "./pages/Instructor/InstructorsPage";
+import InstructorDetailPage from "./pages/Instructor/InstructorDetailPage";
 import OrderHistoryPage from "./pages/User/Mypage/OrderHistoryPage";
 import CouponPointPage from "./pages/User/Mypage/CouponPointPage";
-import BookMain from "./pages/Header/Books.tsx";
+import BookMain from "./pages/Books/BooksPage";
 import ParentPage from "./ParentPage/ParentPage.tsx";
-import AiNavigator from "./pages/Header/AiNavigator.tsx";
+import AiNavigator from "./pages/AiNavigator/AiNavigatorPage";
 import LectureListPage from "./pages/Lecture/LectureListPage.tsx";
 
 export default function AppRoute() {
