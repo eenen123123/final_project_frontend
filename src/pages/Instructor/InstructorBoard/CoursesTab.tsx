@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import api from "../../../api/api";
 
 interface Course {
@@ -14,6 +14,7 @@ interface Course {
 
 export default function CoursesTab() {
   const { instrUuid } = useParams<{ instrUuid: string }>();
+  const navigate = useNavigate();
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(!!instrUuid);
 
@@ -47,6 +48,7 @@ export default function CoursesTab() {
         {courses.map((course) => (
           <div
             key={course.courseSn}
+            onClick={() => navigate(`/instructor/${instrUuid}/courses/${course.courseSn}`)}
             className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
           >
             <div className="w-full aspect-video bg-gray-100 flex items-center justify-center">
