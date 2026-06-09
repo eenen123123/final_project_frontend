@@ -66,6 +66,13 @@ interface FeaturedCourse {
   display_order: number;
 }
 
+interface Post {
+  postSn: number;
+  title: string;
+  regDt: string;
+  boardType: "notice" | "qna" | "material";
+}
+
 const CARD_COLORS = [
   "bg-blue-500",
   "bg-indigo-500",
@@ -201,38 +208,17 @@ const MOCK_CURRICULUM = {
   ],
 };
 
-const MOCK_NEWS = [
-  {
-    id: 1,
-    title: "[고3/N수] 2026 수능 6평 분석 입시 전략 설명회 공지",
-    date: "2025.06.04",
-    isNew: true,
-  },
-  {
-    id: 2,
-    title: "[고3/N수] 4-STEP 교재 입고 및 강의 업로드 안내",
-    date: "2025.06.02",
-    isNew: true,
-  },
-  {
-    id: 3,
-    title: "[현강공지] 2026 수능대비 커리큘럼 변경 안내",
-    date: "2025.05.28",
-    isNew: false,
-  },
-  {
-    id: 4,
-    title: "[정오사항] 수학I·II 개념완성 교재 오류 수정",
-    date: "2025.05.20",
-    isNew: false,
-  },
-  {
-    id: 5,
-    title: "[공지] 전 커리 강좌 및 교재 정오사항 안내 (2025)",
-    date: "2025.05.10",
-    isNew: false,
-  },
-];
+function formatPostDate(regDt: string) {
+  const d = new Date(regDt);
+  const yy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${yy}.${mm}.${dd}`;
+}
+
+function isNewPost(regDt: string) {
+  return Date.now() - new Date(regDt).getTime() < 7 * 24 * 60 * 60 * 1000;
+}
 
 // ──────────────────────────────────────────────────────────────────────────────
 
@@ -444,6 +430,7 @@ export default function InstructorDetailPage() {
   const [instructor, setInstructor] = useState<InstructorDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [featuredCourses, setFeaturedCourses] = useState<FeaturedCourse[]>([]);
+  const [posts, setPosts] = useState<Post[]>([]);
 
   const uuid = instrUuid ?? "";
 
@@ -452,10 +439,12 @@ export default function InstructorDetailPage() {
     Promise.all([
       api.get<InstructorDetail>(`/api/instructors/${uuid}`),
       api.get<FeaturedCourse[]>(`/api/instructors/${uuid}/featured-courses`),
+      api.get<Post[]>(`/api/instructors/${uuid}/posts?size=5`),
     ])
-      .then(([instrRes, featuredRes]) => {
+      .then(([instrRes, featuredRes, postsRes]) => {
         setInstructor(instrRes.data);
         setFeaturedCourses(featuredRes.data);
+        setPosts(postsRes.data);
       })
       .catch((e) => console.error("강사 정보 조회 실패", e))
       .finally(() => setLoading(false));
@@ -609,9 +598,9 @@ export default function InstructorDetailPage() {
                 <div className="flex-1 h-px bg-gray-600" />
               </div>
               <ul className="space-y-3">
-                {MOCK_NEWS.map((news) => (
+                {posts.map((post) => (
                   <li
-                    key={news.id}
+                    key={post.postSn}
                     className="flex items-start gap-2 cursor-pointer group"
                   >
                     <span className="text-gray-500 text-xs mt-0.5 shrink-0">
@@ -619,13 +608,13 @@ export default function InstructorDetailPage() {
                     </span>
                     <div className="flex-1 min-w-0">
                       <p className="text-xs text-gray-300 group-hover:text-white transition-colors leading-snug line-clamp-2">
-                        {news.title}
+                        {post.title}
                       </p>
                       <p className="text-[11px] text-gray-500 mt-0.5">
-                        {news.date}
+                        {formatPostDate(post.regDt)}
                       </p>
                     </div>
-                    {news.isNew && (
+                    {isNewPost(post.regDt) && (
                       <span className="text-[10px] font-bold text-blue-400 shrink-0 mt-0.5">
                         N
                       </span>
