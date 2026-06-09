@@ -10,7 +10,7 @@ import CurriculumSection from "./InstructorDetail/CurriculumSection";
 type ModalType = "careerBook" | null;
 
 const NAV_LINKS = [
-  { id: "courses", label: "개설강좌", path: (uuid: string) => `/instructor/${uuid}/courses` },
+  { id: "courses", label: "강좌목록", path: (uuid: string) => `/instructor/${uuid}/courses` },
   { id: "notice", label: "공지사항", path: (uuid: string) => `/instructor/${uuid}/notice` },
   { id: "qna", label: "선생님 Q&A", path: (uuid: string) => `/instructor/${uuid}/qna` },
   { id: "material", label: "학습자료실", path: (uuid: string) => `/instructor/${uuid}/material` },
@@ -43,8 +43,11 @@ export default function InstructorDetailPage() {
     ])
       .then(([instrRes, featuredRes, postsRes]) => {
         if (instrRes.status === "fulfilled") setInstructor(instrRes.value.data);
+        else console.error("강사 정보 조회 실패", instrRes.reason);
         if (featuredRes.status === "fulfilled") setFeaturedCourses(featuredRes.value.data);
+        else console.error("추천 강좌 조회 실패", featuredRes.reason);
         if (postsRes.status === "fulfilled") setPosts(postsRes.value.data);
+        else console.error("최신 소식 조회 실패", postsRes.reason);
       })
       .finally(() => setLoading(false));
   }, [uuid]);

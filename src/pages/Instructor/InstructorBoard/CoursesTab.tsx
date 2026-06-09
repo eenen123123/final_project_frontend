@@ -19,11 +19,13 @@ export default function CoursesTab() {
 
   useEffect(() => {
     if (!instrUuid) return;
+    let cancelled = false;
     api
       .get<Course[]>(`/api/instructors/${instrUuid}/courses`)
-      .then((res) => setCourses(res.data))
-      .catch((e) => console.error("강좌 목록 조회 실패", e))
-      .finally(() => setLoading(false));
+      .then((res) => { if (!cancelled) setCourses(res.data); })
+      .catch((e) => { if (!cancelled) console.error("강좌 목록 조회 실패", e); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
   }, [instrUuid]);
 
   if (loading) {

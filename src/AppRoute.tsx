@@ -76,9 +76,10 @@ export default function AppRoute() {
         <Route index element={<InstructorDetailPage />} />
         <Route element={<InstructorBoardLayout />}>
           <Route path="courses" element={<CoursesTab />} />
-          <Route path="notice" element={<BoardTab boardType="notice" title="공지사항" />} />
-          <Route path="qna" element={<BoardTab boardType="qna" title="선생님 Q&A" />} />
-          <Route path="material" element={<BoardTab boardType="material" title="학습자료실" />} />
+          <Route path="notice" element={<BoardTab key="notice" boardType="notice" title="공지사항" />} />
+          <Route path="qna" element={<BoardTab key="qna" boardType="qna" title="선생님 Q&A" />} />
+          <Route path="material" element={<BoardTab key="material" boardType="material" title="학습자료실" />} />
+          <Route path="*" element={<NotFound />} />
         </Route>
       </Route>
       <Route path="/header/books" element={<BookMain />} />
