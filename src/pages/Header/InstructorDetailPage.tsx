@@ -1,46 +1,53 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import api from "../../api/api";
 import { useParams, useNavigate } from "react-router-dom";
 import { X, ChevronRight, BookOpen } from "lucide-react";
 
 type ModalType = "careerBook" | null;
 
-// ── 목업 데이터 ──────────────────────────────────────────────────────────────
+// ── 타입 정의 ──────────────────────────────────────────────────────────────
 
-const MOCK_INSTRUCTOR = {
-  userName: "홍길동",
-  subject: "수학",
-  catchphrase: "개념부터 수능까지, 수학의 모든 것을 담다",
-  instrIntro: "서울대 수학과 졸업, 15년 경력의 수능 수학 전문 강사",
-  instrProfileImg: null as string | null,
-  youtubeUrl: "#",
-  instagramUrl: "#",
-  careers: [
-    { id: 1, year: "2010~현재", content: "HERMES 수학 대표 강사" },
-    { id: 2, year: "2008~2010", content: "대치동 S학원 수학 강사" },
-    { id: 3, year: "2005~2008", content: "서울대학교 수학과 졸업" },
-    { id: 4, year: "2019", content: "EBS 수능 강의 우수 강사상 수상" },
-  ],
-  books: [
-    { id: 1, title: "홍길동의 수능 수학 완성", publisher: "YBM", year: "2022" },
-    { id: 2, title: "개념 완성 수학I·II", publisher: "디딤돌", year: "2020" },
-    { id: 3, title: "미적분 심화 문제집", publisher: "교학사", year: "2021" },
-  ],
-};
+interface CareerDto {
+  careerStrtYr: string;
+  careerEndYr: string | null;
+  careerCont: string;
+}
+
+interface BookDto {
+  careerStrtYr: string;
+  careerCont: string;
+}
+
+interface InstructorDetail {
+  instrUuid: string;
+  userName: string;
+  instrIntro: string | null;
+  instrProfileImg: string | null;
+  subject: string;
+  lectureCount: number;
+  careers: CareerDto[];
+  books: BookDto[];
+}
+
+
+function formatCareerYear(strtYr: string, endYr: string | null) {
+  return endYr ? `${strtYr}~${endYr}` : `${strtYr}~현재`;
+}
 
 const NAV_LINKS = [
-  { id: "lecture", label: "개설강좌", count: 5, path: (uuid: string) => `/instructor/${uuid}/lectures` },
+  { id: "lecture", label: "개설강좌", count: null, path: (uuid: string) => `/instructor/${uuid}/lectures` },
   { id: "notice", label: "공지사항", count: null, path: (uuid: string) => `/instructor/${uuid}/notices` },
   { id: "qna", label: "선생님 Q&A", count: null, path: (uuid: string) => `/instructor/${uuid}/qna` },
   { id: "material", label: "학습자료실", count: null, path: (uuid: string) => `/instructor/${uuid}/materials` },
 ];
 
-// 강사 대표 강좌 시리즈 카드 (2×2)
-const SERIES_CARDS = [
-  { id: 1, subtitle: "개념부터 수능까지", title: "수능 수학\n완성 패키지", bg: "bg-blue-500", path: "" },
-  { id: 2, subtitle: "3개월 단기완성", title: "개.념.완.성", bg: "bg-indigo-500", path: "" },
-  { id: 3, subtitle: "단원별 집중 훈련", title: "홍길동\n단원별 특강", bg: "bg-amber-500", path: "" },
-  { id: 4, subtitle: "실전 문제 풀이", title: "파.이.널", bg: "bg-emerald-600", path: "" },
-];
+interface FeaturedCourse {
+  courseSn: number;
+  courseNm: string;
+  display_order: number;
+}
+
+const CARD_COLORS = ["bg-blue-500", "bg-indigo-500", "bg-amber-500", "bg-emerald-600"];
 
 // 커리큘럼 목업
 const MOCK_CURRICULUM = {
@@ -205,9 +212,13 @@ function CurriculumSection() {
 
 // ──────────────────────────────────────────────────────────────────────────────
 
-function CareerBookModal({ onClose }: { onClose: () => void }) {
-  const hasCareer = MOCK_INSTRUCTOR.careers.length > 0;
-  const hasBooks = MOCK_INSTRUCTOR.books.length > 0;
+function CareerBookModal({ onClose, careers, books }: {
+  onClose: () => void;
+  careers: CareerDto[];
+  books: BookDto[];
+}) {
+  const hasCareer = careers.length > 0;
+  const hasBooks = books.length > 0;
 
   return (
     <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white border border-gray-200 shadow-2xl w-[480px] max-h-[70vh] flex flex-col overflow-hidden">
@@ -222,12 +233,12 @@ function CareerBookModal({ onClose }: { onClose: () => void }) {
           <div>
             <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">약력</h3>
             <div className="space-y-2.5">
-              {MOCK_INSTRUCTOR.careers.map((c) => (
-                <div key={c.id} className="flex items-start gap-3 text-sm">
+              {careers.map((c, i) => (
+                <div key={i} className="flex items-start gap-3 text-sm">
                   <ChevronRight size={14} className="text-blue-500 shrink-0 mt-0.5" />
                   <div>
-                    <span className="text-gray-400 text-xs mr-2">{c.year}</span>
-                    <span className="text-gray-800">{c.content}</span>
+                    <span className="text-gray-400 text-xs mr-2">{formatCareerYear(c.careerStrtYr, c.careerEndYr)}</span>
+                    <span className="text-gray-800">{c.careerCont}</span>
                   </div>
                 </div>
               ))}
@@ -238,12 +249,12 @@ function CareerBookModal({ onClose }: { onClose: () => void }) {
           <div>
             <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">저서</h3>
             <div className="space-y-2.5">
-              {MOCK_INSTRUCTOR.books.map((b) => (
-                <div key={b.id} className="flex items-start gap-3 text-sm">
+              {books.map((b, i) => (
+                <div key={i} className="flex items-start gap-3 text-sm">
                   <BookOpen size={14} className="text-orange-400 shrink-0 mt-0.5" />
                   <div>
-                    <p className="font-semibold text-gray-800">{b.title}</p>
-                    <p className="text-xs text-gray-400">{b.publisher} · {b.year}</p>
+                    <p className="font-semibold text-gray-800">{b.careerCont}</p>
+                    <p className="text-xs text-gray-400">{b.careerStrtYr}</p>
                   </div>
                 </div>
               ))}
@@ -259,16 +270,54 @@ export default function InstructorDetailPage() {
   const { instrUuid } = useParams<{ instrUuid: string }>();
   const navigate = useNavigate();
   const [modal, setModal] = useState<ModalType>(null);
+  const [instructor, setInstructor] = useState<InstructorDetail | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [featuredCourses, setFeaturedCourses] = useState<FeaturedCourse[]>([]);
 
-  const instructor = MOCK_INSTRUCTOR;
   const uuid = instrUuid ?? "";
 
-  const hasCareerOrBook = instructor.careers.length > 0 || instructor.books.length > 0;
+  useEffect(() => {
+    if (!uuid) return;
+    Promise.all([
+      api.get<InstructorDetail>(`/api/instructors/${uuid}`),
+      api.get<FeaturedCourse[]>(`/api/instructors/${uuid}/featured-courses`),
+    ])
+      .then(([instrRes, featuredRes]) => {
+        setInstructor(instrRes.data);
+        setFeaturedCourses(featuredRes.data);
+      })
+      .catch((e) => console.error("강사 정보 조회 실패", e))
+      .finally(() => setLoading(false));
+  }, [uuid]);
+
+  const hasCareerOrBook = (instructor?.careers.length ?? 0) > 0 || (instructor?.books.length ?? 0) > 0;
+
+  if (loading) {
+    return (
+      <div className="w-full min-h-screen bg-gray-700 flex items-center justify-center">
+        <p className="text-gray-400 text-sm">강사 정보를 불러오는 중...</p>
+      </div>
+    );
+  }
+
+  if (!instructor) {
+    return (
+      <div className="w-full min-h-screen bg-gray-700 flex items-center justify-center">
+        <p className="text-gray-400 text-sm">강사 정보를 찾을 수 없습니다.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full font-sans">
 
-      {modal === "careerBook" && <CareerBookModal onClose={() => setModal(null)} />}
+      {modal === "careerBook" && (
+        <CareerBookModal
+          onClose={() => setModal(null)}
+          careers={instructor.careers}
+          books={instructor.books}
+        />
+      )}
 
       {/* ── 히어로: 어두운 배경 ── */}
       <div className="w-full bg-gray-700">
@@ -308,7 +357,9 @@ export default function InstructorDetailPage() {
               >
                 <span>
                   {link.label}
-                  {link.count !== null && (
+                  {link.id === "lecture" ? (
+                    <span className="ml-1.5 text-gray-500">({instructor.lectureCount})</span>
+                  ) : link.count !== null && (
                     <span className="ml-1.5 text-gray-500">({link.count})</span>
                   )}
                 </span>
@@ -317,23 +368,6 @@ export default function InstructorDetailPage() {
             ))}
           </nav>
 
-          {/* SNS 링크 */}
-          <div className="mt-6 space-y-2">
-            <a
-              href={instructor.youtubeUrl}
-              className="flex items-center gap-2 text-xs text-gray-400 hover:text-red-400 transition-colors"
-            >
-              <span className="font-bold text-[10px] border border-current px-1 rounded">YT</span>
-              {instructor.userName} 유튜브
-            </a>
-            <a
-              href={instructor.instagramUrl}
-              className="flex items-center gap-2 text-xs text-gray-400 hover:text-pink-400 transition-colors"
-            >
-              <span className="font-bold text-[10px] border border-current px-1 rounded">IG</span>
-              {instructor.userName} Instagram
-            </a>
-          </div>
         </div>
 
         {/* ── 중앙 사진 ── */}
@@ -355,32 +389,35 @@ export default function InstructorDetailPage() {
           )}
 
           {/* 캐치프레이즈 오버레이 */}
-          <div className="absolute bottom-8 left-6 right-6">
-            <p className="text-white text-xl font-extrabold leading-snug drop-shadow-lg"
-              style={{ textShadow: "0 2px 8px rgba(0,0,0,0.8)" }}>
-              {instructor.catchphrase}
-            </p>
-          </div>
+          {instructor.instrIntro && (
+            <div className="absolute bottom-8 left-6 right-6">
+              <p className="text-white text-xl font-extrabold leading-snug drop-shadow-lg"
+                style={{ textShadow: "0 2px 8px rgba(0,0,0,0.8)" }}>
+                {instructor.instrIntro}
+              </p>
+            </div>
+          )}
         </div>
 
         {/* ── 우측: 시리즈 카드 + 최신소식 ── */}
         <div className="w-72 shrink-0 flex flex-col pt-12 px-5 pb-10 gap-6">
 
-          {/* 2×2 시리즈 카드 */}
-          <div className="grid grid-cols-2 gap-2">
-            {SERIES_CARDS.map((card) => (
-              <button
-                key={card.id}
-                onClick={() => card.path && navigate(card.path)}
-                className={`${card.bg} p-4 text-left cursor-pointer hover:opacity-90 active:opacity-80 transition-opacity aspect-square flex flex-col justify-end`}
-              >
-                <p className="text-[10px] text-white/70 mb-1">{card.subtitle}</p>
-                <p className="text-sm font-extrabold text-white leading-tight whitespace-pre-line">
-                  {card.title}
-                </p>
-              </button>
-            ))}
-          </div>
+          {/* 2×2 대표 강좌 카드 */}
+          {featuredCourses.length > 0 && (
+            <div className="grid grid-cols-2 gap-2">
+              {featuredCourses.map((course, idx) => (
+                <button
+                  key={course.courseSn}
+                  onClick={() => navigate(`/course/${course.courseSn}`)}
+                  className={`${CARD_COLORS[idx % CARD_COLORS.length]} p-4 text-left cursor-pointer hover:opacity-90 active:opacity-80 transition-opacity aspect-square flex flex-col justify-end`}
+                >
+                  <p className="text-sm font-extrabold text-white leading-tight">
+                    {course.courseNm}
+                  </p>
+                </button>
+              ))}
+            </div>
+          )}
 
           {/* 최신소식 */}
           <div className="flex-1">
