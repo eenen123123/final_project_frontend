@@ -90,7 +90,14 @@ export default function CourseDetailPage() {
             <span className="text-2xl font-extrabold text-gray-900">
               {course.price === 0 ? "무료" : `${course.price.toLocaleString()}원`}
             </span>
-            <button className="px-5 py-2 bg-blue-600 text-white text-sm font-semibold rounded hover:bg-blue-700 transition-colors">
+            <button
+              onClick={() =>
+                navigate(
+                  `/payment?type=course&sn=${course.courseSn}&name=${encodeURIComponent(course.title)}&price=${course.price}`
+                )
+              }
+              className="px-5 py-2 bg-blue-600 text-white text-sm font-semibold rounded hover:bg-blue-700 transition-colors"
+            >
               수강신청
             </button>
           </div>

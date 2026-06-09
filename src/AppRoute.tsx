@@ -44,6 +44,7 @@ import CoursesTab from "./pages/Instructor/InstructorBoard/CoursesTab";
 import BoardTab from "./pages/Instructor/InstructorBoard/BoardTab";
 import BoardPostDetailPage from "./pages/Instructor/InstructorBoard/BoardPostDetailPage";
 import CourseDetailPage from "./pages/Instructor/InstructorBoard/CourseDetailPage";
+import PaymentPage from "./pages/Payment/PaymentPage";
 import OrderHistoryPage from "./pages/User/Mypage/OrderHistoryPage";
 import CouponPointPage from "./pages/User/Mypage/CouponPointPage";
 import BookMain from "./pages/Books/BooksPage";
@@ -128,6 +129,7 @@ export default function AppRoute() {
         <Route path="/mycart" element={<CartPage />} />
         <Route path="/mycart/orderhistory" element={<OrderHistoryPage />} />
         <Route path="/mypage/couponpoint" element={<CouponPointPage />} />
+        <Route path="/payment" element={<PaymentPage />} />
       </Route>
 
       {/* 관리자 전용 라우트 */}
