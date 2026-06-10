@@ -18,7 +18,8 @@ export default function NewHeader() {
   // pathname이 바뀌면 siteMapOpen이 자동으로 false가 됨
   const [openedAtPath, setOpenedAtPath] = useState<string | null>(null);
   const siteMapOpen = openedAtPath === location.pathname;
-  const toggleSiteMap = () => setOpenedAtPath(siteMapOpen ? null : location.pathname);
+  const toggleSiteMap = () =>
+    setOpenedAtPath(siteMapOpen ? null : location.pathname);
   const closeSiteMap = () => setOpenedAtPath(null);
 
   // 사이트맵 영역 외부 mousedown 시 닫기 (backdrop과 달리 클릭이 하위 요소에 그대로 전달됨)
@@ -26,7 +27,10 @@ export default function NewHeader() {
   useEffect(() => {
     if (!siteMapOpen) return;
     const handleMouseDown = (e: MouseEvent) => {
-      if (siteMapAreaRef.current && !siteMapAreaRef.current.contains(e.target as Node)) {
+      if (
+        siteMapAreaRef.current &&
+        !siteMapAreaRef.current.contains(e.target as Node)
+      ) {
         closeSiteMap();
       }
     };
@@ -36,7 +40,6 @@ export default function NewHeader() {
 
   return (
     <header className="site-header">
-
       {/* ── 1. 메인 바: 로고 + 우측 유틸 ── */}
       <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
         {/* 로고 */}
@@ -129,7 +132,7 @@ export default function NewHeader() {
           <nav className="flex items-center gap-0.5 flex-1">
             {[
               { to: "/instructors", label: "강사" },
-              { to: "/lecturelist", label: "전체 강좌" },
+              { to: "/courses", label: "전체 강좌" },
               { to: "/header/books", label: "강의교재" },
               { to: "/header/Ainavigator", label: "AI 입시정보" },
               { to: "/header/books", label: "HERMES 패스" },
