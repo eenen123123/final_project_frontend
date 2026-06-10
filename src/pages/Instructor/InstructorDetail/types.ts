@@ -30,5 +30,5 @@ export interface Post {
   postSn: number;
   title: string;
   regDt: string;
-  boardType: "notice" | "qna" | "material";
+  boardType: "notice" | "qna" | "dataroom";
 }

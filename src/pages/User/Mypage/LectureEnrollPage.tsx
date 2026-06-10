@@ -4,6 +4,7 @@ import MyPageSidebar from "./components/MyPageSidebar";
 type TabType = "suneung" | "naesin" | "univ";
 type SortType = "latest" | "popular" | "apply";
 
+// 수강신청 목록의 강좌 항목 (유형·기간·교재 포함)
 interface Lecture {
   id: string;
   title: string;

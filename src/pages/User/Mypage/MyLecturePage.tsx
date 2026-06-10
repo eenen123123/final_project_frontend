@@ -4,6 +4,7 @@ import MyPageSidebar from "../Mypage/components/MyPageSidebar";
 type TabType = "active" | "rest" | "end" | "hidden";
 type SortType = "recent" | "order" | "expire";
 
+// 내 강의실 목록의 강좌 항목 (진도율·D-day·즐겨찾기·상태 포함)
 interface Lecture {
   id: string;
   title: string;

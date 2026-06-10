@@ -13,7 +13,7 @@ const TABS = [
   { id: "courses", label: "강좌목록", path: (uuid: string) => `/instructor/${uuid}/courses` },
   { id: "notice", label: "공지사항", path: (uuid: string) => `/instructor/${uuid}/notice` },
   { id: "qna", label: "선생님 Q&A", path: (uuid: string) => `/instructor/${uuid}/qna` },
-  { id: "material", label: "학습자료실", path: (uuid: string) => `/instructor/${uuid}/material` },
+  { id: "dataroom", label: "학습자료실", path: (uuid: string) => `/instructor/${uuid}/dataroom` },
 ];
 
 export default function InstructorBoardLayout() {
@@ -57,7 +57,7 @@ export default function InstructorBoardLayout() {
                   activeTab === tab.id
                     ? "text-blue-600 font-semibold"
                     : "text-gray-600 hover:text-gray-900"
-                }`}
+                } cursor-pointer`}
               >
                 <span>
                   {tab.label}
@@ -81,7 +81,7 @@ export default function InstructorBoardLayout() {
 
           <button
             onClick={() => navigate(`/instructor/${uuid}`)}
-            className="mt-6 text-xs text-gray-400 hover:text-gray-600 transition-colors"
+            className="mt-6 text-xs text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
           >
             ← 강사 소개로 돌아가기
           </button>

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Lock } from "lucide-react";
 import api from "../../../api/api";
 
+// 강좌에 속한 회차 항목 (강사 관리 뷰, API 응답)
 interface Lecture {
   lectureSn: number;
   title: string;
@@ -12,6 +13,7 @@ interface Lecture {
   lockYn: "Y" | "N";
 }
 
+// 강사 관리 뷰 강좌 상세 (가격·썸네일·회차 목록 포함)
 interface CourseDetail {
   courseSn: number;
   title: string;
@@ -96,7 +98,7 @@ export default function CourseDetailPage() {
                   `/payment?type=course&sn=${course.courseSn}&name=${encodeURIComponent(course.title)}&price=${course.price}`
                 )
               }
-              className="px-5 py-2 bg-blue-600 text-white text-sm font-semibold rounded hover:bg-blue-700 transition-colors"
+              className="px-5 py-2 bg-blue-600 text-white text-sm font-semibold rounded hover:bg-blue-700 transition-colors cursor-pointer"
             >
               수강신청
             </button>
@@ -152,7 +154,7 @@ export default function CourseDetailPage() {
       <div className="mt-8">
         <button
           onClick={() => navigate(`/instructor/${instrUuid}/courses`)}
-          className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded text-sm text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
