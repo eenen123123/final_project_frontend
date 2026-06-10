@@ -13,13 +13,13 @@ const NAV_LINKS = [
   { id: "courses", label: "강좌목록", path: (uuid: string) => `/instructor/${uuid}/courses` },
   { id: "notice", label: "공지사항", path: (uuid: string) => `/instructor/${uuid}/notice` },
   { id: "qna", label: "선생님 Q&A", path: (uuid: string) => `/instructor/${uuid}/qna` },
-  { id: "material", label: "학습자료실", path: (uuid: string) => `/instructor/${uuid}/material` },
+  { id: "dataroom", label: "학습자료실", path: (uuid: string) => `/instructor/${uuid}/dataroom` },
 ];
 
 const BOARD_TYPE_LABEL: Record<string, { label: string; className: string }> = {
   notice: { label: "공지", className: "text-amber-400" },
   qna: { label: "Q&A", className: "text-emerald-400" },
-  material: { label: "자료", className: "text-blue-400" },
+  dataroom: { label: "자료", className: "text-blue-400" },
 };
 
 const CARD_COLORS = [

@@ -91,11 +91,11 @@ export default function AppRoute() {
             element={<BoardTab key="qna" boardType="qna" title="선생님 Q&A" />}
           />
           <Route
-            path="material"
+            path="dataroom"
             element={
               <BoardTab
-                key="material"
-                boardType="material"
+                key="dataroom"
+                boardType="dataroom"
                 title="학습자료실"
               />
             }

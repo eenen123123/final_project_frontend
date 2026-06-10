@@ -13,7 +13,7 @@ const TABS = [
   { id: "courses", label: "강좌목록", path: (uuid: string) => `/instructor/${uuid}/courses` },
   { id: "notice", label: "공지사항", path: (uuid: string) => `/instructor/${uuid}/notice` },
   { id: "qna", label: "선생님 Q&A", path: (uuid: string) => `/instructor/${uuid}/qna` },
-  { id: "material", label: "학습자료실", path: (uuid: string) => `/instructor/${uuid}/material` },
+  { id: "dataroom", label: "학습자료실", path: (uuid: string) => `/instructor/${uuid}/dataroom` },
 ];
 
 export default function InstructorBoardLayout() {
