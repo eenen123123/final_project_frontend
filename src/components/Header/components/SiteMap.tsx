@@ -206,7 +206,7 @@ export default function SiteMap({ isOpen, onClose }: SiteMapProps) {
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-8 py-2.5 text-sm font-semibold transition-colors border-r border-gray-200 last:border-r-0 ${
+              className={`px-8 py-2.5 text-sm font-semibold transition-colors border-r border-gray-200 last:border-r-0 cursor-pointer ${
                 activeTab === tab
                   ? "bg-gray-900 text-white"
                   : "bg-white text-gray-500 hover:bg-gray-50"
