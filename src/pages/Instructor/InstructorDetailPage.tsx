@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import api from "../../api/api";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import type { InstructorDetail, FeaturedCourse, Post } from "./InstructorDetail/types";
 import { formatPostDate, isNewPost } from "./InstructorDetail/utils";
@@ -25,8 +25,7 @@ const CARD_COLORS = [
 
 export default function InstructorDetailPage() {
   const { instrUuid } = useParams<{ instrUuid: string }>();
-  const navigate = useNavigate();
-  const [modal, setModal] = useState<ModalType>(null);
+const [modal, setModal] = useState<ModalType>(null);
   const [instructor, setInstructor] = useState<InstructorDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [featuredCourses, setFeaturedCourses] = useState<FeaturedCourse[]>([]);
@@ -165,15 +164,15 @@ export default function InstructorDetailPage() {
             {featuredCourses.length > 0 && (
               <div className="grid grid-cols-2 gap-2">
                 {featuredCourses.map((course, idx) => (
-                  <button
+                  <Link
                     key={course.courseSn}
-                    onClick={() => navigate(`/course/${course.courseSn}`)}
+                    to={`/instructor/${uuid}/courses/${course.courseSn}`}
                     className={`${CARD_COLORS[idx % CARD_COLORS.length]} p-4 text-left cursor-pointer hover:opacity-90 active:opacity-80 transition-opacity aspect-square flex flex-col justify-end`}
                   >
                     <p className="text-sm font-extrabold text-white leading-tight">
                       {course.courseNm}
                     </p>
-                  </button>
+                  </Link>
                 ))}
               </div>
             )}
@@ -186,24 +185,26 @@ export default function InstructorDetailPage() {
               </div>
               <ul className="space-y-3">
                 {posts.map((post) => (
-                  <li
-                    key={post.postSn}
-                    className="flex items-start gap-2 cursor-pointer group"
-                  >
-                    <span className="text-gray-500 text-xs mt-0.5 shrink-0">·</span>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs text-gray-300 group-hover:text-white transition-colors leading-snug line-clamp-2">
-                        {post.title}
-                      </p>
-                      <p className="text-[11px] text-gray-500 mt-0.5">
-                        {formatPostDate(post.regDt)}
-                      </p>
-                    </div>
-                    {isNewPost(post.regDt) && (
-                      <span className="text-[10px] font-bold text-blue-400 shrink-0 mt-0.5">
-                        N
-                      </span>
-                    )}
+                  <li key={post.postSn}>
+                    <Link
+                      to={`/instructor/${uuid}/${post.boardType}/${post.postSn}`}
+                      className="flex items-start gap-2 group"
+                    >
+                      <span className="text-gray-500 text-xs mt-0.5 shrink-0">·</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-gray-300 group-hover:text-white transition-colors leading-snug line-clamp-2">
+                          {post.title}
+                        </p>
+                        <p className="text-[11px] text-gray-500 mt-0.5">
+                          {formatPostDate(post.regDt)}
+                        </p>
+                      </div>
+                      {isNewPost(post.regDt) && (
+                        <span className="text-[10px] font-bold text-blue-400 shrink-0 mt-0.5">
+                          N
+                        </span>
+                      )}
+                    </Link>
                   </li>
                 ))}
               </ul>
