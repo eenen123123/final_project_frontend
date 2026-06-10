@@ -16,6 +16,12 @@ const NAV_LINKS = [
   { id: "material", label: "학습자료실", path: (uuid: string) => `/instructor/${uuid}/material` },
 ];
 
+const BOARD_TYPE_LABEL: Record<string, { label: string; className: string }> = {
+  notice: { label: "공지", className: "text-amber-400" },
+  qna: { label: "Q&A", className: "text-emerald-400" },
+  material: { label: "자료", className: "text-blue-400" },
+};
+
 const CARD_COLORS = [
   "bg-blue-500",
   "bg-indigo-500",
@@ -193,6 +199,9 @@ const [modal, setModal] = useState<ModalType>(null);
                       <span className="text-gray-500 text-xs mt-0.5 shrink-0">·</span>
                       <div className="flex-1 min-w-0">
                         <p className="text-xs text-gray-300 group-hover:text-white transition-colors leading-snug line-clamp-2">
+                          <span className={`font-bold mr-1 ${BOARD_TYPE_LABEL[post.boardType]?.className}`}>
+                            [{BOARD_TYPE_LABEL[post.boardType]?.label}]
+                          </span>
                           {post.title}
                         </p>
                         <p className="text-[11px] text-gray-500 mt-0.5">
