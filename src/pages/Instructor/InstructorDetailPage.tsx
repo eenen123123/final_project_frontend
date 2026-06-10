@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import api from "../../api/api";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import type { InstructorDetail, FeaturedCourse, Post } from "./InstructorDetail/types";
 import { formatPostDate, isNewPost } from "./InstructorDetail/utils";
@@ -107,9 +107,9 @@ export default function InstructorDetailPage() {
 
             <nav className="flex-1">
               {NAV_LINKS.map((link) => (
-                <button
+                <Link
                   key={link.id}
-                  onClick={() => navigate(link.path(uuid))}
+                  to={link.path(uuid)}
                   className="w-full text-left py-3 border-b border-gray-600/60 text-sm text-gray-300 hover:text-white transition-colors flex items-center justify-between group"
                 >
                   <span>
@@ -124,7 +124,7 @@ export default function InstructorDetailPage() {
                     size={13}
                     className="text-gray-600 group-hover:text-gray-400 transition-colors"
                   />
-                </button>
+                </Link>
               ))}
             </nav>
           </div>
