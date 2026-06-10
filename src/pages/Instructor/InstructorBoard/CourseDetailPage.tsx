@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Lock } from "lucide-react";
 import api from "../../../api/api";
 
+// 강좌에 속한 회차 항목 (강사 관리 뷰, API 응답)
 interface Lecture {
   lectureSn: number;
   title: string;
@@ -12,6 +13,7 @@ interface Lecture {
   lockYn: "Y" | "N";
 }
 
+// 강사 관리 뷰 강좌 상세 (가격·썸네일·회차 목록 포함)
 interface CourseDetail {
   courseSn: number;
   title: string;

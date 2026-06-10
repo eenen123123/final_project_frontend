@@ -6,6 +6,7 @@ import LectureFilterSidebar from "./components/LectureFilterSidebar";
 
 type SortType = "latest" | "popular" | "apply";
 
+// 전체 강좌 검색·필터 목록 항목 (백엔드 API 응답 필드명 그대로)
 interface CourseListDto {
   courseSn: number;
   courseNm: string;

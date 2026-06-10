@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../../../api/api";
 
+// 강사 페이지의 강좌 목록 카드 (가격·평점·수강생 수 포함)
 interface Course {
   courseSn: number;
   title: string;
