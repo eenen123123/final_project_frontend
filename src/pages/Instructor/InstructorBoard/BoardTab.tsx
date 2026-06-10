@@ -130,7 +130,7 @@ export default function BoardTab({ boardType, title }: Props) {
                 <button
                   key={i}
                   onClick={() => setPage(i)}
-                  className={`w-8 h-8 text-xs rounded transition-colors ${
+                  className={`w-8 h-8 text-xs rounded transition-colors cursor-pointer ${
                     page === i
                       ? "bg-blue-600 text-white font-semibold"
                       : "text-gray-500 hover:bg-gray-100"

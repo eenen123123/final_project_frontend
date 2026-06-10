@@ -103,7 +103,7 @@ const [modal, setModal] = useState<ModalType>(null);
               {hasCareerOrBook && (
                 <button
                   onClick={() => setModal("careerBook")}
-                  className="text-[11px] px-2.5 py-1 border border-gray-500 text-gray-300 hover:bg-gray-600 hover:text-white transition-colors rounded"
+                  className="text-[11px] px-2.5 py-1 border border-gray-500 text-gray-300 hover:bg-gray-600 hover:text-white transition-colors rounded cursor-pointer"
                 >
                   약력/저서
                 </button>
