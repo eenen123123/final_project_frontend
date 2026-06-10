@@ -457,40 +457,85 @@ export default function CourseInfoPage() {
 
       {activeTab === "textbook" &&
         (textBooks.length > 0 ? (
-          textBooks.map((tb) => (
-            <div
-              key={tb.textbookSn}
-              className="flex items-start gap-4 py-5 px-3 border-b border-gray-100"
-            >
-              <div className="w-24 h-32 bg-gray-100 rounded overflow-hidden flex-shrink-0">
-                {tb.thmbImg ? (
-                  <img
-                    src={tb.thmbImg}
-                    alt={tb.textbookNm}
-                    className="w-full h-full object-cover object-top"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs">
-                    이미지없음
+          <div className="space-y-8">
+            {textBooks.map((tb) => (
+              <div key={tb.textbookSn} className="border border-gray-200 rounded p-5">
+                {/* 상단: 이미지 + 기본 정보 */}
+                <div className="flex gap-5 mb-5 pb-5 border-b border-gray-100">
+                  <div className="w-28 h-36 bg-gray-100 rounded overflow-hidden flex-shrink-0 shadow-sm">
+                    {tb.thmbImg ? (
+                      <img
+                        src={tb.thmbImg}
+                        alt={tb.textbookNm}
+                        className="w-full h-full object-cover object-top"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs">
+                        이미지없음
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-base font-bold text-gray-900 mb-1">
+                      {tb.textbookNm}
+                    </p>
+                    <p className="text-xs text-gray-400 mb-3">
+                      {tb.pubrNm} · ISBN {tb.isbnNo}
+                    </p>
+                    <div className="space-y-1 text-sm">
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-400 w-12 text-xs flex-shrink-0">정가</span>
+                        <span className="text-gray-400 line-through text-xs">
+                          {tb.purchPrcAmt.toLocaleString()}원
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-400 w-12 text-xs flex-shrink-0">판매가</span>
+                        <span className="font-bold text-gray-900">
+                          {tb.salePrcAmt.toLocaleString()}원
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-400 w-12 text-xs flex-shrink-0">배송비</span>
+                        <span className="text-xs text-gray-600">
+                          {tb.dlvrAmt > 0 ? `${tb.dlvrAmt.toLocaleString()}원` : "무료"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 교재 요약 */}
+                {tb.bookSmry && (
+                  <div className="mb-4 pb-4 border-b border-gray-100">
+                    <p className="text-sm font-semibold text-gray-700 mb-2">교재 소개</p>
+                    <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">
+                      {tb.bookSmry}
+                    </p>
+                  </div>
+                )}
+
+                {/* 교재 구성/특징 */}
+                {tb.trgtGrdCn && (
+                  <div className="mb-4 pb-4 border-b border-gray-100">
+                    <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">
+                      {tb.trgtGrdCn}
+                    </p>
+                  </div>
+                )}
+
+                {/* 목차 */}
+                {tb.tocCn && (
+                  <div>
+                    <p className="text-sm font-semibold text-gray-700 mb-2">목차</p>
+                    <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">
+                      {tb.tocCn}
+                    </p>
                   </div>
                 )}
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-gray-900 mb-0.5">
-                  {tb.textbookNm}
-                </p>
-                <p className="text-xs text-gray-500 mb-1">
-                  {tb.pubrNm} · {tb.isbnNo}
-                </p>
-                <div className="flex items-center gap-1 text-xs text-gray-400">
-                  <span className="text-gray-400">판매가</span>
-                  <span className="font-semibold text-gray-900">
-                    {tb.salePrcAmt.toLocaleString()}원
-                  </span>
-                </div>
-              </div>
-            </div>
-          ))
+            ))}
+          </div>
         ) : (
           <div>
             <h2 className="text-base font-bold text-gray-900 mb-4">교재정보</h2>
