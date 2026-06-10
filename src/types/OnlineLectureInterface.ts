@@ -2,6 +2,7 @@ export type SidebarTab = '강의 목록' | '공지사항' | 'QnA' | '교안' | '
 
 export type NoticeCategory = '공지' | '업데이트' | '이벤트';
 
+// 수강 중인 강의의 개별 회차 (온라인 강의실 뷰, 진도율 포함)
 export interface Lecture {
   id: string;
   index: number;        // 강 번호 (0 = OT)
@@ -29,6 +30,7 @@ export interface Teacher {
   photoUrl?: string;
 }
 
+// 수강생 뷰 강좌 상세 (진도율·수강 시작일·회차 목록 포함)
 export interface CourseDetail {
   id: string;
   code: string;

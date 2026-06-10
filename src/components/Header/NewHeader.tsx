@@ -1,5 +1,5 @@
-import { Link } from "react-router-dom";
-import { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../../auth/AuthContext";
 import SiteMap from "./components/SiteMap";
 import "./NewHeader.css";
@@ -14,7 +14,29 @@ export default function NewHeader() {
   const isParent = currentRoles.includes("ROLE_PARENT");
   const userName = getUserName();
 
-  const [siteMapOpen, setSiteMapOpen] = useState(false);
+  const location = useLocation();
+  // pathname이 바뀌면 siteMapOpen이 자동으로 false가 됨
+  const [openedAtPath, setOpenedAtPath] = useState<string | null>(null);
+  const siteMapOpen = openedAtPath === location.pathname;
+  const toggleSiteMap = () =>
+    setOpenedAtPath(siteMapOpen ? null : location.pathname);
+  const closeSiteMap = () => setOpenedAtPath(null);
+
+  // 사이트맵 영역 외부 mousedown 시 닫기 (backdrop과 달리 클릭이 하위 요소에 그대로 전달됨)
+  const siteMapAreaRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!siteMapOpen) return;
+    const handleMouseDown = (e: MouseEvent) => {
+      if (
+        siteMapAreaRef.current &&
+        !siteMapAreaRef.current.contains(e.target as Node)
+      ) {
+        closeSiteMap();
+      }
+    };
+    document.addEventListener("mousedown", handleMouseDown);
+    return () => document.removeEventListener("mousedown", handleMouseDown);
+  }, [siteMapOpen]);
 
   return (
     <header className="site-header">
@@ -91,26 +113,26 @@ export default function NewHeader() {
       {/* ── 2. 하단 네비게이션 바 ── */}
       <div className="header-nav-bar">
         <div className="max-w-7xl mx-auto px-6 h-11 flex items-center gap-1">
-          {/* 사이트맵 버튼 */}
-          <button
-            onClick={() => setSiteMapOpen((v) => !v)}
-            className={`sitemap-btn ${siteMapOpen ? "sitemap-btn-active" : ""}`}
-          >
-            <i
-              className={`fa-solid ${siteMapOpen ? "fa-xmark" : "fa-bars"} text-sm`}
-            />
-          </button>
-
-          {/* 사이트맵 드롭다운 */}
-          <SiteMap isOpen={siteMapOpen} onClose={() => setSiteMapOpen(false)} />
+          {/* 사이트맵 버튼 + 드롭다운 (외부 클릭 감지 영역) */}
+          <div ref={siteMapAreaRef}>
+            <button
+              onClick={toggleSiteMap}
+              className={`sitemap-btn ${siteMapOpen ? "sitemap-btn-active" : ""}`}
+            >
+              <i
+                className={`fa-solid ${siteMapOpen ? "fa-xmark" : "fa-bars"} text-sm`}
+              />
+            </button>
+            <SiteMap isOpen={siteMapOpen} onClose={closeSiteMap} />
+          </div>
 
           <div className="header-util-divider mx-2" />
 
           {/* 메인 네비 */}
           <nav className="flex items-center gap-0.5 flex-1">
             {[
-              { to: "/header/instructors", label: "강사" },
-              { to: "/lecturelist", label: "전체 강좌" },
+              { to: "/instructors", label: "강사" },
+              { to: "/courses", label: "전체 강좌" },
               { to: "/header/books", label: "강의교재" },
               { to: "/header/Ainavigator", label: "AI 입시정보" },
               { to: "/header/books", label: "HERMES 패스" },

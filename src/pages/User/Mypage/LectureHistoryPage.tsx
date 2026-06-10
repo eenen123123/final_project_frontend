@@ -4,6 +4,7 @@ import MyPageSidebar from "./components/MyPageSidebar";
 type TabType = "normal" | "free";
 type SortType = "recent" | "order";
 
+// 수강이력 목록의 강좌 항목 (진도율·만료일 포함)
 interface Lecture {
   id: string;
   title: string;

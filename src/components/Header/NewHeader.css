@@ -49,7 +49,7 @@
 
   /* 햄버거 버튼 */
   .sitemap-btn {
-    @apply flex items-center justify-center w-8 h-8 rounded transition-colors text-gray-600 hover:bg-gray-100;
+    @apply flex items-center justify-center w-8 h-8 rounded transition-colors text-gray-600 hover:bg-gray-100 cursor-pointer;
   }
 
   .sitemap-btn-active {
@@ -58,12 +58,12 @@
 
   /* 관리자 뱃지 */
   .badge-admin {
-    @apply flex items-center gap-1.5 px-3 py-1 bg-violet-50 text-violet-600 rounded-lg text-xs font-bold hover:bg-violet-100 transition-all border border-violet-100;
+    @apply flex items-center gap-1.5 px-3 py-1 bg-violet-50 text-violet-600 rounded-lg text-xs font-bold hover:bg-violet-100 transition-all border border-violet-100 cursor-pointer;
   }
 
     /* 학부모 뱃지 */
     .badge-parent {
-      @apply flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500 text-white rounded-lg text-xs font-bold hover:bg-emerald-600 transition-all border border-emerald-500;
+      @apply flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500 text-white rounded-lg text-xs font-bold hover:bg-emerald-600 transition-all border border-emerald-500 cursor-pointer;
   }
 
   /* 로그인 버튼 */

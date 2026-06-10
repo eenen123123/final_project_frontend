@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import api from "../../../api/api";
 import { formatPostDate, isNewPost } from "../InstructorDetail/utils";
 
@@ -19,7 +19,7 @@ interface BoardResponse {
 }
 
 interface Props {
-  boardType: "notice" | "qna" | "material";
+  boardType: "notice" | "qna" | "dataroom";
   title: string;
 }
 
@@ -27,10 +27,11 @@ const PAGE_SIZE = 10;
 
 export default function BoardTab({ boardType, title }: Props) {
   const { instrUuid } = useParams<{ instrUuid: string }>();
+  const navigate = useNavigate();
   const [posts, setPosts] = useState<BoardPost[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [page, setPage] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!!instrUuid);
 
   useEffect(() => {
     if (!instrUuid) return;
@@ -84,11 +85,12 @@ export default function BoardTab({ boardType, title }: Props) {
               {posts.map((post) => (
                 <tr
                   key={post.postSn}
+                  onClick={() => navigate(`/instructor/${instrUuid}/${boardType}/${post.postSn}`)}
                   className="border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors"
                 >
                   <td className="py-3 pl-1 pr-2">
                     <div className="flex items-center gap-1.5">
-                      {boardType === "material" && post.hasFile === "Y" && (
+                      {boardType === "dataroom" && post.hasFile === "Y" && (
                         <span className="text-[10px] px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded shrink-0">
                           파일
                         </span>
@@ -128,7 +130,7 @@ export default function BoardTab({ boardType, title }: Props) {
                 <button
                   key={i}
                   onClick={() => setPage(i)}
-                  className={`w-8 h-8 text-xs rounded transition-colors ${
+                  className={`w-8 h-8 text-xs rounded transition-colors cursor-pointer ${
                     page === i
                       ? "bg-blue-600 text-white font-semibold"
                       : "text-gray-500 hover:bg-gray-100"
