@@ -42,6 +42,9 @@ import InstructorDetailPage from "./pages/Instructor/InstructorDetailPage";
 import InstructorBoardLayout from "./pages/Instructor/InstructorBoardLayout";
 import CoursesTab from "./pages/Instructor/InstructorBoard/CoursesTab";
 import BoardTab from "./pages/Instructor/InstructorBoard/BoardTab";
+import BoardPostDetailPage from "./pages/Instructor/InstructorBoard/BoardPostDetailPage";
+import CourseDetailPage from "./pages/Instructor/InstructorBoard/CourseDetailPage";
+import PaymentPage from "./pages/Payment/PaymentPage";
 import OrderHistoryPage from "./pages/User/Mypage/OrderHistoryPage";
 import CouponPointPage from "./pages/User/Mypage/CouponPointPage";
 import BookMain from "./pages/Books/BooksPage";
@@ -71,13 +74,35 @@ export default function AppRoute() {
       />
       {/* 공용 라우트 */}
       <Route path="/test/toss-pay/fail" element={<TossPayFailTestPage />} />
-      <Route path="/header/instructors" element={<Instructors />} />
-      <Route path="/instructor/:instrUuid" element={<InstructorDetailPage />} />
-      <Route path="/instructor/:instrUuid" element={<InstructorBoardLayout />}>
-        <Route path="courses" element={<CoursesTab />} />
-        <Route path="notice" element={<BoardTab boardType="notice" title="공지사항" />} />
-        <Route path="qna" element={<BoardTab boardType="qna" title="선생님 Q&A" />} />
-        <Route path="material" element={<BoardTab boardType="material" title="학습자료실" />} />
+      <Route path="/instructors" element={<Instructors />} />
+      <Route path="/instructor/:instrUuid">
+        <Route index element={<InstructorDetailPage />} />
+        <Route element={<InstructorBoardLayout />}>
+          <Route path="courses" element={<CoursesTab />} />
+          <Route path="courses/:courseSn" element={<CourseDetailPage />} />
+          <Route
+            path="notice"
+            element={
+              <BoardTab key="notice" boardType="notice" title="공지사항" />
+            }
+          />
+          <Route
+            path="qna"
+            element={<BoardTab key="qna" boardType="qna" title="선생님 Q&A" />}
+          />
+          <Route
+            path="material"
+            element={
+              <BoardTab
+                key="material"
+                boardType="material"
+                title="학습자료실"
+              />
+            }
+          />
+          <Route path=":boardType/:postSn" element={<BoardPostDetailPage />} />
+          <Route path="*" element={<NotFound />} />
+        </Route>
       </Route>
       <Route path="/header/books" element={<BookMain />} />
       <Route path="/header/Ainavigator" element={<AiNavigator />} />
@@ -121,6 +146,7 @@ export default function AppRoute() {
         <Route path="/mycart" element={<CartPage />} />
         <Route path="/mycart/orderhistory" element={<OrderHistoryPage />} />
         <Route path="/mypage/couponpoint" element={<CouponPointPage />} />
+        <Route path="/payment" element={<PaymentPage />} />
       </Route>
 
       {/* 관리자 전용 라우트 */}

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import api from "../../../api/api";
 import { formatPostDate, isNewPost } from "../InstructorDetail/utils";
 
@@ -27,10 +27,11 @@ const PAGE_SIZE = 10;
 
 export default function BoardTab({ boardType, title }: Props) {
   const { instrUuid } = useParams<{ instrUuid: string }>();
+  const navigate = useNavigate();
   const [posts, setPosts] = useState<BoardPost[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [page, setPage] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!!instrUuid);
 
   useEffect(() => {
     if (!instrUuid) return;
@@ -84,6 +85,7 @@ export default function BoardTab({ boardType, title }: Props) {
               {posts.map((post) => (
                 <tr
                   key={post.postSn}
+                  onClick={() => navigate(`/instructor/${instrUuid}/${boardType}/${post.postSn}`)}
                   className="border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors"
                 >
                   <td className="py-3 pl-1 pr-2">
