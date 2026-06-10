@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import CurriculumTab from './CurriculumTab';
-import api from '../../../api/api';
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import CurriculumTab from "./CurriculumTab";
+import api from "../../../api/api";
 
-type SiteMapTab = '강사' | '커리큘럼' | '사이트맵';
+type SiteMapTab = "강사" | "커리큘럼" | "사이트맵";
 
 interface InstructorInfo {
   instrUuid: string;
@@ -94,40 +94,72 @@ type SubjectMap = Record<string, InstructorInfo[]>;
 
 const SITEMAP_LINKS = [
   {
-    category: '강좌',
-    items: ['국어', '수학', '영어', '사회탐구', '과학탐구', '한국사', '제2외국어', '대학별고사'],
+    category: "강좌",
+    items: [
+      "국어",
+      "수학",
+      "영어",
+      "사회탐구",
+      "과학탐구",
+      "한국사",
+      "제2외국어",
+      "대학별고사",
+    ],
   },
   {
-    category: '고3·N수',
-    items: ['시즌 특강', '영역별 기획전', '성적향상 NO.1 강좌', '베스트 수강후기'],
+    category: "고3·N수",
+    items: [
+      "시즌 특강",
+      "영역별 기획전",
+      "성적향상 NO.1 강좌",
+      "베스트 수강후기",
+    ],
   },
   {
-    category: '고2',
-    items: ['시즌 특강', '영역별 기획전', '성적향상 NO.1 강좌', '베스트 수강후기', '강좌 7일 무료 체험'],
+    category: "고2",
+    items: [
+      "시즌 특강",
+      "영역별 기획전",
+      "성적향상 NO.1 강좌",
+      "베스트 수강후기",
+      "강좌 7일 무료 체험",
+    ],
   },
   {
-    category: '고1',
-    items: ['시즌 특강', '영역별 기획전', '성적향상 NO.1 강좌', '2022 개정 가이드'],
+    category: "고1",
+    items: [
+      "시즌 특강",
+      "영역별 기획전",
+      "성적향상 NO.1 강좌",
+      "2022 개정 가이드",
+    ],
   },
   {
-    category: '대학별 고사',
-    items: ['시즌 기획전', '대학별고사 기출문제', '대학별고사 공지사항'],
+    category: "대학별 고사",
+    items: ["시즌 기획전", "대학별고사 기출문제", "대학별고사 공지사항"],
   },
   {
-    category: '입시정보',
-    items: ['2026 입시일정', '수능/학·모평 분석서비스', '성공입시전략', '최신입시뉴스', '대학정보 A to Z', '기출자료실'],
+    category: "입시정보",
+    items: [
+      "2026 입시일정",
+      "수능/학·모평 분석서비스",
+      "성공입시전략",
+      "최신입시뉴스",
+      "대학정보 A to Z",
+      "기출자료실",
+    ],
   },
   {
-    category: '온라인 서점',
-    items: ['온라인 서점 한 눈에 보기', '내신대비 교재'],
+    category: "온라인 서점",
+    items: ["온라인 서점 한 눈에 보기", "내신대비 교재"],
   },
   {
-    category: '이벤트',
-    items: ['진행중인 이벤트', '종료된 이벤트', '당첨자 발표'],
+    category: "이벤트",
+    items: ["진행중인 이벤트", "종료된 이벤트", "당첨자 발표"],
   },
   {
-    category: '고객지원',
-    items: ['마이페이지', '공지사항', 'Q&A', '자주 묻는 질문', '이용 약관'],
+    category: "고객지원",
+    items: ["마이페이지", "공지사항", "Q&A", "자주 묻는 질문", "이용 약관"],
   },
 ];
 
@@ -137,7 +169,7 @@ interface SiteMapProps {
 }
 
 export default function SiteMap({ isOpen, onClose }: SiteMapProps) {
-  const [activeTab, setActiveTab] = useState<SiteMapTab>('강사');
+  const [activeTab, setActiveTab] = useState<SiteMapTab>("강사");
   const [subjectMap, setSubjectMap] = useState<SubjectMap>({});
   const [loaded, setLoaded] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
@@ -145,11 +177,18 @@ export default function SiteMap({ isOpen, onClose }: SiteMapProps) {
   useEffect(() => {
     if (!isOpen || loaded) return;
     api
-      .get('http://localhost:8081/api/instructors/by-subject')
-      .then((res) => { setSubjectMap(res.data); setLoaded(true); })
+      .get("http://localhost:8081/api/instructors/by-subject")
+      .then((res) => {
+        setSubjectMap(res.data);
+        setLoaded(true);
+      })
       .catch((err) => {
-        console.error('강사 목록 조회 실패', err);
-        setFetchError(err?.response?.status ? `${err.response.status} ${err.response.statusText}` : err.message);
+        console.error("강사 목록 조회 실패", err);
+        setFetchError(
+          err?.response?.status
+            ? `${err.response.status} ${err.response.statusText}`
+            : err.message,
+        );
         setLoaded(true);
       });
   }, [isOpen, loaded]);
@@ -161,17 +200,16 @@ export default function SiteMap({ isOpen, onClose }: SiteMapProps) {
   return (
     <div className="absolute left-0 right-0 top-full bg-white border-b border-gray-200 shadow-md z-50">
       <div className="max-w-7xl mx-auto px-6 py-5">
-
         {/* 탭 */}
         <div className="flex items-center gap-0 mb-6 border border-gray-200 rounded-lg w-fit overflow-hidden">
-          {(['강사', '커리큘럼', '사이트맵'] as SiteMapTab[]).map((tab) => (
+          {(["강사", "커리큘럼", "사이트맵"] as SiteMapTab[]).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={`px-8 py-2.5 text-sm font-semibold transition-colors border-r border-gray-200 last:border-r-0 ${
                 activeTab === tab
-                  ? 'bg-gray-900 text-white'
-                  : 'bg-white text-gray-500 hover:bg-gray-50'
+                  ? "bg-gray-900 text-white"
+                  : "bg-white text-gray-500 hover:bg-gray-50"
               }`}
             >
               {tab}
@@ -180,19 +218,23 @@ export default function SiteMap({ isOpen, onClose }: SiteMapProps) {
         </div>
 
         {/* ── 강사 탭 ── */}
-        {activeTab === '강사' && (
+        {activeTab === "강사" && (
           <div className="overflow-x-auto">
             {fetchError ? (
-              <p className="text-sm text-red-400">강사 정보를 불러오지 못했습니다. ({fetchError})</p>
+              <p className="text-sm text-red-400">
+                강사 정보를 불러오지 못했습니다. ({fetchError})
+              </p>
             ) : subjects.length === 0 ? (
-              <p className="text-sm text-gray-400">강사 정보를 불러오는 중...</p>
+              <p className="text-sm text-gray-400">
+                강사 정보를 불러오는 중...
+              </p>
             ) : (
               <div className="flex gap-0 min-w-max">
                 {subjects.map(([subject, instructors], si) => (
                   <div
                     key={subject}
-                    className={`flex-shrink-0 px-5 min-w-[120px] ${
-                      si < subjects.length - 1 ? 'border-r border-gray-100' : ''
+                    className={`shrink-0 px-5 min-w-[120px] ${
+                      si < subjects.length - 1 ? "border-r border-gray-100" : ""
                     }`}
                   >
                     <p className="text-sm font-bold text-gray-900 mb-3 pb-2 border-b border-gray-200">
@@ -218,10 +260,10 @@ export default function SiteMap({ isOpen, onClose }: SiteMapProps) {
         )}
 
         {/* ── 커리큘럼 탭 ── */}
-        {activeTab === '커리큘럼' && <CurriculumTab />}
+        {activeTab === "커리큘럼" && <CurriculumTab />}
 
         {/* ── 사이트맵 탭 ── */}
-        {activeTab === '사이트맵' && (
+        {activeTab === "사이트맵" && (
           <div className="grid grid-cols-5 gap-x-5 gap-y-5 max-w-4xl mx-auto">
             {SITEMAP_LINKS.map(({ category, items }) => (
               <div key={category}>
@@ -247,7 +289,6 @@ export default function SiteMap({ isOpen, onClose }: SiteMapProps) {
             ))}
           </div>
         )}
-
       </div>
     </div>
   );
