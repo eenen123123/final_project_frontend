@@ -2,6 +2,99 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
+/*
+bookSmry: "태스트 요약\r\n태스트 요약 2"
+courseNm: null
+courseSn: 81
+
+
+dlvrAmt: 3000
+
+
+instrUserNm: null
+
+
+isbnNo: "1234567891011"
+
+
+keyword: null
+
+
+lastMdfrId: "testuser20"
+
+
+mdfcnDt: "2026-06-10T12:00:14.55"
+
+
+pubrNm: "지학사"
+
+
+purchPrcAmt: 10000
+
+
+regDt: "2026-06-10T12:00:14.55"
+
+
+rgtrId: "testuser20"
+
+
+salePrcAmt: 38900
+
+
+showArchived: false
+
+
+sort: null
+
+
+subjClId: null
+
+
+subjClNm: null
+
+
+subjId: 6
+
+
+subjNm: null
+
+
+tagline: "태그라인 테스트(부제목)"
+
+
+textbookNm: "5일간의 수학"
+
+
+textbookSn: 21
+
+
+thmbImg: "http://res.cloudinary.com/dczqmsune/image/upload/v1781060415/mhndcapfncllre8synnf.png"
+
+
+tocCn: "PART1. \r\nPART2.\r\nPART3."
+
+
+trgtGrdCn: "[교재 구성]\r\n알참\r\n\r\n[교재 특징]\r\n라면받침 용도 특화"
+
+
+useYn: "Y"
+*/
+
+interface Textbook {
+  textbookSn: number;
+  courseSn: number;
+  textbookNm: string;
+  isbnNo: string;
+  pubrNm: string;
+  purchPrcAmt: number;
+  salePrcAmt: number;
+  dlvrAmt: number;
+  trgtGrdCn: string;
+  tocCn: string;
+  bookSmry: string;
+  thmbImg: string;
+}
+
 interface Course {
   courseSn: number;
   courseName: string;
@@ -42,7 +135,8 @@ function formatDuration(seconds: number): string {
   const h = Math.floor(seconds / 3600);
   const m = Math.floor((seconds % 3600) / 60);
   const s = seconds % 60;
-  if (h > 0) return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+  if (h > 0)
+    return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
@@ -55,6 +149,7 @@ export default function CourseInfoPage() {
   const [lectures, setLectures] = useState<Lecture[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<TabType>("info");
+  const [textBooks, setTextBooks] = useState<Textbook[]>([]);
   const [includeTextbook, setIncludeTextbook] = useState(true);
 
   useEffect(() => {
@@ -69,6 +164,22 @@ export default function CourseInfoPage() {
       .finally(() => setLoading(false));
   }, [courseSn]);
 
+  useEffect(() => {
+    const getTextBooks = async () => {
+      if (!course) return;
+      try {
+        const res = await axios.get<Textbook[]>(
+          `/api/textbook/course/${course.courseSn}`,
+        );
+        setTextBooks(res.data);
+        console.log("교재 정보:", res.data);
+      } catch (error) {
+        console.error("교재 정보 불러오기 실패:", error);
+      }
+    };
+    getTextBooks();
+  }, [course]);
+
   if (loading)
     return (
       <p className="py-16 text-center text-sm text-gray-400">불러오는 중...</p>
@@ -81,7 +192,8 @@ export default function CourseInfoPage() {
     );
 
   const coursePrice = course.coursePrice ?? 0;
-  const total = coursePrice + (includeTextbook ? TEXTBOOK_PRICE + SHIPPING_FEE : 0);
+  const total =
+    coursePrice + (includeTextbook ? TEXTBOOK_PRICE + SHIPPING_FEE : 0);
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
@@ -107,9 +219,11 @@ export default function CourseInfoPage() {
           <div className="flex-1 min-w-0">
             {/* 뱃지 */}
             <div className="flex flex-wrap gap-1 mb-2">
-              <span className="text-xs px-2 py-0.5 rounded-full bg-teal-100 text-teal-700 border border-teal-300">
-                교재별도판매
-              </span>
+              {textBooks.length > 0 && (
+                <span className="text-xs px-2 py-0.5 rounded-full bg-teal-100 text-teal-700 border border-teal-300">
+                  교재별도판매
+                </span>
+              )}
               {course.isNew && (
                 <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-gray-800 text-white">
                   NEW
@@ -195,7 +309,7 @@ export default function CourseInfoPage() {
         </div>
 
         {/* 주교재 행 */}
-        <div className="flex items-center px-5 py-4 border-b border-gray-100 gap-3">
+        {/* <div className="flex items-center px-5 py-4 border-b border-gray-100 gap-3">
           <input
             type="checkbox"
             checked={includeTextbook}
@@ -211,7 +325,32 @@ export default function CourseInfoPage() {
           <span className="text-sm font-semibold text-gray-900 flex-shrink-0">
             {TEXTBOOK_PRICE.toLocaleString()}원
           </span>
-        </div>
+
+          
+        </div> */}
+        {textBooks.length > 0 &&
+          textBooks.map((tb) => (
+            <div
+              key={tb.textbookSn}
+              className="flex items-center px-5 py-4 border-b border-gray-100 gap-3"
+            >
+              <input
+                type="checkbox"
+                checked={includeTextbook}
+                onChange={(e) => setIncludeTextbook(e.target.checked)}
+                className="w-4 h-4 accent-blue-600 flex-shrink-0 cursor-pointer"
+              />
+              <span className="text-xs text-gray-400 w-12 flex-shrink-0">
+                주교재
+              </span>
+              <span className="flex-1 text-sm text-gray-900">
+                {tb.textbookNm}
+              </span>
+              <span className="text-sm font-semibold text-gray-900 flex-shrink-0">
+                {tb.salePrcAmt.toLocaleString()}원
+              </span>
+            </div>
+          ))}
 
         {/* 총 결제금액 */}
         <div className="px-5 py-4 border-b border-gray-100">
@@ -250,8 +389,12 @@ export default function CourseInfoPage() {
       {/* 수강후기 / 회원 PICK */}
       <div className="grid grid-cols-2 gap-0 mb-8 border border-gray-200 rounded">
         <div className="p-4 border-r border-gray-200">
-          <h3 className="text-sm font-bold text-gray-900 mb-3">BEST 수강후기</h3>
-          <p className="text-xs text-gray-400">작성된 BEST 수강후기가 없습니다.</p>
+          <h3 className="text-sm font-bold text-gray-900 mb-3">
+            BEST 수강후기
+          </h3>
+          <p className="text-xs text-gray-400">
+            작성된 BEST 수강후기가 없습니다.
+          </p>
         </div>
         <div className="p-4">
           <div className="flex items-center justify-between mb-3">
@@ -312,12 +455,48 @@ export default function CourseInfoPage() {
         </div>
       )}
 
-      {activeTab === "textbook" && (
-        <div>
-          <h2 className="text-base font-bold text-gray-900 mb-4">교재정보</h2>
-          <p className="text-sm text-gray-400">교재 정보가 없습니다.</p>
-        </div>
-      )}
+      {activeTab === "textbook" &&
+        (textBooks.length > 0 ? (
+          textBooks.map((tb) => (
+            <div
+              key={tb.textbookSn}
+              className="flex items-start gap-4 py-5 px-3 border-b border-gray-100"
+            >
+              <div className="w-24 h-32 bg-gray-100 rounded overflow-hidden flex-shrink-0">
+                {tb.thmbImg ? (
+                  <img
+                    src={tb.thmbImg}
+                    alt={tb.textbookNm}
+                    className="w-full h-full object-cover object-top"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs">
+                    이미지없음
+                  </div>
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold text-gray-900 mb-0.5">
+                  {tb.textbookNm}
+                </p>
+                <p className="text-xs text-gray-500 mb-1">
+                  {tb.pubrNm} · {tb.isbnNo}
+                </p>
+                <div className="flex items-center gap-1 text-xs text-gray-400">
+                  <span className="text-gray-400">판매가</span>
+                  <span className="font-semibold text-gray-900">
+                    {tb.salePrcAmt.toLocaleString()}원
+                  </span>
+                </div>
+              </div>
+            </div>
+          ))
+        ) : (
+          <div>
+            <h2 className="text-base font-bold text-gray-900 mb-4">교재정보</h2>
+            <p className="text-sm text-gray-400">교재 정보가 없습니다.</p>
+          </div>
+        ))}
 
       {activeTab === "lectures" && (
         <div>
