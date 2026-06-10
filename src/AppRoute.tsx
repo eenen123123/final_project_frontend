@@ -52,6 +52,8 @@ import ParentPage from "./ParentPage/ParentPage.tsx";
 import AiNavigator from "./pages/AiNavigator/AiNavigatorPage";
 import LectureListPage from "./pages/Lecture/LectureListPage.tsx";
 import ParentJoinPage from "./pages/User/ParentJoinPage.tsx";
+import CourseListPage from "./pages/course/CourseListPage.tsx";
+import CourseInfoPage from "./pages/course/CourseInfoPage.tsx";
 
 export default function AppRoute() {
   return (
@@ -107,6 +109,8 @@ export default function AppRoute() {
       <Route path="/header/books" element={<BookMain />} />
       <Route path="/header/Ainavigator" element={<AiNavigator />} />
       <Route path="/lecturelist" element={<LectureListPage />} />
+      <Route path="/courses" element={<CourseListPage />} />
+      <Route path="/courses/:courseSn" element={<CourseInfoPage />} />
 
       {/* 고객센터 라우트 */}
       <Route path="/customer/faq" element={<FAQPage />} />
