@@ -27,10 +27,7 @@ export default function Login() {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     try {
-      const response = await api.post(
-        "http://localhost:8081/api/auth/login",
-        formData,
-      );
+      const response = await api.post("/api/auth/login", formData);
 
       if (
         response.status === 401 &&
