@@ -1,4 +1,6 @@
 import { useNavigate } from "react-router-dom";
+import { ShoppingCart, CreditCard } from "lucide-react";
+import api from "../../../api/api";
 
 export interface TextbookDto {
   textbookSn: number;
@@ -29,12 +31,34 @@ export default function BookCard({ book }: { book: TextbookDto }) {
   const inStock = book.salableCnt == null || book.salableCnt > 0;
   const goDetail = () => navigate(`/header/books/${book.textbookSn}`);
 
+  const handleAddToCart = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      const res = await api.post("/api/cart", {
+        prodDivCd: "10",
+        prodSn: book.textbookSn,
+        prodNm: book.textbookNm,
+        prodPrice: book.salePrcAmt,
+        itemQty: 1,
+      });
+      if (res.data === "이미 장바구니에 담긴 상품입니다.") {
+        const go = window.confirm("이미 장바구니에 담긴 상품입니다.\n마이페이지(장바구니)에서 확인하시겠습니까?");
+        if (go) navigate("/mycart");
+      } else {
+        const go = window.confirm("장바구니에 담으셨습니다.\n마이페이지(장바구니)에서 확인하시겠습니까?");
+        if (go) navigate("/mycart");
+      }
+    } catch {
+      alert("로그인이 필요합니다.");
+    }
+  };
+
   return (
     <div onClick={goDetail} className="bg-white rounded-2xl overflow-hidden shadow-sm transition-all border border-gray-100 hover:shadow-md hover:border-gray-200 cursor-pointer">
-      <div className="flex flex-col md:flex-row gap-8 p-8 items-start md:items-stretch">
+      <div className="flex gap-6 p-5 items-start">
 
         {/* 북 커버 */}
-        <div className="flex-shrink-0 flex justify-center md:justify-start">
+        <div className="flex-shrink-0">
           {book.thmbImg ? (
             <img
               src={book.thmbImg}
@@ -59,8 +83,8 @@ export default function BookCard({ book }: { book: TextbookDto }) {
         </div>
 
         {/* 본문 */}
-        <div className="flex-1 min-w-0 flex flex-col justify-between gap-3">
-          <div className="space-y-1.5">
+        <div className="flex-1 min-w-0 flex flex-col gap-2">
+          <div className="space-y-1">
             {/* 과목 배지 + 재고 상태 */}
             <div className="flex items-center gap-2 flex-wrap">
               {book.subjClNm && (
@@ -87,100 +111,67 @@ export default function BookCard({ book }: { book: TextbookDto }) {
               </span>
             </div>
 
-            {/* 태그라인 */}
-            {book.tagline && (
-              <p className="text-[11px] text-blue-500 font-medium">
-                {book.tagline}
-              </p>
-            )}
-
             {/* 교재명 */}
-            <h3 className="text-lg font-bold text-gray-900 hover:text-blue-600 transition-colors cursor-pointer leading-snug">
+            <h3 className="text-2xl font-bold text-gray-900 leading-snug">
               {book.textbookNm}
             </h3>
 
-            {/* 저자 */}
-            <p className="text-xs text-gray-400 font-medium">
-              {book.authrNm} 저
-            </p>
-
             {/* 간략 요약 */}
             {book.bookSmry && (
-              <p className="text-xs text-gray-500 leading-relaxed line-clamp-2 pt-0.5">
-                {book.bookSmry}
-              </p>
-            )}
-
-            {/* 대상 학년 */}
-            {book.trgtGrdCn && (
-              <ul className="space-y-0.5 pt-1">
-                {book.trgtGrdCn.split("\n").map((line, i) => (
-                  <li
-                    key={i}
-                    className="flex items-start gap-1.5 text-xs text-gray-500 leading-relaxed"
-                  >
-                    <span className="text-blue-400 flex-shrink-0 mt-0.5">·</span>
-                    {line}
+              <ul className="space-y-0.5 pt-0.5">
+                {book.bookSmry.split("\n").filter(l => l.trim()).slice(0, 2).map((line, i) => (
+                  <li key={i} className="flex items-start gap-1 text-sm text-gray-500 leading-relaxed">
+                    <span className="text-gray-400 flex-shrink-0">·</span>
+                    {line.trim()}
                   </li>
                 ))}
               </ul>
             )}
+
           </div>
 
-          {/* 하단 메타 정보 */}
-          <div className="flex flex-wrap gap-x-4 gap-y-1 pt-3 border-t border-gray-100 text-xs text-gray-500">
-            {book.courseNm && (
-              <span>
-                <span className="font-semibold text-gray-600">연결 강좌</span>{" "}
-                {book.courseNm}
-                {book.instrUserNm && (
-                  <span className="text-gray-400"> · {book.instrUserNm} 선생님</span>
-                )}
+          {/* 하단 메타 + 버튼 */}
+          <div className="flex items-end justify-between gap-3 pt-1">
+            <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
+              {book.courseNm && (
+                <span>
+                  <span className="font-semibold text-gray-600">연결 강좌</span>{" "}
+                  {book.courseNm}
+                  {book.instrUserNm && (
+                    <span className="text-gray-400"> · {book.instrUserNm} 선생님</span>
+                  )}
+                </span>
+              )}
+              {book.pubrNm && (
+                <span>
+                  <span className="font-semibold text-gray-600">출판사</span>{" "}
+                  {book.pubrNm}
+                </span>
+              )}
+            </div>
+            <div className="flex flex-col items-end gap-1.5 shrink-0">
+              <span className="text-xl font-black text-gray-900">
+                {book.salePrcAmt.toLocaleString()}원
               </span>
-            )}
-            {book.pubrNm && (
-              <span>
-                <span className="font-semibold text-gray-600">출판사</span>{" "}
-                {book.pubrNm}
-              </span>
-            )}
-            {book.salableCnt != null && (
-              <span>
-                <span className="font-semibold text-gray-600">재고</span>{" "}
-                {book.salableCnt}권
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* 결제 패널 */}
-        <div className="w-full md:w-52 flex flex-col justify-between items-end shrink-0 border-t md:border-t-0 md:border-l border-gray-100 pt-4 md:pt-0 md:pl-6">
-          <div className="text-right w-full mb-4">
-            <span className="text-xs text-gray-400 font-medium block mb-0.5">
-              도서 판매가
-            </span>
-            <strong className="text-2xl font-black text-gray-900 tracking-tight">
-              {book.salePrcAmt.toLocaleString()}원
-            </strong>
-            {book.dlvrAmt > 0 && (
-              <p className="text-xs text-gray-400 mt-0.5">
-                배송비 {book.dlvrAmt.toLocaleString()}원
-              </p>
-            )}
-          </div>
-          <div className="flex gap-2 w-full">
-            <button
-              disabled={!inStock}
-              className="flex-1 py-2.5 border border-gray-200 rounded-xl font-medium text-xs text-gray-600 bg-white hover:bg-gray-50 transition-colors cursor-pointer whitespace-nowrap disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              장바구니
-            </button>
-            <button
-              disabled={!inStock}
-              className="flex-1 py-2.5 bg-blue-600 text-white font-semibold text-xs rounded-xl hover:opacity-90 transition-all cursor-pointer whitespace-nowrap shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              구매하기
-            </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleAddToCart}
+                  disabled={!inStock}
+                  className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-lg text-gray-500 hover:bg-gray-50 hover:border-gray-400 transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                  title="장바구니"
+                >
+                  <ShoppingCart size={15} />
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); }}
+                  disabled={!inStock}
+                  className="w-8 h-8 flex items-center justify-center bg-gray-900 rounded-lg text-white hover:bg-gray-700 transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                  title="바로 구매"
+                >
+                  <CreditCard size={15} />
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>

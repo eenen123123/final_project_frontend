@@ -1,63 +1,33 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import MyPageSidebar from "./components/MyPageSidebar";
+import api from "../../../api/api";
 
 type Step = "cart" | "payment" | "complete";
 
 interface CartItem {
-  id: number;
-  type: "lecture" | "book";
-  title: string;
-  subInfo: string;
-  originalPrice?: number;
-  salePrice: number;
-  quantity: number;
+  cartSn: number;
+  prodDivCd: string;
+  prodSn: number;
+  prodNm: string;
+  prodPrice: number;
+  itemQty: number;
+  regDt: string;
   checked: boolean;
-  keepDays?: number;
-  keepUntil?: string;
 }
 
-const DUMMY_ITEMS: CartItem[] = [
-  {
-    id: 1,
-    type: "lecture",
-    title: "박광일T 수능 국어 완성반 (2027 수능대비)",
-    subInfo: "영역: 국어 · 박광일",
-    originalPrice: 150000,
-    salePrice: 127500,
-    quantity: 1,
-    checked: true,
-    keepDays: 30,
-    keepUntil: "2026-08-06",
-  },
-  {
-    id: 2,
-    type: "book",
-    title: "박광일T 수능 국어 완성반 교재 (2027)",
-    subInfo: "교재 · 국어영역",
-    salePrice: 18000,
-    quantity: 1,
-    checked: true,
-    keepDays: 30,
-    keepUntil: "2026-08-06",
-  },
-  {
-    id: 3,
-    type: "lecture",
-    title: "정승제T 수능 수학 개념완성 (2027 수능대비)",
-    subInfo: "영역: 수학 · 정승제",
-    originalPrice: 140000,
-    salePrice: 112000,
-    quantity: 1,
-    checked: false,
-    keepDays: 30,
-    keepUntil: "2026-08-06",
-  },
-];
-
-const GUIDE_ITEMS = [
-  "총 결제예상 금액 및 추가 할인 혜택 적립 포인트, 배송비 등은 실 결제단계에서 상품 특성 및 할인권 적용 등에 따라 차이가 발생할 수 있습니다.",
-  "장바구니에 담긴 상품은 보관기한이 만료되기 전 관리자에 의해 품절처리될 수 있습니다.",
-];
+function calcKeepInfo(regDt: string): { dDay: number; until: string } {
+  const expiry = new Date(regDt);
+  expiry.setDate(expiry.getDate() + 30);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  expiry.setHours(0, 0, 0, 0);
+  const dDay = Math.ceil(
+    (expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
+  );
+  const until = expiry.toISOString().slice(0, 10);
+  return { dDay, until };
+}
 
 const STEP_CONFIG: { key: Step; label: string; icon: React.ReactNode }[] = [
   {
@@ -122,57 +92,85 @@ const STEP_CONFIG: { key: Step; label: string; icon: React.ReactNode }[] = [
   },
 ];
 
+const GUIDE_ITEMS = [
+  "총 결제예상 금액 및 추가 할인 혜택 적립 포인트, 배송비 등은 실 결제단계에서 상품 특성 및 할인권 적용 등에 따라 차이가 발생할 수 있습니다.",
+  "장바구니에 담긴 상품은 보관기한이 만료되기 전 관리자에 의해 품절처리될 수 있습니다.",
+];
 
 function formatPrice(price: number) {
   return price.toLocaleString("ko-KR");
 }
 
 export default function CartPage() {
+  const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState("장바구니");
-  const [items, setItems] = useState<CartItem[]>(DUMMY_ITEMS);
-  const [currentStep, setCurrentStep] = useState<Step>("cart");
+  const [items, setItems] = useState<CartItem[]>([]);
+  const [currentStep] = useState<Step>("cart");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCart = async () => {
+      setLoading(true);
+      try {
+        const res = await api.get("/api/cart");
+        setItems(
+          res.data.map((d: Omit<CartItem, "checked">) => ({
+            ...d,
+            checked: true,
+          })),
+        );
+      } catch {
+        // 401이면 api.ts 인터셉터가 /login으로 리다이렉트
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCart();
+  }, []);
 
   const toggleAll = (checked: boolean) =>
     setItems((prev) => prev.map((item) => ({ ...item, checked })));
 
-  const toggleItem = (id: number) =>
+  const toggleItem = (cartSn: number) =>
     setItems((prev) =>
       prev.map((item) =>
-        item.id === id ? { ...item, checked: !item.checked } : item,
+        item.cartSn === cartSn ? { ...item, checked: !item.checked } : item,
       ),
     );
 
-  const deleteItem = (id: number) => {
+  const deleteItem = async (cartSn: number) => {
     if (!window.confirm("상품을 삭제하시겠습니까?")) return;
-    setItems((prev) => prev.filter((item) => item.id !== id));
+    await api.delete(`/api/cart/${cartSn}`);
+    setItems((prev) => prev.filter((item) => item.cartSn !== cartSn));
   };
 
-  const deleteSelected = () => {
+  const deleteSelected = async () => {
     if (!items.some((i) => i.checked)) {
       alert("선택된 상품이 없습니다.");
       return;
     }
     if (!window.confirm("선택된 상품을 삭제하시겠습니까?")) return;
+    const targets = items.filter((i) => i.checked);
+    await Promise.all(targets.map((i) => api.delete(`/api/cart/${i.cartSn}`)));
     setItems((prev) => prev.filter((item) => !item.checked));
   };
 
-  const deleteAll = () => {
+  const deleteAll = async () => {
     if (items.length === 0) {
       alert("장바구니에 상품이 없습니다.");
       return;
     }
     if (!window.confirm("전체 상품을 삭제하시겠습니까?")) return;
+    await api.delete("/api/cart");
     setItems([]);
   };
 
   const allChecked = items.length > 0 && items.every((i) => i.checked);
   const checkedItems = items.filter((i) => i.checked);
-  const totalOriginal = checkedItems.reduce(
-    (sum, i) => sum + (i.originalPrice ?? i.salePrice),
+  const totalPrice = checkedItems.reduce(
+    (sum, i) => sum + i.prodPrice * i.itemQty,
     0,
   );
-  const totalSale = checkedItems.reduce((sum, i) => sum + i.salePrice, 0);
-  const totalDiscount = totalOriginal - totalSale;
 
   return (
     <div className="min-h-screen bg-gray-50/50">
@@ -184,12 +182,14 @@ export default function CartPage() {
           />
 
           <div className="flex-1 min-w-0">
-            {/* ── 단계 헤더 ── */}
-            <div className="flex border border-gray-300 mb-6" style={{ height: "56px" }}>
+            {/* 단계 헤더 */}
+            <div
+              className="flex border border-gray-300 mb-6"
+              style={{ height: "56px" }}
+            >
               {STEP_CONFIG.map(({ key, label, icon }, i) => {
                 const isActive = currentStep === key;
                 const isLast = i === STEP_CONFIG.length - 1;
-
                 return (
                   <div
                     key={key}
@@ -201,14 +201,14 @@ export default function CartPage() {
                       {icon}
                     </span>
                     <span
-                      className={`text-sm font-semibold ${
-                        isActive ? "text-white" : "text-gray-400"
-                      }`}
+                      className={`text-sm font-semibold ${isActive ? "text-white" : "text-gray-400"}`}
                     >
                       {label}
                     </span>
                     {!isLast && (
-                      <span className={`ml-1 text-sm font-bold ${isActive ? "text-gray-400" : "text-gray-300"}`}>
+                      <span
+                        className={`ml-1 text-sm font-bold ${isActive ? "text-gray-400" : "text-gray-300"}`}
+                      >
                         &gt;
                       </span>
                     )}
@@ -217,18 +217,27 @@ export default function CartPage() {
               })}
             </div>
 
-            {items.length === 0 ? (
+            {loading ? (
+              <div className="bg-white border border-gray-200 p-16 text-center">
+                <p className="text-gray-400 text-sm">
+                  장바구니를 불러오는 중...
+                </p>
+              </div>
+            ) : items.length === 0 ? (
               <div className="bg-white border border-gray-200 p-16 text-center">
                 <p className="text-gray-400 text-sm mb-4">
                   장바구니에 담긴 상품이 없습니다.
                 </p>
-                <button className="px-6 py-2 bg-gray-700 text-white text-sm font-medium hover:bg-gray-900 transition-colors cursor-pointer">
+                <button
+                  onClick={() => navigate("/header/books")}
+                  className="px-6 py-2 bg-gray-700 text-white text-sm font-medium hover:bg-gray-900 transition-colors cursor-pointer"
+                >
                   강좌/교재 보러가기 &gt;
                 </button>
               </div>
             ) : (
               <>
-                {/* ── 상품 테이블 (가로선만, 세로선 없음) ── */}
+                {/* 상품 테이블 */}
                 <div className="border-t-2 border-b border-gray-800 mb-3">
                   <table className="w-full text-sm border-collapse">
                     <thead>
@@ -247,7 +256,7 @@ export default function CartPage() {
                         <th className="py-3 px-4 w-24 text-center font-semibold text-gray-700">
                           판매가
                         </th>
-                        <th className="py-3 px-4 w-14 text-center font-semibold text-gray-700">
+                        <th className="py-3 px-4 w-14 text-center font-semibold text-gray-700 whitespace-nowrap">
                           수량
                         </th>
                         <th className="py-3 px-4 w-24 text-center font-semibold text-gray-700">
@@ -261,58 +270,54 @@ export default function CartPage() {
                     <tbody>
                       {items.map((item) => (
                         <tr
-                          key={item.id}
+                          key={item.cartSn}
                           className="border-b border-gray-200 last:border-b-0"
                         >
                           <td className="py-4 px-3 text-center align-middle">
                             <input
                               type="checkbox"
                               checked={item.checked}
-                              onChange={() => toggleItem(item.id)}
+                              onChange={() => toggleItem(item.cartSn)}
                               className="w-3.5 h-3.5 cursor-pointer accent-gray-800"
                             />
                           </td>
                           <td className="py-4 px-4">
-                            <span
-                              className={`inline-block text-[11px] px-1.5 py-0.5 border font-semibold mb-1.5 ${
-                                item.type === "lecture"
-                                  ? "border-blue-400 text-blue-500 bg-blue-50"
-                                  : "border-green-400 text-green-600 bg-green-50"
-                              }`}
-                            >
-                              {item.type === "lecture" ? "강좌" : "교재"}
-                            </span>
-                            <p className="font-semibold text-gray-900 leading-snug mb-1 text-sm">
-                              {item.title}
+                            <p className="font-semibold text-gray-900 leading-snug text-sm mb-1 flex items-center gap-1.5">
+                              <span
+                                className={`inline-block text-[10px] px-1 py-px border font-semibold shrink-0 ${
+                                  item.prodDivCd === "20"
+                                    ? "border-blue-400 text-blue-500 bg-blue-50"
+                                    : "border-green-400 text-green-600 bg-green-50"
+                                }`}
+                              >
+                                {item.prodDivCd === "20" ? "강좌" : "교재"}
+                              </span>
+                              {item.prodNm}
                             </p>
-                            <p className="text-xs text-gray-400 mb-1">
-                              {item.subInfo}
-                            </p>
-                            {item.keepDays && (
-                              <p className="text-xs text-gray-400">
-                                └ 보관기한: D-{item.keepDays}{" "}
-                                <span className="text-gray-300">
-                                  ({item.keepUntil}까지)
-                                </span>
-                              </p>
-                            )}
+                            {item.regDt &&
+                              (() => {
+                                const { dDay, until } = calcKeepInfo(
+                                  item.regDt,
+                                );
+                                return (
+                                  <p className="text-xs text-orange-500">
+                                    └ 보관기한: D-{dDay}{" "}
+                                    <span className="text-gray-400">
+                                      ({until}까지)
+                                    </span>
+                                  </p>
+                                );
+                              })()}
                           </td>
-                          <td className="py-4 px-4 text-center align-middle">
-                            {item.originalPrice && (
-                              <p className="text-xs text-gray-400 line-through mb-0.5">
-                                {formatPrice(item.originalPrice)}원
-                              </p>
-                            )}
-                            <p className="text-sm text-gray-700">
-                              {formatPrice(item.salePrice)}원
-                            </p>
+                          <td className="py-4 px-4 text-center align-middle text-sm text-gray-700">
+                            {formatPrice(item.prodPrice)}원
                           </td>
                           <td className="py-4 px-4 text-center align-middle text-gray-700 text-sm">
-                            {item.quantity}
+                            {item.itemQty}
                           </td>
                           <td className="py-4 px-4 text-center align-middle">
                             <p className="font-bold text-orange-500 text-sm">
-                              {formatPrice(item.salePrice)}원
+                              {formatPrice(item.prodPrice * item.itemQty)}원
                             </p>
                           </td>
                           <td className="py-4 px-4 text-center align-middle">
@@ -321,7 +326,7 @@ export default function CartPage() {
                                 주문 &gt;
                               </button>
                               <button
-                                onClick={() => deleteItem(item.id)}
+                                onClick={() => deleteItem(item.cartSn)}
                                 className="w-16 py-1 bg-gray-400 text-white text-xs hover:bg-red-500 transition-colors cursor-pointer"
                               >
                                 삭제 &gt;
@@ -335,7 +340,7 @@ export default function CartPage() {
                 </div>
 
                 {/* 하단 삭제 버튼 */}
-                <div className="flex gap-1.5 mb-6 justify-end">
+                <div className="flex gap-1.5 mb-6">
                   <button
                     onClick={deleteSelected}
                     className="px-3 py-1.5 border border-gray-400 text-gray-600 text-xs hover:bg-gray-100 transition-colors cursor-pointer"
@@ -356,36 +361,28 @@ export default function CartPage() {
                     <div className="py-6 text-center">
                       <p className="text-xs text-gray-500 mb-2">총 주문금액</p>
                       <p className="text-xl font-bold text-gray-800">
-                        {formatPrice(totalOriginal)}
-                        <span className="text-sm font-normal text-gray-500 ml-0.5">
-                          원
-                        </span>
+                        {formatPrice(totalPrice)}
+                        <span className="text-sm font-normal text-gray-500 ml-0.5">원</span>
                       </p>
                     </div>
                     <div className="py-6 text-center relative">
-                      <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-6 h-6 bg-white border border-gray-300 flex items-center justify-center text-gray-500 text-sm font-bold">
+                      <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-7 h-7 bg-white border border-gray-300 rounded-full flex items-center justify-center text-gray-700 text-sm font-bold">
                         −
                       </div>
                       <p className="text-xs text-gray-500 mb-2">총 할인금액</p>
                       <p className="text-xl font-bold text-gray-800">
-                        {formatPrice(totalDiscount)}
-                        <span className="text-sm font-normal text-gray-500 ml-0.5">
-                          원
-                        </span>
+                        0
+                        <span className="text-sm font-normal text-gray-500 ml-0.5">원</span>
                       </p>
                     </div>
                     <div className="py-6 text-center relative">
-                      <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-6 h-6 bg-white border border-gray-300 flex items-center justify-center text-gray-500 text-sm font-bold">
+                      <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-7 h-7 bg-white border border-gray-300 rounded-full flex items-center justify-center text-gray-700 text-sm font-bold">
                         =
                       </div>
-                      <p className="text-xs text-gray-500 mb-2">
-                        총 결제예상금액
-                      </p>
+                      <p className="text-xs text-gray-500 mb-2">총 결제예상금액</p>
                       <p className="text-xl font-bold text-orange-500">
-                        {formatPrice(totalSale)}
-                        <span className="text-sm font-normal text-gray-400 ml-0.5">
-                          원
-                        </span>
+                        {formatPrice(totalPrice)}
+                        <span className="text-sm font-normal text-gray-400 ml-0.5">원</span>
                       </p>
                     </div>
                   </div>
@@ -400,11 +397,21 @@ export default function CartPage() {
 
                 {/* 액션 버튼 */}
                 <div className="flex justify-center gap-3 mt-6">
-                  <button className="px-10 py-3 bg-gray-500 text-white text-sm font-semibold hover:bg-gray-700 transition-colors cursor-pointer">
+                  <button
+                    onClick={() => navigate("/header/books")}
+                    className="px-10 py-3 bg-gray-500 text-white text-sm font-semibold hover:bg-gray-700 transition-colors cursor-pointer"
+                  >
                     강좌/교재 더보기 &gt;
                   </button>
                   <button
-                    onClick={() => setCurrentStep("payment")}
+                    onClick={() => {
+                      const selected = items.filter((i) => i.checked);
+                      if (selected.length === 0) {
+                        alert("선택된 상품이 없습니다.");
+                        return;
+                      }
+                      navigate("/checkout", { state: { items: selected } });
+                    }}
                     className="px-10 py-3 bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600 transition-colors cursor-pointer"
                   >
                     결제하기 &gt;

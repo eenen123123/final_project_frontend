@@ -37,6 +37,7 @@ import BookOrderPage from "./pages/User/Mypage/BookOrderPage";
 import LectureHistoryPage from "./pages/User/Mypage/LectureHistoryPage";
 import MyCalendarPage from "./pages/User/Mypage/MyCalendarPage";
 import CartPage from "./pages/User/Mypage/CartPage";
+import CheckoutPage from "./pages/User/Mypage/CheckoutPage";
 import Instructors from "./pages/Instructor/InstructorsPage";
 import InstructorDetailPage from "./pages/Instructor/InstructorDetailPage";
 import InstructorBoardLayout from "./pages/Instructor/InstructorBoardLayout";
@@ -153,6 +154,7 @@ export default function AppRoute() {
         <Route path="/mylecture/book" element={<BookOrderPage />} />
         <Route path="/mylecture/history" element={<LectureHistoryPage />} />
         <Route path="/mycart" element={<CartPage />} />
+        <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/mycart/orderhistory" element={<OrderHistoryPage />} />
         <Route path="/mypage/couponpoint" element={<CouponPointPage />} />
         <Route path="/payment" element={<PaymentPage />} />
