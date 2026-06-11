@@ -52,7 +52,7 @@ export default function AuthProvider({
   const logout = () => {
     setApiAccessToken(null);
 
-    api.post("http://localhost:8081/api/auth/logout").catch((error) => {
+    api.post("/api/auth/logout").catch((error) => {
       console.error("Logout failed:", error);
     });
 
