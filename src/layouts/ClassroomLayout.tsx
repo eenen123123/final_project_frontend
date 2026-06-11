@@ -10,14 +10,13 @@ export default function ClassroomLayout() {
   useEffect(() => {
     if (!classId) return;
     api
-      .get(`http://localhost:8081/api/classroom/${classId}`)
+      .get(`/api/classroom/${classId}`)
       .then((res) => setClassroom(res.data))
       .catch((err) => console.error("클래스룸 정보 조회 실패", err));
   }, [classId]);
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans antialiased selection:bg-blue-100">
-
       <header className="bg-white border-b border-slate-200/60 px-6 py-3.5 flex items-center justify-between sticky top-0 z-50">
         <div className="flex items-center gap-3.5">
           <div className="bg-gradient-to-br from-blue-600 to-indigo-600 text-white font-extrabold w-9 h-9 flex items-center justify-center rounded-xl text-xs tracking-tighter">
@@ -44,7 +43,11 @@ export default function ClassroomLayout() {
           </button>
           <button className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100/80 transition-all">
             <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+              <path
+                fillRule="evenodd"
+                d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                clipRule="evenodd"
+              />
             </svg>
           </button>
           <button className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100/80 transition-all">

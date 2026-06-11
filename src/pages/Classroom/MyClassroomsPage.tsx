@@ -10,7 +10,7 @@ export default function MyClassroomsPage() {
 
   useEffect(() => {
     api
-      .get("http://localhost:8081/api/classroom/my")
+      .get("/api/classroom/my")
       .then((res) => setClassrooms(res.data))
       .catch(() => setError(true))
       .finally(() => setLoading(false));
@@ -50,7 +50,9 @@ export default function MyClassroomsPage() {
                 className="bg-white rounded-xl border border-slate-200 px-6 py-5 flex items-center justify-between hover:border-blue-400 hover:shadow-sm transition-all"
               >
                 <div>
-                  <p className="text-[13px] text-slate-400 mb-1">{c.instrNm} 강사</p>
+                  <p className="text-[13px] text-slate-400 mb-1">
+                    {c.instrNm} 강사
+                  </p>
                   <p className="font-semibold text-slate-800">{c.classNm}</p>
                   <p className="text-sm text-slate-500 mt-0.5">{c.courseNm}</p>
                 </div>

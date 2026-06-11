@@ -2,17 +2,38 @@ import { useState, useRef, useEffect } from "react";
 import api from "../../../api/api";
 import MyPageSidebar from "./components/MyPageSidebar";
 import CalendarEventModal from "./components/CalendarEventModal";
-import type { CalendarEvent, CalendarEventResponse, CalendarScheduleResponse } from "../../../types/MyPageInterface";
+import type {
+  CalendarEvent,
+  CalendarEventResponse,
+  CalendarScheduleResponse,
+} from "../../../types/MyPageInterface";
 
 const DAYS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 const API_BASE = "http://localhost:8081";
 
-const TYPE_COLOR: Record<string, { dot: string; text: string; badge: string }> = {
-  holiday: { dot: "bg-red-400", text: "text-red-500", badge: "bg-red-50 text-red-600 border-red-100" },
-  event: { dot: "bg-orange-400", text: "text-orange-500", badge: "bg-orange-50 text-orange-600 border-orange-100" },
-  academic: { dot: "bg-blue-400", text: "text-blue-500", badge: "bg-blue-50 text-blue-600 border-blue-100" },
-  personal: { dot: "bg-teal-500", text: "text-teal-600", badge: "bg-teal-50 text-teal-700 border-teal-200" },
-};
+const TYPE_COLOR: Record<string, { dot: string; text: string; badge: string }> =
+  {
+    holiday: {
+      dot: "bg-red-400",
+      text: "text-red-500",
+      badge: "bg-red-50 text-red-600 border-red-100",
+    },
+    event: {
+      dot: "bg-orange-400",
+      text: "text-orange-500",
+      badge: "bg-orange-50 text-orange-600 border-orange-100",
+    },
+    academic: {
+      dot: "bg-blue-400",
+      text: "text-blue-500",
+      badge: "bg-blue-50 text-blue-600 border-blue-100",
+    },
+    personal: {
+      dot: "bg-teal-500",
+      text: "text-teal-600",
+      badge: "bg-teal-50 text-teal-700 border-teal-200",
+    },
+  };
 
 // ─── 백엔드 응답 → CalendarEvent 변환 ─────────────────
 function mapEventDto(dto: CalendarEventResponse): CalendarEvent {
@@ -47,7 +68,12 @@ function toDateStr(y: number, m: number, d: number) {
 }
 
 function getEventsForDate(events: CalendarEvent[], dateStr: string) {
-  const order: Record<string, number> = { holiday: 0, event: 1, academic: 2, personal: 3 };
+  const order: Record<string, number> = {
+    holiday: 0,
+    event: 1,
+    academic: 2,
+    personal: 3,
+  };
   return events
     .filter((ev) => {
       const sel = new Date(dateStr);
@@ -138,7 +164,11 @@ function CalendarGrid({
   onDateClick: (d: string) => void;
 }) {
   const today = new Date();
-  const todayStr = toDateStr(today.getFullYear(), today.getMonth(), today.getDate());
+  const todayStr = toDateStr(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate(),
+  );
   const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const daysInPrev = new Date(year, month, 0).getDate();
@@ -153,7 +183,11 @@ function CalendarGrid({
     cells.push({ day: d, dateStr: toDateStr(py, pm, d), otherMonth: true });
   }
   for (let d = 1; d <= daysInMonth; d++) {
-    cells.push({ day: d, dateStr: toDateStr(year, month, d), otherMonth: false });
+    cells.push({
+      day: d,
+      dateStr: toDateStr(year, month, d),
+      otherMonth: false,
+    });
   }
   const remaining = 42 - cells.length;
   for (let d = 1; d <= remaining; d++) {
@@ -182,7 +216,9 @@ function CalendarGrid({
           const isSelected = cell.dateStr === selectedDate;
           const isSun = idx % 7 === 0;
           const isSat = idx % 7 === 6;
-          const dayEvents = isOther ? [] : getEventsForDate(events, cell.dateStr);
+          const dayEvents = isOther
+            ? []
+            : getEventsForDate(events, cell.dateStr);
 
           return (
             <div
@@ -199,19 +235,34 @@ function CalendarGrid({
                 >
                   {cell.day}
                 </span>
-                {isToday && !isOther && <span className="text-[10px] font-bold text-gray-900">Today</span>}
+                {isToday && !isOther && (
+                  <span className="text-[10px] font-bold text-gray-900">
+                    Today
+                  </span>
+                )}
               </div>
 
               {dayEvents.slice(0, 3).map((ev) => {
                 const c = TYPE_COLOR[ev.type];
                 return (
-                  <div key={ev.id} className={`text-[10px] font-medium truncate flex items-center gap-1 ${c.text}`}>
-                    <span className={`w-1 h-1 rounded-full flex-shrink-0 ${c.dot}`} />
-                    {ev.title.length > 8 ? ev.title.slice(0, 8) + "..." : ev.title}
+                  <div
+                    key={ev.id}
+                    className={`text-[10px] font-medium truncate flex items-center gap-1 ${c.text}`}
+                  >
+                    <span
+                      className={`w-1 h-1 rounded-full flex-shrink-0 ${c.dot}`}
+                    />
+                    {ev.title.length > 8
+                      ? ev.title.slice(0, 8) + "..."
+                      : ev.title}
                   </div>
                 );
               })}
-              {dayEvents.length > 3 && <span className="text-[10px] text-gray-400">+{dayEvents.length - 3}개</span>}
+              {dayEvents.length > 3 && (
+                <span className="text-[10px] text-gray-400">
+                  +{dayEvents.length - 3}개
+                </span>
+              )}
             </div>
           );
         })}
@@ -239,7 +290,7 @@ function DayPanel({
     if (!window.confirm("일정을 삭제하시겠습니까?")) return;
     try {
       const scheduleSn = id.replace("S", "");
-      await api.delete(`http://localhost:8081/api/calendar/schedule/${scheduleSn}`);
+      await api.delete(`/api/calendar/schedule/${scheduleSn}`);
       onDelete(id);
     } catch (err) {
       console.error("일정 삭제 실패:", err);
@@ -250,7 +301,9 @@ function DayPanel({
   return (
     <div className="mt-5 pt-4 border-t border-gray-200">
       <div className="flex items-center justify-between mb-3">
-        <span className="text-base font-bold text-gray-800">{formatDisplayDate(selectedDate)}</span>
+        <span className="text-base font-bold text-gray-800">
+          {formatDisplayDate(selectedDate)}
+        </span>
         <button
           onClick={onAddClick}
           className="flex items-center gap-1 px-3 py-1.5 border border-gray-300 rounded-lg text-xs font-semibold text-gray-800 hover:bg-gray-50 hover:border-gray-400 transition-all cursor-pointer"
@@ -260,7 +313,9 @@ function DayPanel({
       </div>
 
       {dayEvents.length === 0 ? (
-        <p className="text-sm text-gray-400 py-3 text-center">등록된 일정이 없습니다.</p>
+        <p className="text-sm text-gray-400 py-3 text-center">
+          등록된 일정이 없습니다.
+        </p>
       ) : (
         <div className="flex flex-col gap-2">
           {dayEvents.map((ev) => {
@@ -274,9 +329,13 @@ function DayPanel({
                 key={ev.id}
                 className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg border text-sm font-medium ${c.badge}`}
               >
-                <span className={`w-2 h-2 rounded-full flex-shrink-0 ${c.dot}`} />
+                <span
+                  className={`w-2 h-2 rounded-full flex-shrink-0 ${c.dot}`}
+                />
                 <span className="flex-1 truncate">{ev.title}</span>
-                <span className="text-[11px] text-gray-500 flex-shrink-0">{dateLabel}</span>
+                <span className="text-[11px] text-gray-500 flex-shrink-0">
+                  {dateLabel}
+                </span>
                 {ev.source === "user" && (
                   <button
                     onClick={() => handleDeleteSchedule(ev.id)}
@@ -314,8 +373,10 @@ export default function MyCalendarPage() {
         const params = { year, month: month + 1 }; // 0-indexed → 1-indexed
 
         const [eventRes, scheduleRes] = await Promise.all([
-          api.get<CalendarEventResponse[]>(`${API_BASE}/api/calendar/event`, { params }),
-          api.get<CalendarScheduleResponse[]>(`${API_BASE}/api/calendar/schedule`, { params }),
+          api.get<CalendarEventResponse[]>(`/api/calendar/event`, { params }),
+          api.get<CalendarScheduleResponse[]>(`/api/calendar/schedule`, {
+            params,
+          }),
         ]);
 
         const adminEvents = eventRes.data.map(mapEventDto);
@@ -352,12 +413,19 @@ export default function MyCalendarPage() {
     <div className="min-h-screen bg-gray-50/50">
       <div className="max-w-6xl mx-auto px-6 py-10">
         <div className="flex gap-8 items-start">
-          <MyPageSidebar activeSection={activeSection} onSectionChange={setActiveSection} />
+          <MyPageSidebar
+            activeSection={activeSection}
+            onSectionChange={setActiveSection}
+          />
 
           <div className="flex-1 min-w-0">
             <div className="mb-6">
-              <h3 className="text-2xl font-bold text-gray-900 tracking-tight">My 캘린더</h3>
-              <p className="text-sm text-gray-500 mt-1">학습 일정과 개인 일정을 한눈에 관리하세요.</p>
+              <h3 className="text-2xl font-bold text-gray-900 tracking-tight">
+                My 캘린더
+              </h3>
+              <p className="text-sm text-gray-500 mt-1">
+                학습 일정과 개인 일정을 한눈에 관리하세요.
+              </p>
             </div>
 
             <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-6 text-xs font-sans">
@@ -399,7 +467,11 @@ export default function MyCalendarPage() {
                     〉
                   </button>
 
-                  {loading && <span className="text-[11px] text-gray-400 ml-1">로딩중...</span>}
+                  {loading && (
+                    <span className="text-[11px] text-gray-400 ml-1">
+                      로딩중...
+                    </span>
+                  )}
                 </div>
 
                 {/* 범례 */}
@@ -435,7 +507,9 @@ export default function MyCalendarPage() {
                 selectedDate={selectedDate}
                 events={events}
                 onAddClick={() => setIsModalOpen(true)}
-                onDelete={(id) => setEvents((prev) => prev.filter((e) => e.id !== id))}
+                onDelete={(id) =>
+                  setEvents((prev) => prev.filter((e) => e.id !== id))
+                }
               />
             </div>
           </div>
@@ -448,7 +522,9 @@ export default function MyCalendarPage() {
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           onSave={setEvents}
-          onDelete={(id) => setEvents((prev) => prev.filter((e) => e.id !== id))}
+          onDelete={(id) =>
+            setEvents((prev) => prev.filter((e) => e.id !== id))
+          }
           defaultDate={selectedDate ?? undefined}
           events={events}
         />

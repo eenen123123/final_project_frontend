@@ -1,0 +1,274 @@
+import { useEffect, useState } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import api from "../../api/api";
+import { useAuth } from "../../auth/AuthContext";
+
+interface CourseInfo {
+  courseSn: number;
+  courseName: string;
+  instructorName: string;
+}
+
+interface LectureItem {
+  lectureSn: number;
+  lectureName: string;
+  lectureDuration: number | null;
+  lectureVideoFileId: number;
+}
+
+type LectureStatus = "completed" | "current" | "pending";
+
+function getLectureStatus(lectureSn: number, currentLectureSn: number): LectureStatus {
+  if (lectureSn === currentLectureSn) return "current";
+  return "pending"; // 완료 API 연결 전 전부 pending
+}
+
+function formatDuration(seconds: number | null): string {
+  if (!seconds) return "";
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
+interface LectureListProps {
+  lectures: LectureItem[];
+  currentLectureSn: number | null;
+  goToLecture: (lectureSn: number) => void;
+}
+
+function LectureList({ lectures, currentLectureSn, goToLecture }: LectureListProps) {
+  return (
+    <ul className="flex flex-col gap-1">
+      {lectures.map((l) => {
+        const status = getLectureStatus(l.lectureSn, currentLectureSn ?? -1);
+        return (
+          <li key={l.lectureSn}>
+            <button
+              onClick={() => goToLecture(l.lectureSn)}
+              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors
+                ${status === "current" ? "bg-blue-50 border border-blue-200" : "hover:bg-slate-50"}`}
+            >
+              {status === "completed" ? (
+                <span className="w-4 h-4 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0 text-white text-[9px] font-bold">✓</span>
+              ) : status === "current" ? (
+                <span className="w-4 h-4 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
+                  <span className="w-2 h-2 rounded-full bg-white" />
+                </span>
+              ) : (
+                <span className="w-4 h-4 rounded-full border-2 border-slate-300 flex-shrink-0" />
+              )}
+              <div className="flex-1 min-w-0">
+                <p className={`text-xs truncate ${
+                  status === "current" ? "text-blue-700 font-semibold" :
+                  status === "completed" ? "text-slate-400 line-through" :
+                  "text-slate-600"
+                }`}>
+                  {l.lectureName}
+                </p>
+                {l.lectureDuration && (
+                  <p className="text-[10px] text-slate-400 mt-0.5">{formatDuration(l.lectureDuration)}</p>
+                )}
+              </div>
+            </button>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+export default function HermesVideoViewer() {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { isAuthReady } = useAuth();
+
+  const courseId = searchParams.get("courseId");
+  const lectureId = searchParams.get("lectureId");
+  const currentLectureSn = lectureId ? Number(lectureId) : null;
+
+  const [course, setCourse] = useState<CourseInfo | null>(null);
+  const [lectures, setLectures] = useState<LectureItem[]>([]);
+  const [videoFetch, setVideoFetch] = useState<{ url: string; lectureSn: number | null }>({ url: "", lectureSn: null });
+  const videoUrl = videoFetch.lectureSn === currentLectureSn ? videoFetch.url : "";
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  // 코스 + 강의 목록 fetch
+  useEffect(() => {
+    if (!isAuthReady || !courseId) return;
+    api.get(`/api/course/${courseId}`)
+      .then((res) => {
+        setCourse(res.data.course);
+        setLectures(res.data.lectures);
+      })
+      .catch(() => alert("강의 정보를 불러오는 중 오류가 발생했습니다."));
+  }, [courseId, isAuthReady]);
+
+  // 현재 강의 영상 URL fetch
+  useEffect(() => {
+    if (!isAuthReady || !currentLectureSn || lectures.length === 0) return;
+    const current = lectures.find((l) => l.lectureSn === currentLectureSn);
+    if (!current?.lectureVideoFileId) return;
+    api.post(`/api/files/${current.lectureVideoFileId}/token`)
+      .then((res) => setVideoFetch({ url: res.data.viewUrl, lectureSn: currentLectureSn }))
+      .catch((error) => {
+        if (error.response?.status === 403) {
+          alert("강의 영상을 볼 수 있는 권한이 없습니다.");
+        } else {
+          alert("강의 영상을 불러오는 중 오류가 발생했습니다.");
+        }
+      });
+  }, [currentLectureSn, lectures, isAuthReady]);
+
+  useEffect(() => {
+    if (!drawerOpen) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setDrawerOpen(false);
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [drawerOpen]);
+
+  const currentLecture = lectures.find((l) => l.lectureSn === currentLectureSn) ?? null;
+  const currentIndex = lectures.findIndex((l) => l.lectureSn === currentLectureSn);
+  const prevLecture = currentIndex > 0 ? lectures[currentIndex - 1] : null;
+  const nextLecture = currentIndex >= 0 && currentIndex < lectures.length - 1 ? lectures[currentIndex + 1] : null;
+
+  const goToLecture = (lectureSn: number) => {
+    setDrawerOpen(false);
+    navigate(`/viewer?courseId=${courseId}&lectureId=${lectureSn}`);
+  };
+
+  return (
+    <div className="min-h-screen bg-[#F8FAFC]">
+      {/* 브레드크럼 */}
+      <div className="px-4 md:px-6 py-3 border-b border-slate-200 bg-white text-xs text-slate-400 flex items-center gap-1">
+        <span>강의실</span>
+        {course && (
+          <>
+            <span>/</span>
+            <span>{course.courseName}</span>
+          </>
+        )}
+        {currentLecture && (
+          <>
+            <span>/</span>
+            <span className="text-blue-600 font-medium">{currentLecture.lectureName}</span>
+          </>
+        )}
+      </div>
+
+      {/* 모바일 목록 버튼 */}
+      <div className="md:hidden flex justify-end px-4 pt-3">
+        <button
+          onClick={() => setDrawerOpen(true)}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 rounded-lg border border-blue-200"
+        >
+          ☰ 목록
+        </button>
+      </div>
+
+      {/* 본문 2-column */}
+      <div className="md:grid md:grid-cols-[65fr_35fr] md:h-[calc(100vh-48px)]">
+        {/* 좌측: 영상 + 강의 정보 */}
+        <div className="p-4 md:p-6 md:overflow-y-auto">
+          <div className="w-full aspect-video bg-black rounded-xl overflow-hidden mb-4">
+            {videoUrl ? (
+              <video controls className="w-full h-full" key={videoUrl}>
+                <source src={videoUrl} type="video/mp4" />
+              </video>
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-slate-500 text-sm">
+                영상을 불러오는 중...
+              </div>
+            )}
+          </div>
+
+          {currentLecture && (
+            <div className="bg-white border border-slate-200 rounded-xl p-4 md:p-5">
+              <div className="flex items-start justify-between gap-3 mb-2">
+                <h1 className="text-sm md:text-base font-bold text-slate-900 leading-snug">
+                  {currentLecture.lectureName}
+                </h1>
+                <span className="flex-shrink-0 text-[11px] font-semibold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-full">
+                  수강 중
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 mb-4">
+                {course?.instructorName} · {course?.courseName}
+              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => prevLecture && goToLecture(prevLecture.lectureSn)}
+                  disabled={!prevLecture}
+                  className="flex-1 py-2 text-xs font-medium text-slate-600 bg-slate-100 rounded-lg disabled:opacity-40 hover:bg-slate-200 transition-colors"
+                >
+                  ← 이전 강의
+                </button>
+                <button
+                  onClick={() => nextLecture && goToLecture(nextLecture.lectureSn)}
+                  disabled={!nextLecture}
+                  className="flex-1 py-2 text-xs font-medium text-white bg-blue-600 rounded-lg disabled:opacity-40 hover:bg-blue-700 transition-colors"
+                >
+                  다음 강의 →
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* 우측: 사이드바 (데스크탑) */}
+        <div className="hidden md:flex flex-col p-5 border-l border-slate-200 bg-white overflow-y-auto">
+          <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-3">강의 목록</h2>
+          <LectureList lectures={lectures} currentLectureSn={currentLectureSn} goToLecture={goToLecture} />
+          {/* 진도 */}
+          <div className="mt-3 pt-3 border-t border-slate-100">
+            <div className="flex justify-between mb-1">
+              <span className="text-[11px] text-slate-500">전체 진도</span>
+              <span className="text-[11px] text-blue-600 font-semibold">0%</span>
+            </div>
+            <div className="h-1.5 bg-slate-200 rounded-full">
+              <div className="h-full w-0 bg-blue-600 rounded-full" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 모바일 드로어 오버레이 */}
+      {drawerOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 z-40 md:hidden"
+          onClick={() => setDrawerOpen(false)}
+        />
+      )}
+
+      {/* 모바일 드로어 */}
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-hidden={!drawerOpen}
+        className={`fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-2xl shadow-xl transition-transform duration-300 md:hidden max-h-[70vh] flex flex-col
+          ${drawerOpen ? "translate-y-0" : "translate-y-full"}`}
+      >
+        <div className="flex justify-center pt-3 pb-2 flex-shrink-0">
+          <div className="w-10 h-1 bg-slate-300 rounded-full" />
+        </div>
+        <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wide px-4 pb-2 flex-shrink-0">
+          강의 목록
+        </h2>
+        <div className="overflow-y-auto px-4 pb-6">
+          <LectureList lectures={lectures} currentLectureSn={currentLectureSn} goToLecture={goToLecture} />
+          {/* 진도 */}
+          <div className="mt-3 pt-3 border-t border-slate-100">
+            <div className="flex justify-between mb-1">
+              <span className="text-[11px] text-slate-500">전체 진도</span>
+              <span className="text-[11px] text-blue-600 font-semibold">0%</span>
+            </div>
+            <div className="h-1.5 bg-slate-200 rounded-full">
+              <div className="h-full w-0 bg-blue-600 rounded-full" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
