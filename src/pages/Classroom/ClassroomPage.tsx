@@ -95,7 +95,7 @@ export default function ClassroomPage() {
                   case "notice":
                     return <NoticeTab />;
                   case "lecture":
-                    return <LectureTab />;
+                    return <LectureTab courseSn={classroom?.courseSn ?? null} />;
                   case "assign":
                     return <AssignTab />;
                   case "qna":

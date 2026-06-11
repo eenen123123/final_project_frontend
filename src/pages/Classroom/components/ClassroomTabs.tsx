@@ -1,4 +1,6 @@
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import api from "../../../api/api";
 
 // 💡 순환 참조를 막기 위해 타입을 독립적으로 정의 (구조가 같으면 알아서 호환됩니다)
 type TabType = "home" | "notice" | "lecture" | "assign" | "qna" | "score";
@@ -144,7 +146,59 @@ export function HomeTab({ onTabChange }: HomeTabProps) {
 }
 
 export function NoticeTab() { return <div className="p-4 bg-white rounded-xl border">공지사항 내용</div>; }
-export function LectureTab() { return <div className="p-4 bg-white rounded-xl border">온라인 강의 내용</div>; }
+interface LectureSummary {
+  lectureSn: number;
+  lectureName: string;
+  lectureDuration: number | null;
+}
+
+export function LectureTab({ courseSn }: { courseSn: number | null }) {
+  const [lectures, setLectures] = useState<LectureSummary[]>([]);
+  const [courseId, setCourseId] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!courseSn) return;
+    api.get(`/api/course/${courseSn}`)
+      .then((res) => {
+        setCourseId(res.data.course.courseSn);
+        setLectures(res.data.lectures);
+      })
+      .catch(() => {/* 목록 로드 실패는 조용히 처리 */});
+  }, [courseSn]);
+
+  if (!courseSn || lectures.length === 0) {
+    return (
+      <div className="p-4 bg-white rounded-xl border border-slate-200 text-sm text-slate-400 text-center">
+        강의 목록이 없습니다.
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+      <ul className="divide-y divide-slate-100">
+        {lectures.map((l) => (
+          <li key={l.lectureSn} className="flex items-center justify-between px-4 py-3 hover:bg-slate-50 transition-colors">
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-slate-800 truncate">{l.lectureName}</p>
+              {l.lectureDuration && (
+                <p className="text-xs text-slate-400 mt-0.5">
+                  {Math.floor(l.lectureDuration / 60)}:{String(l.lectureDuration % 60).padStart(2, "0")}
+                </p>
+              )}
+            </div>
+            <button
+              onClick={() => window.open(`/viewer?courseId=${courseId}&lectureId=${l.lectureSn}`, "_blank")}
+              className="ml-3 flex-shrink-0 px-3 py-1.5 text-xs font-semibold text-blue-600 bg-blue-50 rounded-lg border border-blue-200 hover:bg-blue-100 transition-colors"
+            >
+              강의 보기
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
 export function AssignTab() { return <div className="p-4 bg-white rounded-xl border">과제 제출 내용</div>; }
 export function QnaTab() { return <div className="p-4 bg-white rounded-xl border">1:1 Q&A 내용</div>; }
 export function ScoreTab() { return <div className="p-4 bg-white rounded-xl border">성적 관리 내용</div>; }
