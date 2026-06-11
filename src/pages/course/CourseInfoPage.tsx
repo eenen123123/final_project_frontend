@@ -154,6 +154,7 @@ export default function CourseInfoPage() {
 
   useEffect(() => {
     if (!courseSn) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
     axios
       .get<CourseDetailResponse>(`/api/course/${courseSn}`)
@@ -459,7 +460,10 @@ export default function CourseInfoPage() {
         (textBooks.length > 0 ? (
           <div className="space-y-8">
             {textBooks.map((tb) => (
-              <div key={tb.textbookSn} className="border border-gray-200 rounded p-5">
+              <div
+                key={tb.textbookSn}
+                className="border border-gray-200 rounded p-5"
+              >
                 {/* 상단: 이미지 + 기본 정보 */}
                 <div className="flex gap-5 mb-5 pb-5 border-b border-gray-100">
                   <div className="w-28 h-36 bg-gray-100 rounded overflow-hidden flex-shrink-0 shadow-sm">
@@ -484,21 +488,29 @@ export default function CourseInfoPage() {
                     </p>
                     <div className="space-y-1 text-sm">
                       <div className="flex items-center gap-2">
-                        <span className="text-gray-400 w-12 text-xs flex-shrink-0">정가</span>
+                        <span className="text-gray-400 w-12 text-xs flex-shrink-0">
+                          정가
+                        </span>
                         <span className="text-gray-400 line-through text-xs">
                           {tb.purchPrcAmt.toLocaleString()}원
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-gray-400 w-12 text-xs flex-shrink-0">판매가</span>
+                        <span className="text-gray-400 w-12 text-xs flex-shrink-0">
+                          판매가
+                        </span>
                         <span className="font-bold text-gray-900">
                           {tb.salePrcAmt.toLocaleString()}원
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-gray-400 w-12 text-xs flex-shrink-0">배송비</span>
+                        <span className="text-gray-400 w-12 text-xs flex-shrink-0">
+                          배송비
+                        </span>
                         <span className="text-xs text-gray-600">
-                          {tb.dlvrAmt > 0 ? `${tb.dlvrAmt.toLocaleString()}원` : "무료"}
+                          {tb.dlvrAmt > 0
+                            ? `${tb.dlvrAmt.toLocaleString()}원`
+                            : "무료"}
                         </span>
                       </div>
                     </div>
@@ -508,7 +520,9 @@ export default function CourseInfoPage() {
                 {/* 교재 요약 */}
                 {tb.bookSmry && (
                   <div className="mb-4 pb-4 border-b border-gray-100">
-                    <p className="text-sm font-semibold text-gray-700 mb-2">교재 소개</p>
+                    <p className="text-sm font-semibold text-gray-700 mb-2">
+                      교재 소개
+                    </p>
                     <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">
                       {tb.bookSmry}
                     </p>
@@ -527,7 +541,9 @@ export default function CourseInfoPage() {
                 {/* 목차 */}
                 {tb.tocCn && (
                   <div>
-                    <p className="text-sm font-semibold text-gray-700 mb-2">목차</p>
+                    <p className="text-sm font-semibold text-gray-700 mb-2">
+                      목차
+                    </p>
                     <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">
                       {tb.tocCn}
                     </p>
