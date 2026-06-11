@@ -32,7 +32,7 @@ const Pill = ({
     className={`text-xs px-3.5 py-1.5 rounded-md border transition-all cursor-pointer whitespace-nowrap
       ${
         active
-          ? "bg-blue-600 text-white border-blue-600 font-medium shadow-sm shadow-blue-100"
+          ? "bg-slate-800 text-white border-slate-800 font-medium"
           : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:text-gray-900"
       }`}
   >

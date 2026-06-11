@@ -4,6 +4,97 @@ import { ChevronDown, ChevronUp, Home } from "lucide-react";
 import api from "../../api/api";
 import { type TextbookDto } from "./components/BookCard";
 
+const NOW = Date.now();
+
+type TabKey = "intro" | "toc" | "info";
+
+const TABS: { key: TabKey; label: string }[] = [
+  { key: "intro", label: "교재 소개" },
+  { key: "toc", label: "목차" },
+  { key: "info", label: "상세 정보" },
+];
+
+function TabSection({ book }: { book: TextbookDto }) {
+  const [active, setActive] = useState<TabKey>("intro");
+
+  return (
+    <div>
+      {/* 탭 헤더 */}
+      <div className="flex mb-8">
+        {TABS.map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => setActive(tab.key)}
+            className={`px-10 py-3 text-sm border border-gray-200 transition-colors cursor-pointer -ml-px first:ml-0 ${
+              active === tab.key
+                ? "font-bold text-gray-900 border-b-white bg-white relative z-10"
+                : "text-gray-400 bg-gray-50 hover:text-gray-600"
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+        <div className="flex-1 border-b border-gray-200" />
+      </div>
+
+      {/* 탭 콘텐츠 */}
+      <div className="max-w-3xl">
+        {active === "intro" &&
+          (book.trgtGrdCn ? (
+            <div className="text-sm text-gray-700 leading-loose whitespace-pre-line">
+              {book.trgtGrdCn}
+            </div>
+          ) : (
+            <p className="text-sm text-gray-400">교재 소개가 없습니다.</p>
+          ))}
+
+        {active === "toc" &&
+          (book.tocCn ? (
+            <div className="text-sm text-gray-700 leading-loose whitespace-pre-line">
+              {book.tocCn}
+            </div>
+          ) : (
+            <p className="text-sm text-gray-400">목차 정보가 없습니다.</p>
+          ))}
+
+        {active === "info" && (
+          <table className="text-sm w-full max-w-sm">
+            <tbody>
+              {book.pubrNm && (
+                <tr className="border-b border-gray-100">
+                  <td className="py-2.5 pr-8 text-gray-400 w-24">출판사</td>
+                  <td className="py-2.5 text-gray-800">{book.pubrNm}</td>
+                </tr>
+              )}
+              {book.authrNm && (
+                <tr className="border-b border-gray-100">
+                  <td className="py-2.5 pr-8 text-gray-400">저자</td>
+                  <td className="py-2.5 text-gray-800">{book.authrNm}</td>
+                </tr>
+              )}
+              {book.isbnNo && (
+                <tr className="border-b border-gray-100">
+                  <td className="py-2.5 pr-8 text-gray-400">ISBN</td>
+                  <td className="py-2.5 text-gray-800">{book.isbnNo}</td>
+                </tr>
+              )}
+              {book.subjClNm && (
+                <tr className="border-b border-gray-100">
+                  <td className="py-2.5 pr-8 text-gray-400">과목</td>
+                  <td className="py-2.5 text-gray-800">
+                    {book.subjClNm}
+                    {book.subjNm && ` › ${book.subjNm}`}
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function BookDetailPage() {
   const { textbookSn } = useParams<{ textbookSn: string }>();
   const navigate = useNavigate();
@@ -13,12 +104,18 @@ export default function BookDetailPage() {
 
   useEffect(() => {
     if (!textbookSn) return;
-    setLoading(true);
-    api
-      .get(`/api/textbook/${textbookSn}`)
-      .then((res) => setBook(res.data))
-      .catch(() => navigate("/header/books"))
-      .finally(() => setLoading(false));
+    const fetch = async () => {
+      setLoading(true);
+      try {
+        const res = await api.get(`/api/textbook/${textbookSn}`);
+        setBook(res.data);
+      } catch {
+        navigate("/header/books");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetch();
   }, [textbookSn, navigate]);
 
   if (loading) {
@@ -33,17 +130,33 @@ export default function BookDetailPage() {
 
   const inStock = book.salableCnt == null || book.salableCnt > 0;
   const total = book.salePrcAmt + (book.dlvrAmt ?? 0);
+  const isNew = !!book.regDt && NOW - new Date(book.regDt).getTime() < 30 * 24 * 60 * 60 * 1000;
 
-  const isNew = (() => {
-    if (!book.regDt) return false;
-    const diff = Date.now() - new Date(book.regDt).getTime();
-    return diff < 30 * 24 * 60 * 60 * 1000;
-  })();
+  const handleAddToCart = async () => {
+    try {
+      const res = await api.post("/api/cart", {
+        prodDivCd: "10",
+        prodSn: book.textbookSn,
+        prodNm: book.textbookNm,
+        prodPrice: book.salePrcAmt,
+        itemQty: 1,
+      });
+      if (res.data === "이미 장바구니에 담긴 상품입니다.") {
+        const go = window.confirm("이미 장바구니에 담긴 상품입니다.\n마이페이지(장바구니)에서 확인하시겠습니까?");
+        if (go) navigate("/mycart");
+      } else {
+        const go = window.confirm("장바구니에 담으셨습니다.\n마이페이지(장바구니)에서 확인하시겠습니까?");
+        if (go) navigate("/mycart");
+      }
+    } catch {
+      alert("로그인이 필요합니다.");
+    }
+  };
+
 
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-5xl mx-auto px-6 pt-6 pb-10">
-
         {/* 상단 타이틀 영역 */}
         <div className="mb-5">
           <div className="flex items-center gap-1.5 mb-3 flex-wrap">
@@ -83,7 +196,6 @@ export default function BookDetailPage() {
 
         {/* 메인 2컬럼 */}
         <div className="flex flex-col md:flex-row gap-10 md:gap-14 mb-12">
-
           {/* 왼쪽: 표지 */}
           <div className="flex flex-col items-center gap-3 shrink-0">
             {book.thmbImg ? (
@@ -114,7 +226,6 @@ export default function BookDetailPage() {
 
           {/* 오른쪽: 정보 */}
           <div className="flex-1 min-w-0">
-
             {/* 강사 + 가격 정보 한 블록 */}
             <div className="flex items-start gap-5 mb-6">
               <div className="w-24 h-24 rounded-full bg-gray-100 border border-gray-200 shrink-0 overflow-hidden">
@@ -146,7 +257,9 @@ export default function BookDetailPage() {
                         </span>
                         {book.instrUuid && (
                           <button
-                            onClick={() => navigate(`/instructor/${book.instrUuid}`)}
+                            onClick={() =>
+                              navigate(`/instructor/${book.instrUuid}`)
+                            }
                             className="w-5 h-5 flex items-center justify-center rounded border border-gray-300 text-gray-400 hover:border-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
                             title="강사 홈"
                           >
@@ -157,13 +270,17 @@ export default function BookDetailPage() {
                     </td>
                   </tr>
                   <tr>
-                    <td className="text-gray-400 py-0.5 pr-5 whitespace-nowrap">판매가</td>
+                    <td className="text-gray-400 py-0.5 pr-5 whitespace-nowrap">
+                      판매가
+                    </td>
                     <td className="font-black text-gray-900 py-0.5 text-base">
                       {book.salePrcAmt.toLocaleString()}원
                     </td>
                   </tr>
                   <tr>
-                    <td className="text-gray-400 py-0.5 pr-5 whitespace-nowrap">배송비</td>
+                    <td className="text-gray-400 py-0.5 pr-5 whitespace-nowrap">
+                      배송비
+                    </td>
                     <td className="text-gray-700 py-0.5">
                       {(book.dlvrAmt ?? 0) > 0
                         ? `${book.dlvrAmt.toLocaleString()}원`
@@ -172,7 +289,9 @@ export default function BookDetailPage() {
                   </tr>
                   {book.isbnNo && (
                     <tr>
-                      <td className="text-gray-400 py-0.5 pr-5 whitespace-nowrap">ISBN</td>
+                      <td className="text-gray-400 py-0.5 pr-5 whitespace-nowrap">
+                        ISBN
+                      </td>
                       <td className="text-gray-700 py-0.5">{book.isbnNo}</td>
                     </tr>
                   )}
@@ -217,13 +336,16 @@ export default function BookDetailPage() {
             </div>
 
             <p className="text-xs text-gray-400 mb-6 leading-relaxed">
-              · 합계 금액은 실 결제단계에서 상품 특성 및 할인권 적용 등에 따라 차이가 발생할 수 있습니다.<br />
-              · 장바구니에 담긴 상품은 보관기한이 만료되기 전 관리자에 의해 품절 처리될 수 있습니다.
+              · 합계 금액은 실 결제단계에서 상품 특성 및 할인권 적용 등에 따라
+              차이가 발생할 수 있습니다.
+              <br />· 장바구니에 담긴 상품은 보관기한이 만료되기 전 관리자에
+              의해 품절 처리될 수 있습니다.
             </p>
 
             {/* 구매 버튼 */}
             <div className="flex gap-3">
               <button
+                onClick={handleAddToCart}
                 disabled={!inStock}
                 className="flex-1 py-3.5 border border-gray-300 rounded font-semibold text-sm text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
               >
@@ -270,49 +392,8 @@ export default function BookDetailPage() {
           </div>
         )}
 
-        {/* 상세 정보 탭 */}
-        <div className="border-b-2 border-gray-900 mb-8">
-          <button className="px-8 py-3 text-sm font-bold text-gray-900 border-b-2 border-gray-900 -mb-[2px] cursor-pointer">
-            상세 정보
-          </button>
-        </div>
-
-        {/* 소개 */}
-        {(book.bookSmry || book.tocCn || book.trgtGrdCn) && (
-          <div className="max-w-3xl space-y-8">
-            {book.bookSmry && (
-              <section>
-                <h3 className="text-base font-black text-gray-900 mb-3 pb-2 border-b border-gray-200">
-                  소개
-                </h3>
-                <div className="text-sm text-gray-700 leading-loose whitespace-pre-line">
-                  {book.bookSmry}
-                </div>
-              </section>
-            )}
-            {book.tocCn && (
-              <section>
-                <h3 className="text-base font-black text-gray-900 mb-3 pb-2 border-b border-gray-200">
-                  목차
-                </h3>
-                <div className="text-sm text-gray-700 leading-loose whitespace-pre-line">
-                  {book.tocCn}
-                </div>
-              </section>
-            )}
-            {book.trgtGrdCn && (
-              <section>
-                <h3 className="text-base font-black text-gray-900 mb-3 pb-2 border-b border-gray-200">
-                  대상
-                </h3>
-                <div className="text-sm text-gray-700 leading-loose whitespace-pre-line">
-                  {book.trgtGrdCn}
-                </div>
-              </section>
-            )}
-          </div>
-        )}
-
+        {/* 탭 */}
+        <TabSection book={book} />
       </div>
     </div>
   );

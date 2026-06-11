@@ -88,7 +88,7 @@ export default function BooksPage() {
           <div className="flex items-center justify-between px-1">
             <span className="text-sm text-gray-600">
               총 <b className="text-gray-900 font-semibold">{totalCount}</b>권의
-              전용 교재
+              교재
             </span>
             <button onClick={handleReset} className="cursor-pointer">
               <RefreshCw
