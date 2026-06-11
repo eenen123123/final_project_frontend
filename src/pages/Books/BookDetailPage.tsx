@@ -135,7 +135,7 @@ export default function BookDetailPage() {
   const handleAddToCart = async () => {
     try {
       const res = await api.post("/api/cart", {
-        prodDivCd: "10",
+        prodDivCd: "TEXTBOOK",
         prodSn: book.textbookSn,
         prodNm: book.textbookNm,
         prodPrice: book.salePrcAmt,

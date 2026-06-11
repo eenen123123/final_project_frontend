@@ -35,7 +35,7 @@ export default function BookCard({ book }: { book: TextbookDto }) {
     e.stopPropagation();
     try {
       const res = await api.post("/api/cart", {
-        prodDivCd: "10",
+        prodDivCd: "TEXTBOOK",
         prodSn: book.textbookSn,
         prodNm: book.textbookNm,
         prodPrice: book.salePrcAmt,
