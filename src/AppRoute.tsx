@@ -54,7 +54,7 @@ import LectureListPage from "./pages/Lecture/LectureListPage.tsx";
 import ParentJoinPage from "./pages/User/ParentJoinPage.tsx";
 import CourseListPage from "./pages/course/CourseListPage.tsx";
 import CourseInfoPage from "./pages/course/CourseInfoPage.tsx";
-import ViewerTestPage from "./pages/test/ViewerTestPage.tsx";
+import HermesVideoViewer from "./components/viewer/HermesVideoViewer.tsx";
 
 export default function AppRoute() {
   return (
@@ -112,7 +112,6 @@ export default function AppRoute() {
       <Route path="/lecturelist" element={<LectureListPage />} />
       <Route path="/courses" element={<CourseListPage />} />
       <Route path="/courses/:courseSn" element={<CourseInfoPage />} />
-      <Route path="/test/viewer" element={<ViewerTestPage />} />
 
       {/* 고객센터 라우트 */}
       <Route path="/customer/faq" element={<FAQPage />} />
@@ -132,6 +131,8 @@ export default function AppRoute() {
       {/* 인증이 필요한 라우트 */}
       <Route element={<ProtectedRoute />}>
         <Route path="/parentroom" element={<ParentPage />} />
+
+        <Route path="/viewer" element={<HermesVideoViewer />} />
 
         {/* 마이페이지 라우트 */}
         <Route path="/mypage" element={<MyPage />} />
