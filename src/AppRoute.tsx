@@ -83,7 +83,8 @@ export default function AppRoute() {
         <Route index element={<InstructorDetailPage />} />
         <Route element={<InstructorBoardLayout />}>
           <Route path="courses" element={<CoursesTab />} />
-          <Route path="courses/:courseSn" element={<CourseDetailPage />} />
+          {/* <Route path="courses/:courseSn" element={<CourseDetailPage />} /> */}
+          <Route path="courses/:courseSn" element={<CourseInfoPage />} />
           <Route
             path="notice"
             element={
