@@ -152,20 +152,45 @@ interface LectureSummary {
   lectureDuration: number | null;
 }
 
+type FetchState =
+  | { status: "idle" }
+  | { status: "loading" }
+  | { status: "error" }
+  | { status: "success"; lectures: LectureSummary[] };
+
 export function LectureTab({ courseSn }: { courseSn: number | null }) {
-  const [lectures, setLectures] = useState<LectureSummary[]>([]);
-  const [courseId, setCourseId] = useState<number | null>(null);
+  const [state, setState] = useState<FetchState>({ status: "idle" });
 
   useEffect(() => {
-    if (!courseSn) return;
+    if (!courseSn) {
+      setState({ status: "idle" });
+      return;
+    }
+    setState({ status: "loading" });
     api.get(`/api/course/${courseSn}`)
       .then((res) => {
-        setCourseId(res.data.course.courseSn);
-        setLectures(res.data.lectures);
+        setState({ status: "success", lectures: res.data.lectures });
       })
-      .catch(() => {/* 목록 로드 실패는 조용히 처리 */});
+      .catch(() => {
+        setState({ status: "error" });
+      });
   }, [courseSn]);
 
+  if (state.status === "loading") {
+    return (
+      <div className="p-4 bg-white rounded-xl border border-slate-200 text-sm text-slate-400 text-center">
+        불러오는 중...
+      </div>
+    );
+  }
+  if (state.status === "error") {
+    return (
+      <div className="p-4 bg-white rounded-xl border border-slate-200 text-sm text-red-400 text-center">
+        강의 목록을 불러오지 못했습니다.
+      </div>
+    );
+  }
+  const lectures = state.status === "success" ? state.lectures : [];
   if (!courseSn || lectures.length === 0) {
     return (
       <div className="p-4 bg-white rounded-xl border border-slate-200 text-sm text-slate-400 text-center">
@@ -188,7 +213,7 @@ export function LectureTab({ courseSn }: { courseSn: number | null }) {
               )}
             </div>
             <button
-              onClick={() => window.open(`/viewer?courseId=${courseId}&lectureId=${l.lectureSn}`, "_blank")}
+              onClick={() => window.open(`/viewer?courseId=${courseSn}&lectureId=${l.lectureSn}`, "_blank")}
               className="ml-3 flex-shrink-0 px-3 py-1.5 text-xs font-semibold text-blue-600 bg-blue-50 rounded-lg border border-blue-200 hover:bg-blue-100 transition-colors"
             >
               강의 보기
