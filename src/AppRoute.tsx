@@ -48,6 +48,7 @@ import PaymentPage from "./pages/Payment/PaymentPage";
 import OrderHistoryPage from "./pages/User/Mypage/OrderHistoryPage";
 import CouponPointPage from "./pages/User/Mypage/CouponPointPage";
 import BookMain from "./pages/Books/BooksPage";
+import BookDetailPage from "./pages/Books/BookDetailPage";
 import ParentPage from "./ParentPage/ParentPage.tsx";
 import AiNavigator from "./pages/AiNavigator/AiNavigatorPage";
 import LectureListPage from "./pages/Lecture/LectureListPage.tsx";
@@ -107,6 +108,7 @@ export default function AppRoute() {
         </Route>
       </Route>
       <Route path="/header/books" element={<BookMain />} />
+      <Route path="/header/books/:textbookSn" element={<BookDetailPage />} />
       <Route path="/header/Ainavigator" element={<AiNavigator />} />
       <Route path="/lecturelist" element={<LectureListPage />} />
       <Route path="/courses" element={<CourseListPage />} />
