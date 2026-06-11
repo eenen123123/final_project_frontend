@@ -212,6 +212,7 @@ export function LectureTab({ courseSn }: { courseSn: number | null }) {
 
   useEffect(() => {
     if (!courseSn) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setState({ status: "idle" });
       return;
     }

@@ -30,7 +30,7 @@ export default function ClassroomLayout() {
                 {classroom ? classroom.classNm : "로딩 중..."}
               </span>
             </h1>
-            <p className="text-[10px] text-slate-400 font-bold tracking-wider uppercase mt-0.5">
+            <p className="text-[12px] text-slate-400 font-bold tracking-wider uppercase mt-0.5">
               Classroom Dashboard
             </p>
           </div>
