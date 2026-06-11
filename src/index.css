@@ -6,3 +6,7 @@
   content: attr(data-placeholder);
   @apply text-slate-400 float-left h-0 pointer-events-none;
 }
+
+button {
+  @apply cursor-pointer;
+}
