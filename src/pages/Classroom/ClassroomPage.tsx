@@ -35,10 +35,7 @@ export default function ClassroomPage() {
 
   return (
     <div className="flex flex-1 overflow-hidden">
-      <ClassroomLeftPanel
-        instructor={classroom}
-        onInstructorPageClick={() => alert("강사 페이지로 이동")}
-      />
+      <ClassroomLeftPanel instructor={classroom} />
 
       <main className="flex-1 overflow-y-auto p-6 bg-[#F8FAFC]">
         <div className="max-w-[1000px] w-full flex flex-col gap-5">

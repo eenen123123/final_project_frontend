@@ -84,7 +84,8 @@ export default function AppRoute() {
         <Route index element={<InstructorDetailPage />} />
         <Route element={<InstructorBoardLayout />}>
           <Route path="courses" element={<CoursesTab />} />
-          <Route path="courses/:courseSn" element={<CourseDetailPage />} />
+          {/* <Route path="courses/:courseSn" element={<CourseDetailPage />} /> */}
+          <Route path="courses/:courseSn" element={<CourseInfoPage />} />
           <Route
             path="notice"
             element={
@@ -114,7 +115,6 @@ export default function AppRoute() {
       <Route path="/header/Ainavigator" element={<AiNavigator />} />
       <Route path="/lecturelist" element={<LectureListPage />} />
       <Route path="/courses" element={<CourseListPage />} />
-      <Route path="/courses/:courseSn" element={<CourseInfoPage />} />
 
       {/* 고객센터 라우트 */}
       <Route path="/customer/faq" element={<FAQPage />} />
