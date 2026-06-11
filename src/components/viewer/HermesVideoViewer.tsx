@@ -73,15 +73,6 @@ function LectureList({ lectures, currentLectureSn, goToLecture }: LectureListPro
           </li>
         );
       })}
-      <li className="mt-3 pt-3 border-t border-slate-100">
-        <div className="flex justify-between mb-1">
-          <span className="text-[11px] text-slate-500">전체 진도</span>
-          <span className="text-[11px] text-blue-600 font-semibold">0%</span>
-        </div>
-        <div className="h-1.5 bg-slate-200 rounded-full">
-          <div className="h-full w-0 bg-blue-600 rounded-full" />
-        </div>
-      </li>
     </ul>
   );
 }
@@ -114,7 +105,6 @@ export default function HermesVideoViewer() {
   // 현재 강의 영상 URL fetch
   useEffect(() => {
     if (!isAuthReady || !currentLectureSn || lectures.length === 0) return;
-    setVideoUrl("");
     const current = lectures.find((l) => l.lectureSn === currentLectureSn);
     if (!current?.lectureVideoFileId) return;
     api.post(`/api/files/${current.lectureVideoFileId}/token`)
@@ -127,6 +117,15 @@ export default function HermesVideoViewer() {
         }
       });
   }, [currentLectureSn, lectures, isAuthReady]);
+
+  useEffect(() => {
+    if (!drawerOpen) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setDrawerOpen(false);
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [drawerOpen]);
 
   const currentLecture = lectures.find((l) => l.lectureSn === currentLectureSn) ?? null;
   const currentIndex = lectures.findIndex((l) => l.lectureSn === currentLectureSn);
@@ -220,6 +219,16 @@ export default function HermesVideoViewer() {
         <div className="hidden md:flex flex-col p-5 border-l border-slate-200 bg-white overflow-y-auto">
           <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-3">강의 목록</h2>
           <LectureList lectures={lectures} currentLectureSn={currentLectureSn} goToLecture={goToLecture} />
+          {/* 진도 */}
+          <div className="mt-3 pt-3 border-t border-slate-100">
+            <div className="flex justify-between mb-1">
+              <span className="text-[11px] text-slate-500">전체 진도</span>
+              <span className="text-[11px] text-blue-600 font-semibold">0%</span>
+            </div>
+            <div className="h-1.5 bg-slate-200 rounded-full">
+              <div className="h-full w-0 bg-blue-600 rounded-full" />
+            </div>
+          </div>
         </div>
       </div>
 
@@ -233,6 +242,9 @@ export default function HermesVideoViewer() {
 
       {/* 모바일 드로어 */}
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-hidden={!drawerOpen}
         className={`fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-2xl shadow-xl transition-transform duration-300 md:hidden max-h-[70vh] flex flex-col
           ${drawerOpen ? "translate-y-0" : "translate-y-full"}`}
       >
@@ -244,6 +256,16 @@ export default function HermesVideoViewer() {
         </h2>
         <div className="overflow-y-auto px-4 pb-6">
           <LectureList lectures={lectures} currentLectureSn={currentLectureSn} goToLecture={goToLecture} />
+          {/* 진도 */}
+          <div className="mt-3 pt-3 border-t border-slate-100">
+            <div className="flex justify-between mb-1">
+              <span className="text-[11px] text-slate-500">전체 진도</span>
+              <span className="text-[11px] text-blue-600 font-semibold">0%</span>
+            </div>
+            <div className="h-1.5 bg-slate-200 rounded-full">
+              <div className="h-full w-0 bg-blue-600 rounded-full" />
+            </div>
+          </div>
         </div>
       </div>
     </div>
