@@ -88,7 +88,8 @@ export default function HermesVideoViewer() {
 
   const [course, setCourse] = useState<CourseInfo | null>(null);
   const [lectures, setLectures] = useState<LectureItem[]>([]);
-  const [videoUrl, setVideoUrl] = useState<string>("");
+  const [videoFetch, setVideoFetch] = useState<{ url: string; lectureSn: number | null }>({ url: "", lectureSn: null });
+  const videoUrl = videoFetch.lectureSn === currentLectureSn ? videoFetch.url : "";
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   // 코스 + 강의 목록 fetch
@@ -108,7 +109,7 @@ export default function HermesVideoViewer() {
     const current = lectures.find((l) => l.lectureSn === currentLectureSn);
     if (!current?.lectureVideoFileId) return;
     api.post(`/api/files/${current.lectureVideoFileId}/token`)
-      .then((res) => setVideoUrl(res.data.viewUrl))
+      .then((res) => setVideoFetch({ url: res.data.viewUrl, lectureSn: currentLectureSn }))
       .catch((error) => {
         if (error.response?.status === 403) {
           alert("강의 영상을 볼 수 있는 권한이 없습니다.");
