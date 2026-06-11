@@ -49,8 +49,17 @@ function formatDateShort(dateStr: string) {
   return `${m}.${d}`;
 }
 
-export default function CalendarEventModal({ isOpen, onClose, onSave, onDelete, defaultDate, events }: Props) {
-  const [form, setForm] = useState<FormState>(() => getInitialForm(defaultDate));
+export default function CalendarEventModal({
+  isOpen,
+  onClose,
+  onSave,
+  onDelete,
+  defaultDate,
+  events,
+}: Props) {
+  const [form, setForm] = useState<FormState>(() =>
+    getInitialForm(defaultDate),
+  );
 
   // 임시 등록 목록 (등록완료 전까지 캘린더에 반영 안 됨)
   const [pendingEvents, setPendingEvents] = useState<CalendarEvent[]>([]);
@@ -58,12 +67,14 @@ export default function CalendarEventModal({ isOpen, onClose, onSave, onDelete, 
 
   if (!isOpen) return null;
 
-  const set = (partial: Partial<FormState>) => setForm((prev) => ({ ...prev, ...partial }));
+  const set = (partial: Partial<FormState>) =>
+    setForm((prev) => ({ ...prev, ...partial }));
 
   // 추가확인 → pendingEvents 에만 추가
   const handleAdd = () => {
     if (!form.startDate || !form.endDate) return alert("일자를 입력해주세요.");
-    if (!form.content && form.activeTab === "personal") return alert("내용을 입력해주세요.");
+    if (!form.content && form.activeTab === "personal")
+      return alert("내용을 입력해주세요.");
 
     const newEvent: CalendarEvent = {
       id: "pending-" + Date.now().toString(),
@@ -73,7 +84,9 @@ export default function CalendarEventModal({ isOpen, onClose, onSave, onDelete, 
       type: form.activeTab === "academic" ? "academic" : "personal",
       title:
         form.content ||
-        (form.activeTab === "academic" ? `${form.area || "학습"} 일정` : `${form.personalCategory} 일정`),
+        (form.activeTab === "academic"
+          ? `${form.area || "학습"} 일정`
+          : `${form.personalCategory} 일정`),
       content: form.content,
       source: "user",
     };
@@ -90,7 +103,7 @@ export default function CalendarEventModal({ isOpen, onClose, onSave, onDelete, 
       // 각 일정 백엔드에 저장
       await Promise.all(
         pendingEvents.map((ev) =>
-          api.post("http://localhost:8081/api/calendar/schedule", {
+          api.post("/api/calendar/schedule", {
             scheduleType: ev.type,
             scheduleTitle: ev.title,
             scheduleCont: ev.content,
@@ -114,7 +127,7 @@ export default function CalendarEventModal({ isOpen, onClose, onSave, onDelete, 
     if (!window.confirm("일정을 삭제하시겠습니까?")) return;
     try {
       const scheduleSn = id.replace("S", "");
-      await api.delete(`http://localhost:8081/api/calendar/schedule/${scheduleSn}`);
+      await api.delete(`/api/calendar/schedule/${scheduleSn}`);
       onDelete(id);
     } catch (err) {
       console.error("일정 삭제 실패:", err);
@@ -131,7 +144,10 @@ export default function CalendarEventModal({ isOpen, onClose, onSave, onDelete, 
         {/* 헤더 */}
         <div className="bg-gray-900 px-5 py-4 flex items-center justify-between text-white">
           <h3 className="text-sm font-bold">일정 관리</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors cursor-pointer">
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-white transition-colors cursor-pointer"
+          >
             ✕
           </button>
         </div>
@@ -230,7 +246,10 @@ export default function CalendarEventModal({ isOpen, onClose, onSave, onDelete, 
               <div className="flex items-center gap-4 py-1">
                 <span className="w-10 text-gray-500 flex-shrink-0">구분</span>
                 {(["공부", "기념", "행사", "기타"] as const).map((label) => (
-                  <label key={label} className="flex items-center gap-1.5 cursor-pointer">
+                  <label
+                    key={label}
+                    className="flex items-center gap-1.5 cursor-pointer"
+                  >
                     <input
                       type="radio"
                       name="pType"
@@ -292,13 +311,20 @@ export default function CalendarEventModal({ isOpen, onClose, onSave, onDelete, 
                   <tbody className="divide-y divide-blue-100">
                     {pendingEvents.map((ev) => (
                       <tr key={ev.id} className="hover:bg-blue-50/50">
-                        <td className="p-2 pl-3 font-medium text-gray-700 flex-1">{ev.title}</td>
+                        <td className="p-2 pl-3 font-medium text-gray-700 flex-1">
+                          {ev.title}
+                        </td>
                         <td className="p-2 text-gray-400 text-[10px] whitespace-nowrap">
-                          {formatDateShort(ev.startDate)} ~ {formatDateShort(ev.endDate)}
+                          {formatDateShort(ev.startDate)} ~{" "}
+                          {formatDateShort(ev.endDate)}
                         </td>
                         <td className="p-2 pr-3 text-center">
                           <button
-                            onClick={() => setPendingEvents((prev) => prev.filter((e) => e.id !== ev.id))}
+                            onClick={() =>
+                              setPendingEvents((prev) =>
+                                prev.filter((e) => e.id !== ev.id),
+                              )
+                            }
                             className="text-red-400 hover:text-red-600 font-bold transition-colors cursor-pointer"
                           >
                             ✕
@@ -333,15 +359,23 @@ export default function CalendarEventModal({ isOpen, onClose, onSave, onDelete, 
                   </tr>
                 ) : (
                   userEvents.map((ev, i) => (
-                    <tr key={ev.id} className="hover:bg-gray-50/50 text-gray-700">
+                    <tr
+                      key={ev.id}
+                      className="hover:bg-gray-50/50 text-gray-700"
+                    >
                       <td className="p-2 text-center text-gray-400">{i + 1}</td>
-                      <td className={`p-2 font-medium ${ev.type === "academic" ? "text-blue-600" : "text-amber-600"}`}>
+                      <td
+                        className={`p-2 font-medium ${ev.type === "academic" ? "text-blue-600" : "text-amber-600"}`}
+                      >
                         {ev.type === "academic" ? "학습" : "개인"}
                       </td>
                       <td className="p-2 text-gray-500 truncate">
-                        {formatDateShort(ev.startDate)} ~ {formatDateShort(ev.endDate)}
+                        {formatDateShort(ev.startDate)} ~{" "}
+                        {formatDateShort(ev.endDate)}
                       </td>
-                      <td className="p-2 font-medium max-w-[150px] truncate">{ev.title}</td>
+                      <td className="p-2 font-medium max-w-[150px] truncate">
+                        {ev.title}
+                      </td>
                       <td className="p-2 text-center">
                         <button
                           onClick={() => handleDelete(ev.id)}

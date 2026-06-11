@@ -136,6 +136,10 @@ export default function NewHeader() {
               { to: "/header/books", label: "강의교재" },
               { to: "/header/Ainavigator", label: "AI 입시정보" },
               { to: "/header/books", label: "HERMES 패스" },
+              {
+                to: "/test/viewer?courseId=81&lectureId=23",
+                label: "테스트 뷰어",
+              },
               ...(isStudent
                 ? [{ to: "/my-classrooms", label: "Classroom" }]
                 : []),

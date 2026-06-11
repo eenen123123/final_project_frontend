@@ -177,7 +177,7 @@ export default function SiteMap({ isOpen, onClose }: SiteMapProps) {
   useEffect(() => {
     if (!isOpen || loaded) return;
     api
-      .get("http://localhost:8081/api/instructors/by-subject")
+      .get("/api/instructors/by-subject")
       .then((res) => {
         setSubjectMap(res.data);
         setLoaded(true);
