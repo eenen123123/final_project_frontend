@@ -64,7 +64,7 @@ export default function HermesVideoViewer() {
     api.post(`/api/files/${current.lectureVideoFileId}/token`)
       .then((res) => setVideoUrl(res.data.viewUrl))
       .catch((error) => {
-        if (error instanceof Error && error.message === "Request failed with status code 403") {
+        if (error.response?.status === 403) {
           alert("강의 영상을 볼 수 있는 권한이 없습니다.");
         } else {
           alert("강의 영상을 불러오는 중 오류가 발생했습니다.");
