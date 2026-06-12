@@ -1,6 +1,7 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import api from "../../api/api";
 
 /*
 bookSmry: "태스트 요약\r\n태스트 요약 2"
@@ -156,7 +157,7 @@ export default function CourseInfoPage() {
     if (!courseSn) return;
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
-    axios
+    api
       .get<CourseDetailResponse>(`/api/course/${courseSn}`)
       .then((res) => {
         setCourse(res.data.course);
