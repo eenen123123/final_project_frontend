@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import MyPageSidebar from "./components/MyPageSidebar";
+import CartGuideAccordion from "./components/CartGuideAccordion";
 import api from "../../../api/api";
 
 type Step = "cart" | "payment" | "complete";
@@ -285,12 +286,12 @@ export default function CartPage() {
                             <p className="font-semibold text-gray-900 leading-snug text-sm mb-1 flex items-center gap-1.5">
                               <span
                                 className={`inline-block text-[10px] px-1 py-px border font-semibold shrink-0 ${
-                                  item.prodDivCd === "20"
+                                  item.prodDivCd === "COURSE"
                                     ? "border-blue-400 text-blue-500 bg-blue-50"
                                     : "border-green-400 text-green-600 bg-green-50"
                                 }`}
                               >
-                                {item.prodDivCd === "20" ? "강좌" : "교재"}
+                                {item.prodDivCd === "COURSE" ? "강좌" : "교재"}
                               </span>
                               {item.prodNm}
                             </p>
@@ -355,70 +356,72 @@ export default function CartPage() {
                   </button>
                 </div>
 
-                {/* 금액 요약 */}
-                <div className="border border-gray-300 mb-2">
-                  <div className="grid grid-cols-3">
-                    <div className="py-6 text-center">
-                      <p className="text-xs text-gray-500 mb-2">총 주문금액</p>
-                      <p className="text-xl font-bold text-gray-800">
-                        {formatPrice(totalPrice)}
-                        <span className="text-sm font-normal text-gray-500 ml-0.5">원</span>
-                      </p>
-                    </div>
-                    <div className="py-6 text-center relative">
-                      <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-7 h-7 bg-white border border-gray-300 rounded-full flex items-center justify-center text-gray-700 text-sm font-bold">
-                        −
-                      </div>
-                      <p className="text-xs text-gray-500 mb-2">총 할인금액</p>
-                      <p className="text-xl font-bold text-gray-800">
-                        0
-                        <span className="text-sm font-normal text-gray-500 ml-0.5">원</span>
-                      </p>
-                    </div>
-                    <div className="py-6 text-center relative">
-                      <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-7 h-7 bg-white border border-gray-300 rounded-full flex items-center justify-center text-gray-700 text-sm font-bold">
-                        =
-                      </div>
-                      <p className="text-xs text-gray-500 mb-2">총 결제예상금액</p>
-                      <p className="text-xl font-bold text-orange-500">
-                        {formatPrice(totalPrice)}
-                        <span className="text-sm font-normal text-gray-400 ml-0.5">원</span>
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 안내 문구 */}
-                {GUIDE_ITEMS.map((item, i) => (
-                  <p key={i} className="text-[11px] text-gray-400 mb-0.5">
-                    · {item}
-                  </p>
-                ))}
-
-                {/* 액션 버튼 */}
-                <div className="flex justify-center gap-3 mt-6">
-                  <button
-                    onClick={() => navigate("/header/books")}
-                    className="px-10 py-3 bg-gray-500 text-white text-sm font-semibold hover:bg-gray-700 transition-colors cursor-pointer"
-                  >
-                    강좌/교재 더보기 &gt;
-                  </button>
-                  <button
-                    onClick={() => {
-                      const selected = items.filter((i) => i.checked);
-                      if (selected.length === 0) {
-                        alert("선택된 상품이 없습니다.");
-                        return;
-                      }
-                      navigate("/checkout", { state: { items: selected } });
-                    }}
-                    className="px-10 py-3 bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600 transition-colors cursor-pointer"
-                  >
-                    결제하기 &gt;
-                  </button>
-                </div>
               </>
             )}
+
+            {/* 금액 요약 */}
+            <div className="border border-gray-300 mb-2">
+              <div className="grid grid-cols-3">
+                <div className="py-6 text-center">
+                  <p className="text-xs text-gray-500 mb-2">총 주문금액</p>
+                  <p className="text-xl font-bold text-gray-800">
+                    {formatPrice(totalPrice)}
+                    <span className="text-sm font-normal text-gray-500 ml-0.5">원</span>
+                  </p>
+                </div>
+                <div className="py-6 text-center relative">
+                  <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-7 h-7 bg-white border border-gray-300 rounded-full flex items-center justify-center text-gray-700 text-sm font-bold">
+                    −
+                  </div>
+                  <p className="text-xs text-gray-500 mb-2">총 할인금액</p>
+                  <p className="text-xl font-bold text-gray-800">
+                    0
+                    <span className="text-sm font-normal text-gray-500 ml-0.5">원</span>
+                  </p>
+                </div>
+                <div className="py-6 text-center relative">
+                  <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-7 h-7 bg-white border border-gray-300 rounded-full flex items-center justify-center text-gray-700 text-sm font-bold">
+                    =
+                  </div>
+                  <p className="text-xs text-gray-500 mb-2">총 결제예상금액</p>
+                  <p className="text-xl font-bold text-orange-500">
+                    {formatPrice(totalPrice)}
+                    <span className="text-sm font-normal text-gray-400 ml-0.5">원</span>
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* 안내 문구 */}
+            {GUIDE_ITEMS.map((item, i) => (
+              <p key={i} className="text-[11px] text-gray-400 mb-0.5">
+                · {item}
+              </p>
+            ))}
+
+            {/* 액션 버튼 */}
+            <div className="flex justify-center gap-3 mt-6">
+              <button
+                onClick={() => navigate("/header/books")}
+                className="px-10 py-3 bg-gray-500 text-white text-sm font-semibold hover:bg-gray-700 transition-colors cursor-pointer"
+              >
+                강좌/교재 더보기 &gt;
+              </button>
+              <button
+                onClick={() => {
+                  const selected = items.filter((i) => i.checked);
+                  if (selected.length === 0) {
+                    alert("선택된 상품이 없습니다.");
+                    return;
+                  }
+                  navigate("/checkout", { state: { items: selected } });
+                }}
+                className="px-10 py-3 bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600 transition-colors cursor-pointer"
+              >
+                결제하기 &gt;
+              </button>
+            </div>
+            <CartGuideAccordion />
           </div>
         </div>
       </div>

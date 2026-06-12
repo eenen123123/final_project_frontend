@@ -71,7 +71,7 @@ export default function CheckoutPage() {
   const [notifyConsent, setNotifyConsent] = useState(true);
   const [payMethod, setPayMethod] = useState("card");
 
-  const hasBook = items.some((i) => i.prodDivCd === "10");
+  const hasBook = items.some((i) => i.prodDivCd === "TEXTBOOK");
   const totalPrice = items.reduce((sum, i) => sum + i.prodPrice * i.itemQty, 0);
 
   useEffect(() => {
@@ -172,11 +172,11 @@ export default function CheckoutPage() {
                       <td className="py-4 px-4">
                         <p className="font-semibold text-gray-900 text-sm flex items-center gap-1.5">
                           <span className={`inline-block text-[10px] px-1 py-px border font-semibold shrink-0 ${
-                            item.prodDivCd === "20"
+                            item.prodDivCd === "COURSE"
                               ? "border-blue-400 text-blue-500 bg-blue-50"
                               : "border-green-400 text-green-600 bg-green-50"
                           }`}>
-                            {item.prodDivCd === "20" ? "강좌" : "교재"}
+                            {item.prodDivCd === "COURSE" ? "강좌" : "교재"}
                           </span>
                           {item.prodNm}
                         </p>

@@ -135,21 +135,28 @@ export default function BookDetailPage() {
   const handleAddToCart = async () => {
     try {
       const res = await api.post("/api/cart", {
-        prodDivCd: "10",
+        prodDivCd: "TEXTBOOK",
         prodSn: book.textbookSn,
         prodNm: book.textbookNm,
         prodPrice: book.salePrcAmt,
         itemQty: 1,
       });
-      if (res.data === "이미 장바구니에 담긴 상품입니다.") {
-        const go = window.confirm("이미 장바구니에 담긴 상품입니다.\n마이페이지(장바구니)에서 확인하시겠습니까?");
+      // 201 Created — 새로 담김
+      const go = window.confirm(`${res.data}\n마이페이지(장바구니)에서 확인하시겠습니까?`);
+      if (go) navigate("/mycart");
+    } catch (err) {
+      const axiosErr = err as { response?: { status?: number; data?: { message?: string } } };
+      const status = axiosErr.response?.status;
+      const message = axiosErr.response?.data?.message;
+      if (status === 409) {
+        // 409 Conflict — 이미 담긴 상품 (CART_ITEM_ALREADY_EXISTS)
+        const go = window.confirm(`${message}\n마이페이지(장바구니)에서 확인하시겠습니까?`);
         if (go) navigate("/mycart");
+      } else if (status === 401) {
+        alert("로그인이 필요합니다.");
       } else {
-        const go = window.confirm("장바구니에 담으셨습니다.\n마이페이지(장바구니)에서 확인하시겠습니까?");
-        if (go) navigate("/mycart");
+        alert(message ?? "오류가 발생했습니다.");
       }
-    } catch {
-      alert("로그인이 필요합니다.");
     }
   };
 

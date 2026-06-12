@@ -11,8 +11,8 @@ interface NavItem {
 const NAV: NavItem[] = [
   { label: "수강중 강좌", href: "/mylecture" },
   { label: "My 캘린더", href: "/mycalendar" },
-  { label: "주문/배송 조회", href: "#order" },
-  { label: "수강 신청", href: "#enroll" },
+  { label: "주문/배송 조회", href: "/mycart/orderhistory" },
+  { label: "강좌 수강 신청", href: "/courses" },
   {
     label: "나의 강의실",
     href: "#classroom",
@@ -37,7 +37,7 @@ const NAV: NavItem[] = [
     label: "나의 정보",
     href: "#info",
     children: [
-      { label: "나의 Q&A", href: "#notification" },
+      { label: "나의 Q&A", href: "/customer/qna/my" },
       { label: "개인 정보 수정", href: "/mypage/verify" },
     ],
   },
@@ -54,11 +54,9 @@ export default function MyPageSidebar({
 }: MyPageSidebarProps) {
   const navigate = useNavigate();
   const { getRole } = useAuth();
-  const [openMenus, setOpenMenus] = useState<string[]>([
-    "내 강의실",
-    "주문·결제·혜택",
-    "나의 정보",
-  ]);
+  const [openMenus, setOpenMenus] = useState<string[]>(
+    NAV.filter((item) => item.children).map((item) => item.label)
+  );
 
   const toggleMenu = (label: string) => {
     setOpenMenus((prev) =>
@@ -97,7 +95,10 @@ export default function MyPageSidebar({
   return (
     <aside className="w-48 flex-shrink-0">
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-100">
+        <div
+          className="px-5 py-4 border-b border-gray-100 cursor-pointer hover:bg-blue-50 transition-colors"
+          onClick={() => navigate("/mypage")}
+        >
           <h2 className="text-base font-bold text-blue-600">마이페이지</h2>
         </div>
         <nav className="py-2">

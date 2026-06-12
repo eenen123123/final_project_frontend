@@ -28,8 +28,9 @@ export default function VerifyPasswordPage() {
     try {
       await api.post("/api/mypage/verify-password", { password });
       navigate("/mypage/profile/edit");
-    } catch {
-      setError("비밀번호가 일치하지 않습니다.");
+    } catch (err) {
+      const axiosErr = err as { response?: { data?: { message?: string } } };
+      setError(axiosErr.response?.data?.message ?? "비밀번호 확인에 실패했습니다.");
     } finally {
       setIsLoading(false);
     }
