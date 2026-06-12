@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import api, { setApiAccessToken } from "../api/api";
+import api, { setApiAccessToken, refreshAccessToken } from "../api/api";
 
 //  JWT 토큰 페이로드 인터페이스 정의
 interface TokenPayload {
@@ -98,13 +98,8 @@ export default function AuthProvider({
     let isMounted = true;
     const restoreSession = async () => {
       try {
-        const response = await api.post(
-          "/api/auth/refresh",
-          {},
-          { withCredentials: true },
-        );
-        const newAccessToken = response.data.accessToken;
-        setApiAccessToken(newAccessToken);
+        // 인터셉터 refresh와 동일한 in-flight Promise를 공유 (토큰 회전 경쟁 방지)
+        const newAccessToken = await refreshAccessToken();
 
         if (isMounted) {
           setAccessToken(newAccessToken);
