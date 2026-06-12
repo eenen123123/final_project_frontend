@@ -31,6 +31,20 @@ export function refreshAccessToken(): Promise<string> {
   return refreshPromise;
 }
 
+/**
+ * axios 에러에서 서버가 보낸 에러 메시지({status, message})를 꺼낸다.
+ * 서버 메시지가 없으면(네트워크 오류 등) fallback을 반환.
+ */
+export function getApiErrorMessage(error: unknown, fallback: string): string {
+  if (axios.isAxiosError(error)) {
+    const data = error.response?.data as { message?: string } | undefined;
+    if (data?.message) {
+      return data.message;
+    }
+  }
+  return fallback;
+}
+
 interface RetryableRequestConfig {
   _retry?: boolean;
   headers?: Record<string, string>;

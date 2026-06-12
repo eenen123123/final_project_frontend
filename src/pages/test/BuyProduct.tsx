@@ -1,5 +1,5 @@
 import { useState } from "react";
-import api from "../../api/api";
+import api, { getApiErrorMessage } from "../../api/api";
 
 /**
  * 상품 구매 테스트 페이지
@@ -71,7 +71,7 @@ export default function BuyProduct() {
       );
     } catch (error) {
       console.error("주문 생성 실패:", error);
-      alert("주문 생성에 실패했습니다.");
+      alert(getApiErrorMessage(error, "주문 생성에 실패했습니다."));
     }
   };
 
