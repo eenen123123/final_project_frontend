@@ -101,8 +101,9 @@ export default function ProfileEditPage() {
         const res = await api.get("/api/mypage/profile");
         setProfileData(res.data);
         if (res.data.userProfile) setPreviewImage(res.data.userProfile);
-      } catch {
-        console.error("프로필 정보 불러오기 실패");
+      } catch (err) {
+        const axiosErr = err as { response?: { data?: { message?: string } } };
+        console.error("프로필 정보 불러오기 실패", axiosErr.response?.data?.message);
       }
     };
     fetchProfile();
@@ -180,8 +181,9 @@ export default function ProfileEditPage() {
       });
       setSuccessMsg("개인정보가 성공적으로 수정되었습니다.");
       setProfileFile(null);
-    } catch {
-      setErrors({ submit: "저장에 실패했습니다. 다시 시도해주세요." });
+    } catch (err) {
+      const axiosErr = err as { response?: { data?: { message?: string } } };
+      setErrors({ submit: axiosErr.response?.data?.message ?? "저장에 실패했습니다. 다시 시도해주세요." });
     } finally {
       setIsLoading(false);
     }
@@ -200,8 +202,9 @@ export default function ProfileEditPage() {
       setSuccessMsg("비밀번호가 성공적으로 변경되었습니다.");
       setNewPassword("");
       setConfirmPassword("");
-    } catch {
-      setErrors({ submit: "저장에 실패했습니다. 다시 시도해주세요." });
+    } catch (err) {
+      const axiosErr = err as { response?: { data?: { message?: string } } };
+      setErrors({ submit: axiosErr.response?.data?.message ?? "저장에 실패했습니다. 다시 시도해주세요." });
     } finally {
       setIsLoading(false);
     }

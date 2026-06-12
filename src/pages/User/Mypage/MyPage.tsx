@@ -12,6 +12,7 @@ import type {
   TeacherRank,
 } from "../../../types/MyPageInterface";
 import MyPageSidebar from "../Mypage/components/MyPageSidebar";
+import FeaturedCarousel from "../Mypage/components/FeaturedCarousel";
 
 // ── 더미 데이터 ───────────────────────────────────────────────────────────
 const COURSE_STATUS: CourseStatus = {
@@ -154,13 +155,15 @@ const NOTICES = [
 const roleLabel: Record<string, string> = {
   ROLE_ADMIN: "관리자",
   ROLE_USER: "일반 회원",
-  ROLE_OFFLINE: "오프라인 회원",
+  ROLE_PARENT: "학부모",
+  ROLE_STUDENT: "학생",
 };
 
 const roleBadgeClass: Record<string, string> = {
   ROLE_ADMIN: "bg-red-100 text-red-700",
   ROLE_USER: "bg-blue-100 text-blue-700",
-  ROLE_OFFLINE: "bg-gray-100 text-gray-700",
+  ROLE_PARENT: "bg-green-100 text-green-700",
+  ROLE_STUDENT: "bg-purple-100 text-purple-700",
 };
 
 export default function MyPage() {
@@ -168,8 +171,9 @@ export default function MyPage() {
   const { getRole, getUserName } = useAuth();
   const userName = getUserName();
   const role = getRole();
-  const primaryRole = role?.[0] ?? null; // 배열에서 첫 번째 role 가져오기
-  const initial = userName ? userName.charAt(0).toUpperCase() : "?";
+  const primaryRole: string | null = Array.isArray(role)
+    ? (role[0] ?? null)
+    : ((role as unknown as string) ?? null);
   const displayRole = primaryRole
     ? (roleLabel[primaryRole] ?? primaryRole)
     : "-";
@@ -185,67 +189,6 @@ export default function MyPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-6xl mx-auto px-6 py-8">
-        {/* 유저 정보 상단 바 */}
-        <div className="bg-white border border-gray-200 rounded-xl px-6 py-4 flex items-center gap-5 mb-6 shadow-sm">
-          <div className="bg-gray-900 text-white text-xs font-medium px-3 py-1.5 rounded-md flex-shrink-0">
-            {displayRole}
-          </div>
-          <div className="flex items-center gap-3 flex-1">
-            <div className="w-10 h-10 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-700 font-bold text-sm flex-shrink-0">
-              {initial}
-            </div>
-            <span className="text-gray-900 font-semibold">
-              {userName ?? "-"}님
-            </span>
-            <span
-              className={`ml-1 inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-bold ${badgeClass}`}
-            >
-              {displayRole}
-            </span>
-          </div>
-          <div className="flex items-center gap-5 text-sm text-gray-500">
-            {/* 쪽지 */}
-            <AlertDropdown
-              type="message"
-              items={messages}
-              onChange={setMessages}
-            />
-
-            <div className="w-px h-4 bg-gray-200" />
-
-            {/* 알림 */}
-            <AlertDropdown
-              type="notification"
-              items={notifications}
-              onChange={setNotifications}
-            />
-
-            <div className="w-px h-4 bg-gray-200" />
-
-            <span className="text-gray-900 font-semibold">
-              2027 수능 <span className="text-blue-600">D-181</span>
-            </span>
-
-            <div className="w-px h-4 bg-gray-200" />
-
-            <button
-              onClick={() => {
-                const roleRaw = getRole();
-                const roles = Array.isArray(roleRaw) ? roleRaw : roleRaw ? [roleRaw as unknown as string] : [];
-                const ALLOWED = ["ROLE_USER", "ROLE_STUDENT", "ROLE_PARENT"];
-                if (!roles.some((r) => ALLOWED.includes(r))) {
-                  alert("일반 회원만 접근 가능합니다.");
-                  return;
-                }
-                navigate("/mypage/verify");
-              }}
-              className="text-xs text-gray-400 hover:text-gray-700 transition-colors cursor-pointer"
-            >
-              개인 정보 수정 ⚙
-            </button>
-          </div>
-        </div>
-
         {/* 본문: 사이드바 + 메인 */}
         <div className="flex gap-5 items-start">
           <MyPageSidebar
@@ -254,7 +197,56 @@ export default function MyPage() {
           />
 
           <div className="flex-1 min-w-0">
+            {/* 유저 정보 상단 바 */}
+            <div className="bg-white border border-gray-200 rounded-xl px-8 py-6 flex items-center gap-5 mb-5 shadow-sm">
+              <span
+                className={`inline-flex items-center justify-center px-3 py-1.5 rounded-md text-sm font-bold flex-shrink-0 ${badgeClass}`}
+              >
+                {displayRole}
+              </span>
+              <span className="text-gray-900 text-xl">
+                <span className="font-bold">{userName ?? "-"}</span>님
+              </span>
+              <div className="flex items-center gap-4 ml-auto text-sm text-gray-500">
+                <AlertDropdown
+                  type="message"
+                  items={messages}
+                  onChange={setMessages}
+                />
+                <div className="w-px h-4 bg-gray-200" />
+                <AlertDropdown
+                  type="notification"
+                  items={notifications}
+                  onChange={setNotifications}
+                />
+                <div className="w-px h-4 bg-gray-200" />
+                <button
+                  onClick={() => {
+                    const roleRaw = getRole();
+                    const roles = Array.isArray(roleRaw)
+                      ? roleRaw
+                      : roleRaw
+                        ? [roleRaw as unknown as string]
+                        : [];
+                    const ALLOWED = [
+                      "ROLE_USER",
+                      "ROLE_STUDENT",
+                      "ROLE_PARENT",
+                    ];
+                    if (!roles.some((r) => ALLOWED.includes(r))) {
+                      alert("일반 회원만 접근 가능합니다.");
+                      return;
+                    }
+                    navigate("/mypage/verify");
+                  }}
+                  className="text-xs text-gray-400 hover:text-gray-700 transition-colors cursor-pointer"
+                >
+                  개인 정보 수정 ⚙
+                </button>
+              </div>
+            </div>
             <StudyStatus status={COURSE_STATUS} />
+            <FeaturedCarousel />
             <StudyCalendar />
             <StudyReport subjects={SUBJECTS} teachers={TEACHERS} />
 
