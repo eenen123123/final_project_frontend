@@ -9,4 +9,5 @@ export interface ClassroomInfo {
   courseNm: string;
   instrNm: string;
   memberCount: number;
+  instrUuid: string;
 }

@@ -25,6 +25,7 @@ interface Course {
   subjectId: number;
   subjectName: string;
   instructorName: string;
+  instrUuid: string;
   coursePrice?: number;
   explain: string;
   isBest: boolean;
@@ -124,7 +125,7 @@ function CourseItem({ course }: { course: Course }) {
       {/* 왼쪽: 뱃지 + 제목 + 메타 */}
       <div className="flex-1 min-w-0">
         <CourseBadges course={course} />
-        <Link to={`/courses/${course.courseSn}`}>
+        <Link to={`/instructor/${course.instrUuid}/courses/${course.courseSn}`}>
           <p className="text-sm font-bold text-gray-900 leading-snug mb-1 group-hover:text-blue-700 transition-colors">
             {course.courseName}
           </p>
@@ -144,7 +145,7 @@ function CourseItem({ course }: { course: Course }) {
             </>
           )}
         </div>
-        <Link to={`/courses/${course.courseSn}`}>
+        <Link to={`/instructor/${course.instrUuid}/courses/${course.courseSn}`}>
           <span className="inline-flex items-center gap-0.5 text-[11px] text-blue-500 hover:text-blue-700 font-medium transition-colors">
             자세히 보기
             <svg
