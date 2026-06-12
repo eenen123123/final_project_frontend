@@ -12,7 +12,7 @@ export default function TossPaySuccessTestPage() {
       const amount = searchParams.get("amount");
       const productName = searchParams.get("orderName");
 
-      const res = await api.post("/api/payments/confirm", {
+      const res = await api.post("/api/payments/toss/confirm", {
         paymentKey,
         orderId,
         amount,

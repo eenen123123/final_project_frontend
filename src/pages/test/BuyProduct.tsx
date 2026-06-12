@@ -4,132 +4,142 @@ import api from "../../api/api";
 /**
  * 상품 구매 테스트 페이지
  *
+ * 1) POST /api/orders 로 주문 선생성(PENDING) → 서버가 ordId 발급 + 가격 재계산
+ * 2) 새 창에서 토스 결제창 호출 (서버가 준 ordId/totAmt 사용)
+ *
  * TODO : 구매 처리 후 성공/실패 페이지 구현
  * - 성공 페이지에서는 결제 정보 표시
  * - 실패 페이지에서는 실패 사유 표시
  */
 
-export default function BuyProduct() {
-  const [formData, setFormData] = useState({
-    item_name: "",
-    quantity: 1,
-    amount: 100,
-    total_amount: 100,
-  });
+interface OrderItemForm {
+  prodDivCd: "COURSE" | "TEXTBOOK";
+  prodSn: string;
+  itemQty: number;
+}
 
-  const handleKakaoPay = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (
-      !formData.item_name ||
-      formData.quantity <= 0 ||
-      formData.total_amount <= 0
-    ) {
-      alert("상품명, 수량, 총 금액을 올바르게 입력해주세요.");
-      return;
-    }
-    try {
-      // Access Token을 담아서 카카오페이 결제 요청을 보냄
-      const res = await api.post("/api/test/kakao-pay", formData);
-      console.log("res.data:", res.data);
-      window.open(res.data.next_redirect_pc_url, "_blank");
-    } catch (error) {
-      console.error("카카오페이 결제 요청 실패:", error);
-      alert("카카오페이 결제 요청에 실패했습니다.");
-    }
+export default function BuyProduct() {
+  const [items, setItems] = useState<OrderItemForm[]>([
+    { prodDivCd: "COURSE", prodSn: "", itemQty: 1 },
+  ]);
+
+  const handleItemChange = (
+    index: number,
+    field: keyof OrderItemForm,
+    value: string,
+  ) => {
+    setItems((prev) =>
+      prev.map((item, i) =>
+        i === index
+          ? { ...item, [field]: field === "itemQty" ? Number(value) : value }
+          : item,
+      ),
+    );
   };
 
-  const handleTossPay = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (
-      !formData.item_name ||
-      formData.quantity <= 0 ||
-      formData.total_amount <= 0
-    ) {
-      alert("상품명, 수량, 총 금액을 올바르게 입력해주세요.");
+  const addItem = () => {
+    setItems((prev) => [
+      ...prev,
+      { prodDivCd: "TEXTBOOK", prodSn: "", itemQty: 1 },
+    ]);
+  };
+
+  const removeItem = (index: number) => {
+    setItems((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleTossPay = async () => {
+    if (items.length === 0 || items.some((item) => !item.prodSn)) {
+      alert("상품 번호를 모두 입력해주세요.");
       return;
     }
     try {
+      // 주문 선생성 : 상품명/가격은 서버가 DB에서 조회해 계산
+      const res = await api.post(
+        "/api/orders",
+        items.map((item) => ({
+          prodDivCd: item.prodDivCd,
+          prodSn: Number(item.prodSn),
+          itemQty: item.itemQty,
+        })),
+      );
+      const { ordId, ordNm, totAmt } = res.data;
+
       window.open(
-        `/test/toss-pay?item_name=${formData.item_name}&quantity=${formData.quantity}&total_amount=${formData.total_amount}`,
+        `/test/toss-pay?orderId=${ordId}&amount=${totAmt}&orderName=${encodeURIComponent(ordNm)}`,
         "_blank",
       );
-      alert("토스페이 결제 요청을 보냈습니다. 새 창에서 결제를 진행해주세요.");
     } catch (error) {
-      console.error("토스페이 결제 요청 실패:", error);
-      alert("토스페이 결제 요청에 실패했습니다.");
+      console.error("주문 생성 실패:", error);
+      alert("주문 생성에 실패했습니다.");
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: name === "item_name" ? value : Number(value),
-      total_amount:
-        name === "amount"
-          ? Number(value) * formData.quantity
-          : formData.amount *
-            (name === "quantity" ? Number(value) : formData.quantity),
-    }));
-  };
   return (
     <div>
       <h1 className="text-2xl font-bold mb-4">상품 구매 페이지</h1>
       <div className="bg-white p-6 rounded shadow-md">
-        <h3 className="text-lg font-bold mb-4">Rest 모듈 실행중이어야함</h3>
+        <h3 className="text-lg font-bold mb-4">
+          Rest 모듈 실행중이어야함 / 로그인 필요
+        </h3>
       </div>
       <div className="bg-white p-6 rounded shadow-md">
-        <form action="" className="mb-4">
-          <div className="mb-4">
-            <label className="block mb-1">상품명</label>
-            <input
-              type="text"
-              name="item_name"
-              value={formData.item_name}
-              onChange={handleInputChange}
-              className="border p-2 w-full"
-            />
-          </div>
-
-          <div className="mb-4">
-            <label className="block mb-1">수량</label>
-            <input
-              type="number"
-              name="quantity"
-              value={formData.quantity}
-              onChange={handleInputChange}
-              className="border p-2 w-full"
-            />
-          </div>
-
-          <div className="mb-4">
-            <label className="block mb-1">개당 금액</label>
-            <input
-              type="number"
-              name="amount"
-              value={formData.amount}
-              onChange={handleInputChange}
-              className="border p-2 w-full"
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block mb-1">총 금액</label>
-            <input
-              type="text"
-              name="total_amount"
-              value={Number(formData.total_amount).toLocaleString()}
-              className="border p-2 w-full"
-              readOnly
-            />
-          </div>
+        <form className="mb-4">
+          {items.map((item, index) => (
+            <div key={index} className="mb-4 flex items-end gap-2">
+              <div>
+                <label className="block mb-1">상품 구분</label>
+                <select
+                  value={item.prodDivCd}
+                  onChange={(e) =>
+                    handleItemChange(index, "prodDivCd", e.target.value)
+                  }
+                  className="border p-2"
+                >
+                  <option value="COURSE">강좌</option>
+                  <option value="TEXTBOOK">교재</option>
+                </select>
+              </div>
+              <div>
+                <label className="block mb-1">상품 번호 (SN)</label>
+                <input
+                  type="number"
+                  value={item.prodSn}
+                  onChange={(e) =>
+                    handleItemChange(index, "prodSn", e.target.value)
+                  }
+                  className="border p-2 w-full"
+                />
+              </div>
+              <div>
+                <label className="block mb-1">수량</label>
+                <input
+                  type="number"
+                  min={1}
+                  value={item.itemQty}
+                  onChange={(e) =>
+                    handleItemChange(index, "itemQty", e.target.value)
+                  }
+                  className="border p-2 w-full"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => removeItem(index)}
+                className="bg-red-500 text-white px-3 py-2 rounded cursor-pointer"
+              >
+                삭제
+              </button>
+            </div>
+          ))}
         </form>
         <div className="mt-4">
           <button
             type="button"
-            onClick={handleKakaoPay}
-            className="bg-yellow-500 text-white px-4 py-2 rounded cursor-pointer"
+            onClick={addItem}
+            className="bg-gray-500 text-white px-4 py-2 rounded cursor-pointer"
           >
-            카카오페이 결제 요청
+            상품 추가
           </button>
           <button
             type="button"
