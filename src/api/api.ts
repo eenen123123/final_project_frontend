@@ -6,6 +6,31 @@ let inMemoryAccessToken: string | null = null;
 export function setApiAccessToken(token: string | null) {
   inMemoryAccessToken = token;
 }
+
+// 진행 중인 refresh 요청 (동시에 들어온 401/세션복원이 공유)
+let refreshPromise: Promise<string> | null = null;
+
+/**
+ * Access Token 재발급. 여러 호출이 동시에 들어와도 실제 refresh 요청은 1번만 나가도록
+ * in-flight Promise를 공유한다. (서버가 refresh 토큰을 회전시키므로, 동시 호출이
+ * 각자 refresh하면 한쪽이 무효화된 토큰으로 실패해 로그인 페이지로 튕긴다)
+ */
+export function refreshAccessToken(): Promise<string> {
+  if (!refreshPromise) {
+    refreshPromise = axios
+      .post("/api/auth/refresh", {}, { withCredentials: true })
+      .then((res) => {
+        const newAccessToken = res.data.accessToken;
+        setApiAccessToken(newAccessToken);
+        return newAccessToken;
+      })
+      .finally(() => {
+        refreshPromise = null; // 완료 후 다음 갱신을 위해 해제
+      });
+  }
+  return refreshPromise;
+}
+
 interface RetryableRequestConfig {
   _retry?: boolean;
   headers?: Record<string, string>;
@@ -53,13 +78,7 @@ api.interceptors.response.use(
     originalRequest._retry = true;
 
     try {
-      const refreshResponse = await axios.post(
-        "/api/auth/refresh",
-        {},
-        { withCredentials: true },
-      );
-      const newAccessToken = refreshResponse.data.accessToken;
-      setApiAccessToken(newAccessToken); // 인스턴스의 토큰 업데이트
+      const newAccessToken = await refreshAccessToken(); // 동시 401은 refresh 1회를 공유
 
       originalRequest.headers = originalRequest.headers ?? {}; // 헤더 객체가 없는 경우 초기화
       originalRequest.headers.Authorization = `Bearer ${newAccessToken}`; // 원래 요청의 헤더에 새 토큰 설정

@@ -1,12 +1,15 @@
 import { loadTossPayments, ANONYMOUS } from "@tosspayments/tosspayments-sdk";
 import type { TossPayRequestInterface } from "../../../types/TossPayRequestInterface";
 import { useSearchParams } from "react-router-dom";
+import { useAuth } from "../../../auth/AuthContext";
 
 const clientKey = "test_ck_ALnQvDd2VJ209bO49mMOVMj7X41m";
 
 export default function TossPayTestPage() {
   const [searchParams] = useSearchParams();
+  const { isAuthReady } = useAuth(); // 인증 상태가 준비될 때까지 대기
   const handlePayment = async () => {
+    if (!isAuthReady) return;
     // 서버가 발급한 주문 ID(ORDERS.ORD_ID) · 서버가 계산한 금액
     const orderId = searchParams.get("orderId");
     const amount = searchParams.get("amount");
