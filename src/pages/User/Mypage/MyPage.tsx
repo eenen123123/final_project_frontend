@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../auth/AuthContext";
+import api from "../../../api/api";
 import StudyStatus from "../Mypage/components/StudyStatus";
 import StudyCalendar from "../Mypage/components/StudyCalendar";
 import StudyReport from "../Mypage/components//StudyReport";
@@ -124,32 +125,13 @@ const INIT_MESSAGES: AlertItem[] = [
   },
 ];
 
-const NOTICES = [
-  {
-    id: "n1",
-    title: "[공지] 5/14(목) 02시~03시 사이트 통합 회원 기능 점검...",
-    date: "2026.05.11",
-    isNew: true,
-  },
-  {
-    id: "n2",
-    title: "[사전공지] PCPLAYER 업데이트 예정 안내(2026/0...",
-    date: "2026.04.29",
-    isNew: true,
-  },
-  {
-    id: "n3",
-    title: "[공지] 3/19(수) 02시~06시 사이트 점검 작업",
-    date: "2026.03.18",
-    isNew: false,
-  },
-  {
-    id: "n4",
-    title: "[공지] 3/11(수) 00시~06시 사이트 일부 메뉴 점검 작업",
-    date: "2026.02.27",
-    isNew: false,
-  },
-];
+interface NoticeItem {
+  postSn: number;
+  postSj: string;
+  regDt: string;
+  dateStr: string;
+  isNew: boolean;
+}
 // ──────────────────────────────────────────────────────────────────────────
 
 const roleLabel: Record<string, string> = {
@@ -185,6 +167,23 @@ export default function MyPage() {
   const [notifications, setNotifications] =
     useState<AlertItem[]>(INIT_NOTIFICATIONS);
   const [messages, setMessages] = useState<AlertItem[]>(INIT_MESSAGES);
+  const [notices, setNotices] = useState<NoticeItem[]>([]);
+
+  useEffect(() => {
+    api.get<{ postSn: number; postSj: string; regDt: string }[]>("/api/notice").then((res) => {
+      const now = Date.now();
+      setNotices(res.data.slice(0, 4).map((n) => {
+        const date = n.regDt ? new Date(n.regDt) : null;
+        return {
+          ...n,
+          dateStr: date
+            ? `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`
+            : "",
+          isNew: date ? now - date.getTime() < 7 * 24 * 60 * 60 * 1000 : false,
+        };
+      }));
+    }).catch(() => {});
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -280,13 +279,14 @@ export default function MyPage() {
                 </h3>
                 <div className="grid grid-cols-2 gap-2">
                   {[
-                    { icon: "💬", label: "자주하는 질문(FAQ)" },
-                    { icon: "🖥", label: "학습기기 이용안내" },
-                    { icon: "📖", label: "강좌&교재 이용가이드" },
-                    { icon: "🔧", label: "원격 해결 서비스" },
-                  ].map(({ icon, label }) => (
+                    { icon: "💬", label: "자주하는 질문(FAQ)", path: "/customer/faq" },
+                    { icon: "🖥", label: "학습기기 이용안내", path: null },
+                    { icon: "📖", label: "강좌&교재 이용가이드", path: null },
+                    { icon: "🔧", label: "원격 해결 서비스", path: null },
+                  ].map(({ icon, label, path }) => (
                     <button
                       key={label}
+                      onClick={() => path && navigate(path)}
                       className="flex items-center gap-2 px-3 py-2.5 border border-gray-200 rounded-lg text-xs text-gray-600 hover:bg-gray-50 transition-colors text-left"
                     >
                       <span>{icon}</span>
@@ -304,15 +304,21 @@ export default function MyPage() {
                   <h3 className="text-sm font-semibold text-gray-900">
                     공지사항
                   </h3>
-                  <button className="text-gray-300 hover:text-gray-500 text-lg leading-none">
+                  <button
+                    onClick={() => navigate("/customer/notice")}
+                    className="text-gray-300 hover:text-gray-500 text-lg leading-none"
+                  >
                     +
                   </button>
                 </div>
                 <div className="space-y-3">
-                  {NOTICES.map((n) => (
-                    <div key={n.id} className="flex items-center gap-2">
-                      <p className="text-xs text-gray-600 flex-1 truncate hover:text-blue-500 cursor-pointer transition-colors">
-                        {n.title}
+                  {notices.map((n) => (
+                    <div key={n.postSn} className="flex items-center gap-2">
+                      <p
+                        onClick={() => navigate(`/customer/notice/${n.postSn}`)}
+                        className="text-xs text-gray-600 flex-1 truncate hover:text-blue-500 cursor-pointer transition-colors"
+                      >
+                        {n.postSj}
                       </p>
                       {n.isNew && (
                         <span className="text-[10px] font-bold text-red-500 border border-red-300 px-1 rounded flex-shrink-0">
@@ -320,7 +326,7 @@ export default function MyPage() {
                         </span>
                       )}
                       <span className="text-xs text-gray-400 flex-shrink-0">
-                        {n.date}
+                        {n.dateStr}
                       </span>
                     </div>
                   ))}

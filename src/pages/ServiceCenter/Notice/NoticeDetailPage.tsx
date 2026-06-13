@@ -20,6 +20,8 @@ export default function NoticeDetailPage() {
   const [next, setNext] = useState<NoticeItem | null>(null);
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => { window.scrollTo(0, 0); }, [postSn]);
+
   useEffect(() => {
     if (!postSn) return;
     const fetchNotice = async () => {
