@@ -182,7 +182,7 @@ export default function MyPage() {
           isNew: date ? now - date.getTime() < 7 * 24 * 60 * 60 * 1000 : false,
         };
       }));
-    }).catch(() => {});
+    }).catch((error) => alert(error.response?.data?.message));
   }, []);
 
   return (
