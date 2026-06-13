@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import MyPageSidebar from "../Mypage/components/MyPageSidebar";
+import api from "../../../api/api";
 
 type TabType = "active" | "rest" | "end" | "hidden";
 type SortType = "recent" | "order" | "expire";
@@ -7,6 +9,7 @@ type SortType = "recent" | "order" | "expire";
 // 내 강의실 목록의 강좌 항목 (진도율·D-day·즐겨찾기·상태 포함)
 interface Lecture {
   id: string;
+  courseSn: number;
   title: string;
   teacher: string;
   subject: string;
@@ -18,124 +21,13 @@ interface Lecture {
   dday: number | null;
   thumbBg: string;
   thumbLabel: string;
+  thmbImg?: string;
   favorite: boolean;
   status: TabType;
 }
 
-const DUMMY_LECTURES: Lecture[] = [
-  {
-    id: "1",
-    title: "[임정환] 2026 수능대비 사회문화 A 완성",
-    teacher: "임정환 선생님",
-    subject: "사회탐구",
-    category: "사탐",
-    progress: 65,
-    totalCount: 20,
-    currentCount: 13,
-    expireDate: "2026.08.31",
-    dday: null,
-    thumbBg: "#1E3A8A",
-    thumbLabel: "사회\n문화 A",
-    favorite: true,
-    status: "active",
-  },
-  {
-    id: "2",
-    title: "[이수학] 2026 수능대비 수학 완성 (수I+수II+확통)",
-    teacher: "이수학 선생님",
-    subject: "수학",
-    category: "수학",
-    progress: 30,
-    totalCount: 20,
-    currentCount: 6,
-    expireDate: "2026.12.31",
-    dday: null,
-    thumbBg: "#065F46",
-    thumbLabel: "수학\n완성",
-    favorite: false,
-    status: "active",
-  },
-  {
-    id: "3",
-    title: "[최영어] 영어 독해 + 문법 완성반",
-    teacher: "최영어 선생님",
-    subject: "영어",
-    category: "영어",
-    progress: 90,
-    totalCount: 20,
-    currentCount: 18,
-    expireDate: "2026.06.09",
-    dday: 7,
-    thumbBg: "#4B5563",
-    thumbLabel: "영어\n독해",
-    favorite: false,
-    status: "active",
-  },
-  {
-    id: "4",
-    title: "[김한국] 2026 한국사 개념완성",
-    teacher: "김한국 선생님",
-    subject: "한국사",
-    category: "한국사",
-    progress: 45,
-    totalCount: 12,
-    currentCount: 5,
-    expireDate: "2026.09.30",
-    dday: null,
-    thumbBg: "#7C3AED",
-    thumbLabel: "한국사\n완성",
-    favorite: false,
-    status: "active",
-  },
-  {
-    id: "5",
-    title: "[박국어] 국어 독해 심화 완성",
-    teacher: "박국어 선생님",
-    subject: "국어",
-    category: "국어",
-    progress: 100,
-    totalCount: 15,
-    currentCount: 15,
-    expireDate: "2026.05.01",
-    dday: null,
-    thumbBg: "#B45309",
-    thumbLabel: "국어\n독해",
-    favorite: false,
-    status: "end",
-  },
-  {
-    id: "6",
-    title: "[최과학] 생명과학 I 완성",
-    teacher: "최과학 선생님",
-    subject: "과학탐구",
-    category: "과탐",
-    progress: 78,
-    totalCount: 18,
-    currentCount: 14,
-    expireDate: "2026.04.01",
-    dday: null,
-    thumbBg: "#065F46",
-    thumbLabel: "생명\n과학",
-    favorite: false,
-    status: "end",
-  },
-  {
-    id: "7",
-    title: "[신수학] 확률과 통계 단기완성",
-    teacher: "신수학 선생님",
-    subject: "수학",
-    category: "수학",
-    progress: 20,
-    totalCount: 10,
-    currentCount: 2,
-    expireDate: "2026.07.15",
-    dday: null,
-    thumbBg: "#1E40AF",
-    thumbLabel: "확률\n통계",
-    favorite: true,
-    status: "rest",
-  },
-];
+const THUMB_COLORS = ["#1E3A8A", "#065F46", "#4B5563", "#7C3AED", "#B45309", "#1E40AF", "#9D174D"];
+
 
 const TAB_LABELS: { key: TabType; label: string }[] = [
   { key: "active", label: "수강중인 강좌" },
@@ -177,17 +69,51 @@ const FilterPill = ({ label, active, onClick }: { label: string; active: boolean
 );
 
 export default function MyLecturePage() {
+  const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState("수강중 강좌");
   const [activeTab, setActiveTab] = useState<TabType>("active");
   const [lectureType, setLectureType] = useState("전체");
   const [category, setCategory] = useState("전체");
   const [sort, setSort] = useState<SortType>("recent");
-  const [lectures, setLectures] = useState<Lecture[]>(DUMMY_LECTURES);
+  const [lectures, setLectures] = useState<Lecture[]>([]);
   const [guideOpen, setGuideOpen] = useState(true);
   const [showFavOnly, setShowFavOnly] = useState(false);
   const [toast, setToast] = useState<{ visible: boolean; message: string }>({ visible: false, message: "" });
 
-  const tabCount = (tab: TabType) => DUMMY_LECTURES.filter((l) => l.status === tab).length;
+  useEffect(() => {
+    api.get<{ enrlSn: number; courseSn: number; courseNm: string; thmbImg: string | null; instrNm: string; accsEndDt: string; progressPct: number }[]>("/api/mypage/courses")
+      .then((res) => {
+        const now = Date.now();
+        setLectures(res.data.map((e, i) => {
+          const endDate = e.accsEndDt ? new Date(e.accsEndDt) : null;
+          const daysLeft = endDate ? Math.ceil((endDate.getTime() - now) / (1000 * 60 * 60 * 24)) : null;
+          const expireDate = endDate
+            ? `${endDate.getFullYear()}.${String(endDate.getMonth() + 1).padStart(2, "0")}.${String(endDate.getDate()).padStart(2, "0")}`
+            : "";
+          return {
+            id: String(e.enrlSn),
+            courseSn: e.courseSn,
+            title: e.courseNm ?? "",
+            teacher: e.instrNm ? `${e.instrNm} 선생님` : "",
+            subject: "",
+            category: "전체",
+            progress: e.progressPct ?? 0,
+            totalCount: 0,
+            currentCount: 0,
+            expireDate,
+            dday: daysLeft !== null && daysLeft <= 14 ? daysLeft : null,
+            thumbBg: THUMB_COLORS[i % THUMB_COLORS.length],
+            thumbLabel: (e.courseNm ?? "").slice(0, 4),
+            thmbImg: e.thmbImg ?? undefined,
+            favorite: false,
+            status: "active" as TabType,
+          };
+        }));
+      })
+      .catch(() => {});
+  }, []);
+
+  const tabCount = (tab: TabType) => lectures.filter((l) => l.status === tab).length;
 
   const filtered = lectures
     .filter((l) => l.status === activeTab)
@@ -385,13 +311,19 @@ export default function MyLecturePage() {
                       <div className="flex items-center gap-5 p-5">
                         {/* 썸네일 */}
                         <div className="relative flex-shrink-0">
-                          <div
-                            className="w-24 h-24 rounded-xl flex items-center justify-center shadow-inner"
-                            style={{ background: lecture.thumbBg }}
-                          >
-                            <span className="text-xs font-semibold text-white text-center leading-tight whitespace-pre-line px-2">
-                              {lecture.thumbLabel}
-                            </span>
+                          <div className="w-24 h-24 rounded-xl overflow-hidden shadow-inner flex-shrink-0">
+                            {lecture.thmbImg ? (
+                              <img src={lecture.thmbImg} alt={lecture.title} className="w-full h-full object-cover" />
+                            ) : (
+                              <div
+                                className="w-full h-full flex items-center justify-center"
+                                style={{ background: lecture.thumbBg }}
+                              >
+                                <span className="text-xs font-semibold text-white text-center leading-tight whitespace-pre-line px-2">
+                                  {lecture.thumbLabel}
+                                </span>
+                              </div>
+                            )}
                           </div>
                           <button
                             onClick={() => handleFavorite(lecture.id)}
@@ -454,7 +386,7 @@ export default function MyLecturePage() {
 
                           <div className="flex items-center justify-between">
                             <span className="text-xs text-gray-500 font-medium">
-                              {lecture.currentCount}강 / <span className="text-gray-400">{lecture.totalCount}강</span> ·{" "}
+                              학습률 진척도 ·{" "}
                               <b style={{ color: accentColor }} className="font-semibold">
                                 {lecture.progress}% 완료
                               </b>
@@ -471,12 +403,27 @@ export default function MyLecturePage() {
                         {/* 우측 액션 버튼 */}
                         <div className="flex flex-col gap-2 flex-shrink-0">
                           <button
+                            onClick={() => {
+                              api.get<{ lectures: { lectureSn: number }[] }>(`/api/course/${lecture.courseSn}`)
+                                .then((res) => {
+                                  const first = res.data.lectures?.[0];
+                                  if (first) navigate(`/viewer?courseId=${lecture.courseSn}&lectureId=${first.lectureSn}`);
+                                })
+                                .catch(() => {});
+                            }}
                             className="text-xs px-4 py-2.5 text-white rounded-xl font-semibold shadow-sm transition-all cursor-pointer whitespace-nowrap hover:opacity-90"
                             style={{ background: accentColor }}
                           >
-                            이어보기
+                            강의 보기
                           </button>
-                          <button className="text-xs px-4 py-2.5 border border-gray-200 rounded-xl font-medium text-gray-600 bg-white hover:bg-gray-50 transition-colors cursor-pointer whitespace-nowrap">
+                          <button
+                            onClick={() => {
+                              api.get<{ course: { instrUuid: string } }>(`/api/course/${lecture.courseSn}`)
+                                .then((res) => navigate(`/instructor/${res.data.course.instrUuid}/courses/${lecture.courseSn}`))
+                                .catch(() => {});
+                            }}
+                            className="text-xs px-4 py-2.5 border border-gray-200 rounded-xl font-medium text-gray-600 bg-white hover:bg-gray-50 transition-colors cursor-pointer whitespace-nowrap"
+                          >
                             강좌정보
                           </button>
                         </div>
