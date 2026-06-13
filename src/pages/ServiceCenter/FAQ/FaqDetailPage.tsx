@@ -14,6 +14,8 @@ export default function FaqDetailPage() {
   const [next, setNext] = useState<FaqItem | null>(null);
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => { window.scrollTo(0, 0); }, [postSn]);
+
   useEffect(() => {
     if (!postSn) return;
     const fetchFaq = async () => {
@@ -81,7 +83,7 @@ export default function FaqDetailPage() {
             {/* 본문 내용 */}
             <div className="min-h-48 py-6 border-b border-gray-200 mb-6">
               {faq.postCn ? (
-                <div className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">{faq.postCn}</div>
+                <div className="text-sm text-gray-700 leading-relaxed prose max-w-none" dangerouslySetInnerHTML={{ __html: faq.postCn }} />
               ) : (
                 <p className="text-sm text-gray-400">내용이 없습니다.</p>
               )}

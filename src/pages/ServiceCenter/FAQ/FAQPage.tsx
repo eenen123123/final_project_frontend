@@ -14,6 +14,8 @@ const PAGE_SIZE = 10;
 const BLOCK_SIZE = 5;
 
 export default function FAQPage() {
+  useEffect(() => { window.scrollTo(0, 0); }, []);
+
   const [searchParams, setSearchParams] = useSearchParams();
   const activeMain = (searchParams.get('category') ?? '강의/교재') as MainCategory;
   const activeSub  = searchParams.get('sub') ?? '전체';

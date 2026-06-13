@@ -116,31 +116,45 @@ export default function FeaturedCarousel() {
                 style={{ width: `${itemWidth}px` }}
               >
                 {/* 카드 */}
-                <div
-                  onClick={() => handleClick(item)}
-                  className="relative border border-gray-200 rounded-xl overflow-hidden bg-gray-100 hover:shadow-md transition-shadow cursor-pointer aspect-[3/4]"
-                >
-                  {img ? (
-                    <img
-                      src={img}
-                      alt={item.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-300 text-[10px]">
-                      이미지 없음
+                {isCourse ? (
+                  <div
+                    onClick={() => handleClick(item)}
+                    className="border border-gray-200 rounded-xl overflow-hidden bg-gray-100 hover:shadow-md transition-shadow cursor-pointer aspect-[3/4] flex flex-col"
+                  >
+                    {desc && (
+                      <div className="px-3 pt-2 pb-1 text-center">
+                        <p className="text-[10px] text-gray-600 underline truncate">{desc}</p>
+                      </div>
+                    )}
+                    <div className="flex-1 overflow-hidden">
+                      {img ? (
+                        <img src={img} alt={item.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-gray-300 text-[10px]">
+                          이미지 없음
+                        </div>
+                      )}
                     </div>
-                  )}
-
-                  {(desc ?? item.name) && (
-                    <p
-                      className="absolute top-2 left-0 right-0 text-center text-xs font-semibold text-white px-2 truncate"
-                      style={{ textShadow: "0 1px 3px rgba(0,0,0,0.7)" }}
-                    >
-                      {desc ?? item.name}
-                    </p>
-                  )}
-                </div>
+                  </div>
+                ) : (
+                  <div
+                    onClick={() => handleClick(item)}
+                    className="border border-gray-200 rounded-xl overflow-hidden bg-white hover:shadow-md transition-shadow cursor-pointer aspect-[3/4] flex flex-col"
+                  >
+                    {desc && (
+                      <div className="px-3 pt-2 pb-1 text-center">
+                        <p className="text-[10px] text-gray-500 underline truncate">{desc}</p>
+                      </div>
+                    )}
+                    <div className="flex-1 flex items-center justify-center px-5 pb-3">
+                      {img ? (
+                        <img src={img} alt={item.name} className="max-h-full object-contain drop-shadow-md" />
+                      ) : (
+                        <div className="text-gray-300 text-[10px]">이미지 없음</div>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 {/* 카드 하단 버튼 */}
                 <button

@@ -1,4 +1,5 @@
 ﻿import { Link } from 'react-router-dom';
+import { useEffect } from 'react';
 import ServiceSidebar from '../components/ServiceSidebar';
 import NoticeHeader from './components/NoticeHeader';
 import api from '../../../api/api';
@@ -14,6 +15,8 @@ const TYPE_BADGE: Record<string, string> = {
 };
 
 export default function NoticePage() {
+  useEffect(() => { window.scrollTo(0, 0); }, []);
+
   const {
     items,
     totalCount,
