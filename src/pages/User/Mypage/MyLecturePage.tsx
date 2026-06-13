@@ -15,8 +15,6 @@ interface Lecture {
   subject: string;
   category: string;
   progress: number;
-  totalCount: number;
-  currentCount: number;
   expireDate: string;
   dday: number | null;
   thumbBg: string;
@@ -98,8 +96,6 @@ export default function MyLecturePage() {
             subject: "",
             category: "전체",
             progress: e.progressPct ?? 0,
-            totalCount: 0,
-            currentCount: 0,
             expireDate,
             dday: daysLeft !== null && daysLeft <= 14 ? daysLeft : null,
             thumbBg: THUMB_COLORS[i % THUMB_COLORS.length],
@@ -110,7 +106,7 @@ export default function MyLecturePage() {
           };
         }));
       })
-      .catch(() => {});
+      .catch((error) => alert(error.response?.data?.message));
   }, []);
 
   const tabCount = (tab: TabType) => lectures.filter((l) => l.status === tab).length;
@@ -409,7 +405,7 @@ export default function MyLecturePage() {
                                   const first = res.data.lectures?.[0];
                                   if (first) navigate(`/viewer?courseId=${lecture.courseSn}&lectureId=${first.lectureSn}`);
                                 })
-                                .catch(() => {});
+                                .catch((error) => alert(error.response?.data?.message));
                             }}
                             className="text-xs px-4 py-2.5 text-white rounded-xl font-semibold shadow-sm transition-all cursor-pointer whitespace-nowrap hover:opacity-90"
                             style={{ background: accentColor }}
@@ -420,7 +416,7 @@ export default function MyLecturePage() {
                             onClick={() => {
                               api.get<{ course: { instrUuid: string } }>(`/api/course/${lecture.courseSn}`)
                                 .then((res) => navigate(`/instructor/${res.data.course.instrUuid}/courses/${lecture.courseSn}`))
-                                .catch(() => {});
+                                .catch((error) => alert(error.response?.data?.message));
                             }}
                             className="text-xs px-4 py-2.5 border border-gray-200 rounded-xl font-medium text-gray-600 bg-white hover:bg-gray-50 transition-colors cursor-pointer whitespace-nowrap"
                           >
