@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
-import api from "../../api/api";
+import api, { getApiErrorMessage } from "../../api/api";
 
 interface LoginForm {
   userId: string;
@@ -42,7 +42,8 @@ export default function Login() {
       navigate(from, { replace: true });
     } catch (error) {
       console.error("Login Failed", error);
-      alert("로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.");
+      
+      alert(getApiErrorMessage(error, "로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요."));
     }
   };
 
