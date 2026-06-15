@@ -33,14 +33,12 @@ const NAV: NavItem[] = [
   //     // { label: "쿠폰/포인트", href: "/mypage/couponpoint" },
   //   ],
   // },
-  {
-    label: "나의 정보",
-    href: "#info",
-    children: [
-      { label: "나의 Q&A", href: "/customer/qna/my" },
-      { label: "개인 정보 수정", href: "/mypage/verify" },
-    ],
-  },
+  { label: "개인 정보 수정", href: "/mypage/verify" },
+  // {
+  //   label: "나의 정보",
+  //   href: "#info",
+  //   children: [{ label: "나의 Q&A", href: "/customer/qna/my" }],
+  // },
 ];
 
 interface MyPageSidebarProps {
@@ -103,7 +101,7 @@ export default function MyPageSidebar({
           className="px-5 py-4 border-b border-gray-100 cursor-pointer hover:bg-blue-50 transition-colors"
           onClick={() => navigate("/mypage")}
         >
-          <h2 className="text-base font-bold text-blue-600">마이페이지</h2>
+          <h2 className="text-base font-bold text-blue-00">마이페이지</h2>
         </div>
         <nav className="py-2">
           {NAV.map((item) => (
