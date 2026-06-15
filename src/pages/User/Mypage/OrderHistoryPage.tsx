@@ -112,51 +112,41 @@ export default function OrderHistoryPage() {
 
           {/* 2. 메인 콘텐츠 */}
           <div className="flex-1 min-w-0">
-            <h2 className="text-xl font-bold text-gray-900 mb-5">
+            <h2 className="text-2xl font-bold text-gray-900 mb-5">
               주문/배송 조회
             </h2>
 
             {/* 주문 상태 카운터 보드 */}
-            <div className="border border-gray-200 bg-white grid grid-cols-6 divide-x divide-gray-200 mb-2">
+            {/* <div className="border border-gray-200 bg-white grid grid-cols-6 divide-x divide-gray-200 mb-2">
               <div className="py-5 text-center">
                 <p className="text-xs font-semibold text-gray-500 mb-2">
                   입금대기
                 </p>
-                <p className="text-xl font-bold text-orange-500">
-                  {/* {getStatusCount("입금대기")} */}
-                </p>
+                <p className="text-xl font-bold text-orange-500">0</p>
               </div>
               <div className="py-5 text-center">
                 <p className="text-xs font-semibold text-gray-500 mb-2">
                   결제완료
                 </p>
-                <p className="text-xl font-bold text-gray-700">
-                  {/* {getStatusCount("결제완료")} */}
-                </p>
+                <p className="text-xl font-bold text-gray-700">0</p>
               </div>
               <div className="py-5 text-center">
                 <p className="text-xs font-semibold text-gray-500 mb-2">
                   발송준비
                 </p>
-                <p className="text-xl font-bold text-gray-700">
-                  {/* {getStatusCount("발송준비")} */}
-                </p>
+                <p className="text-xl font-bold text-gray-700">0</p>
               </div>
               <div className="py-5 text-center">
                 <p className="text-xs font-semibold text-gray-500 mb-2">
                   발송완료
                 </p>
-                <p className="text-xl font-bold text-gray-700">
-                  {/* {getStatusCount("발송완료")} */}
-                </p>
+                <p className="text-xl font-bold text-gray-700">0</p>
               </div>
               <div className="py-5 text-center">
                 <p className="text-xs font-semibold text-gray-500 mb-2">
                   수취완료
                 </p>
-                <p className="text-xl font-bold text-gray-700">
-                  {/* {getStatusCount("수취완료")} */}
-                </p>
+                <p className="text-xl font-bold text-gray-700">0</p>
               </div>
               <div className="py-5 text-center bg-gray-50/40">
                 <p className="text-xs font-semibold text-gray-500 mb-2">
@@ -172,7 +162,7 @@ export default function OrderHistoryPage() {
             </div>
             <p className="text-[10px] text-gray-400 mb-6 pl-1">
               * 최근 6개월 기준
-            </p>
+            </p> */}
 
             {/* 기간검색 필터 */}
             <form
