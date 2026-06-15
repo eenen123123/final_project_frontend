@@ -106,6 +106,27 @@ export default function OrderHistoryPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthReady, currentPage]);
 
+  // 브라우저의 자동 스크롤 복원을 끄고 직접 제어한다.
+  // (목록이 비동기로 채워지기 전에 복원이 일어나면 위치가 어긋나기 때문)
+  useEffect(() => {
+    if (!("scrollRestoration" in window.history)) return;
+    const prev = window.history.scrollRestoration;
+    window.history.scrollRestoration = "manual";
+    return () => {
+      window.history.scrollRestoration = prev;
+    };
+  }, []);
+
+  // 상세에서 뒤로가기로 돌아왔을 때, 목록이 렌더된 뒤 저장해 둔 위치로 복원
+  useEffect(() => {
+    if (orders.length === 0) return;
+    const saved = sessionStorage.getItem("orderHistoryScrollY");
+    if (saved !== null) {
+      window.scrollTo(0, Number(saved));
+      sessionStorage.removeItem("orderHistoryScrollY");
+    }
+  }, [orders]);
+
   return (
     <div className="min-h-screen bg-gray-50/50">
       <div className="max-w-6xl mx-auto px-6 py-10">
@@ -313,7 +334,15 @@ export default function OrderHistoryPage() {
                           type="button"
                           className="mt-2 px-3.5 py-1.5 text-xs font-bold text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors cursor-pointer"
                         >
-                          <Link to={`/mycart/orderhistory/${item.ordSn}`}>
+                          <Link
+                            to={`/mycart/orderhistory/${item.ordSn}`}
+                            onClick={() =>
+                              sessionStorage.setItem(
+                                "orderHistoryScrollY",
+                                String(window.scrollY),
+                              )
+                            }
+                          >
                             주문상세
                           </Link>
                         </button>
