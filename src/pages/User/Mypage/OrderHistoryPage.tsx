@@ -1,39 +1,24 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import MyPageSidebar from "./components/MyPageSidebar";
+import api from "../../../api/api";
+import type { PageResponse } from "../../../hooks/usePaginatedSearch";
+import { useParams } from "react-router-dom";
+import { useAuth } from "../../../auth/AuthContext";
 
 interface OrderItem {
-  id: number;
-  orderNo: string;
-  orderDate: string;
-  title: string;
-  type: "lecture" | "book";
-  price: number;
-  paymentMethod: string;
-  status: "입금대기" | "결제완료" | "발송준비" | "발송완료" | "수취완료";
+  ordSn: number;
+  ordId: string;
+  ordNm: string;
+  totAmt: number;
+  ordStatCd: string;
+  regDt: string;
 }
 
-const DUMMY_ORDERS: OrderItem[] = [
-  {
-    id: 1,
-    orderNo: "20260515-004812",
-    orderDate: "2026-05-15",
-    title: "박광일T 수능 국어 완성반 (2027 수능대비)",
-    type: "lecture",
-    price: 127500,
-    paymentMethod: "신용카드",
-    status: "결제완료",
-  },
-  {
-    id: 2,
-    orderNo: "20260520-003184",
-    orderDate: "2026-05-20",
-    title: "정승제T 수능 수학 개념완성 교재",
-    type: "book",
-    price: 18000,
-    paymentMethod: "무통장입금",
-    status: "발송완료",
-  },
-];
+const stat = {
+  EXPIRED: "기간만료",
+  PAID: "결제완료",
+  PENDING: "결제대기",
+};
 
 const GUIDE_LINES = [
   "배송상태는 입금대기→결제완료→발송준비→발송완료의 단계로 이루어지며, 발송준비로 변경시 주문취소/배송지 변경의 경우 고객센터를 통해서만 가능합니다.",
@@ -54,38 +39,66 @@ function formatDateString(date: Date): string {
 
 export default function OrderHistoryPage() {
   const [activeSection, setActiveSection] = useState("주문/배송 조회");
-  const [orders, setOrders] = useState<OrderItem[]>(DUMMY_ORDERS);
+  const [orders, setOrders] = useState<OrderItem[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const { page } = useParams<{ page: string }>();
+  const [currentPage, setCurrentPage] = useState(page || "1");
+  const { isAuthReady } = useAuth();
 
-  const [startDate, setStartDate] = useState("2026-03-08");
-  const [endDate, setEndDate] = useState("2026-06-06");
+  const today = new Date();
+
+  const [startDate, setStartDate] = useState(
+    formatDateString(new Date(today.getTime() - 90 * 24 * 60 * 60 * 1000)),
+  );
+  const [endDate, setEndDate] = useState(formatDateString(today));
   const [selectedPeriod, setSelectedPeriod] = useState<number>(90);
 
   const handlePeriodChange = (days: number) => {
     setSelectedPeriod(days);
-    const targetEndDate = new Date(2026, 5, 6);
-    const targetStartDate = new Date(2026, 5, 6);
+    const targetEndDate = new Date();
+    const targetStartDate = new Date();
     targetStartDate.setDate(targetStartDate.getDate() - days);
 
     setStartDate(formatDateString(targetStartDate));
     setEndDate(formatDateString(targetEndDate));
   };
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSearchSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (!startDate || !endDate) {
-      alert("기간 설정을 해주십시요!");
+      alert("기간 설정을 해주세요.");
       return;
     }
     if (startDate > endDate) {
-      alert("기간 설정이 잘못되었습니다!");
+      alert("기간 설정이 잘못되었습니다.");
       return;
     }
-    alert(`조회 기간: ${startDate} ~ ${endDate} 내부 필터링을 수행합니다.`);
+    try {
+      const res = await api.get("/api/orders/my", {
+        params: {
+          page: currentPage,
+          from: startDate,
+          to: endDate,
+        },
+      });
+      setOrders(res.data.items);
+      setTotalCount(res.data.totalCount);
+    } catch (err) {
+      console.error("주문 내역 조회 실패:", err);
+      if (err instanceof Error) {
+        alert("주문 내역 조회 중 오류가 발생했습니다: " + err.message);
+      }
+    }
   };
-
-  const getStatusCount = (status: OrderItem["status"]) => {
-    return orders.filter((o) => o.status === status).length;
-  };
+  useEffect(() => {
+    if (isAuthReady) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      handleSearchSubmit();
+    }
+    // 날짜 검색은 검색 버튼(form submit)에서만 실행하고,
+    // 여기서는 인증 준비 완료/페이지 변경 시에만 자동 재조회한다.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthReady, currentPage]);
 
   return (
     <div className="min-h-screen bg-gray-50/50">
@@ -110,7 +123,7 @@ export default function OrderHistoryPage() {
                   입금대기
                 </p>
                 <p className="text-xl font-bold text-orange-500">
-                  {getStatusCount("입금대기")}
+                  {/* {getStatusCount("입금대기")} */}
                 </p>
               </div>
               <div className="py-5 text-center">
@@ -118,7 +131,7 @@ export default function OrderHistoryPage() {
                   결제완료
                 </p>
                 <p className="text-xl font-bold text-gray-700">
-                  {getStatusCount("결제완료")}
+                  {/* {getStatusCount("결제완료")} */}
                 </p>
               </div>
               <div className="py-5 text-center">
@@ -126,7 +139,7 @@ export default function OrderHistoryPage() {
                   발송준비
                 </p>
                 <p className="text-xl font-bold text-gray-700">
-                  {getStatusCount("발송준비")}
+                  {/* {getStatusCount("발송준비")} */}
                 </p>
               </div>
               <div className="py-5 text-center">
@@ -134,7 +147,7 @@ export default function OrderHistoryPage() {
                   발송완료
                 </p>
                 <p className="text-xl font-bold text-gray-700">
-                  {getStatusCount("발송완료")}
+                  {/* {getStatusCount("발송완료")} */}
                 </p>
               </div>
               <div className="py-5 text-center">
@@ -142,7 +155,7 @@ export default function OrderHistoryPage() {
                   수취완료
                 </p>
                 <p className="text-xl font-bold text-gray-700">
-                  {getStatusCount("수취완료")}
+                  {/* {getStatusCount("수취완료")} */}
                 </p>
               </div>
               <div className="py-5 text-center bg-gray-50/40">
@@ -223,13 +236,13 @@ export default function OrderHistoryPage() {
 
             {/* ── 3. 주문 리스트 테이블 (상/하단 테두리 선 보정 및 뱃지 인라인 배치) ── */}
             <div className="border-t border-b border-gray-300 mb-6">
-              <table className="w-full text-sm border-collapse">
+              <table className="w-full text-sm border-collapse table-fixed">
                 <colgroup>
-                  <col style={{ width: "120px" }} />
+                  <col style={{ width: "130px" }} />
                   <col style={{ width: "auto" }} />
-                  <col style={{ width: "100px" }} />
-                  <col style={{ width: "100px" }} />
-                  <col style={{ width: "90px" }} />
+                  <col style={{ width: "110px" }} />
+                  <col style={{ width: "110px" }} />
+                  <col style={{ width: "80px" }} />
                   <col style={{ width: "110px" }} />
                 </colgroup>
                 <thead>
@@ -244,10 +257,10 @@ export default function OrderHistoryPage() {
                       결제가
                     </th>
                     <th className="py-3 px-2 text-center font-semibold text-gray-600">
-                      결제수단
+                      결제일
                     </th>
                     <th className="py-3 px-2 text-center font-semibold text-gray-600">
-                      결제일
+                      결제 상태
                     </th>
                     <th className="py-3 px-2 text-center font-semibold text-gray-600">
                       배송상태/조회
@@ -267,43 +280,29 @@ export default function OrderHistoryPage() {
                   ) : (
                     orders.map((item) => (
                       <tr
-                        key={item.id}
+                        key={item.ordSn}
                         className="border-b border-gray-200 bg-white last:border-b-0 hover:bg-gray-50/30 transition-colors"
                       >
-                        <td className="py-4 px-2 text-center align-middle font-mono text-xs font-bold text-gray-700 underline tracking-tighter cursor-pointer">
-                          {item.orderNo}
+                        <td
+                          className="py-4 px-2 text-center align-middle font-mono text-xs font-bold text-gray-700 underline cursor-pointer truncate"
+                          title={item.ordId}
+                        >
+                          {item.ordId}
                         </td>
 
-                        {/* 💡 [강좌] 뱃지를 제목 바로 앞으로 정렬 매칭 */}
-                        <td className="py-4 px-4 text-left align-middle">
-                          <div className="flex items-center gap-2 min-w-0">
-                            <span
-                              className={`shrink-0 text-[10px] px-1.5 py-0.5 border font-bold ${
-                                item.type === "lecture"
-                                  ? "border-blue-300 text-blue-500 bg-blue-50"
-                                  : "border-green-300 text-green-600 bg-green-50"
-                              }`}
-                            >
-                              {item.type === "lecture" ? "강좌" : "교재"}
-                            </span>
-                            <p className="font-semibold text-gray-900 text-xs truncate flex-1">
-                              {item.title}
-                            </p>
-                          </div>
-                        </td>
+                        <td className="py-4 px-4 text-left">{item.ordNm}</td>
 
                         <td className="py-4 px-2 text-center align-middle font-bold text-gray-800 text-xs">
-                          {item.price.toLocaleString("ko-KR")}원
+                          {item.totAmt.toLocaleString("ko-KR")}원
                         </td>
-                        <td className="py-4 px-2 text-center align-middle text-gray-500 text-xs font-medium">
-                          {item.paymentMethod}
-                        </td>
-                        <td className="py-4 px-2 text-center align-middle font-mono text-xs text-gray-400">
-                          {item.orderDate}
+                        <td className="py-4 px-2 text-center align-middle font-mono text-xs text-gray-400 whitespace-nowrap">
+                          {item.regDt?.slice(0, 10)}
                         </td>
                         <td className="py-4 px-2 text-center align-middle">
                           <span className="text-xs font-bold text-gray-700">
-                            {item.status}
+                            {item.ordStatCd in stat
+                              ? stat[item.ordStatCd as keyof typeof stat]
+                              : "알 수 없음"}
                           </span>
                         </td>
                       </tr>
@@ -315,19 +314,27 @@ export default function OrderHistoryPage() {
 
             {/* 하단 페이지네이션 */}
             <div className="flex justify-center items-center gap-4 text-xs font-bold text-gray-400 mb-12">
-              <span className="text-gray-800 border-b border-gray-800 px-1 cursor-pointer">
-                1
-              </span>
-              <span className="text-gray-200 font-normal">|</span>
               <button
-                type="button"
-                className="hover:text-gray-800 transition-colors cursor-pointer font-mono"
+                disabled={currentPage === "1"}
+                onClick={() =>
+                  setCurrentPage((prev) => String(Number(prev) - 1))
+                }
+                className="px-3 py-1 rounded-md bg-gray-200 hover:bg-gray-300 disabled:bg-gray-100 disabled:text-gray-300 transition-colors cursor-pointer"
               >
-                &gt;&gt;
+                이전
               </button>
-              <span className="font-medium text-gray-400 cursor-pointer">
-                1
+              <span>
+                {currentPage} / {Math.ceil(totalCount / 10)}
               </span>
+              <button
+                disabled={currentPage === String(Math.ceil(totalCount / 10))}
+                onClick={() =>
+                  setCurrentPage((prev) => String(Number(prev) + 1))
+                }
+                className="px-3 py-1 rounded-md bg-gray-200 hover:bg-gray-300 disabled:bg-gray-100 disabled:text-gray-300 transition-colors cursor-pointer"
+              >
+                다음
+              </button>
             </div>
 
             {/* 하단 안내 가이드 */}
