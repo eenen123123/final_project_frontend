@@ -58,6 +58,7 @@ import CourseListPage from "./pages/course/CourseListPage.tsx";
 import CourseInfoPage from "./pages/course/CourseInfoPage.tsx";
 import HermesVideoViewer from "./components/viewer/HermesVideoViewer.tsx";
 
+/* cSpell:disable */
 export default function AppRoute() {
   return (
     <Routes>
