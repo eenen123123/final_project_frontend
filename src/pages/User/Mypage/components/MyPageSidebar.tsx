@@ -12,33 +12,35 @@ const NAV: NavItem[] = [
   { label: "수강중 강좌", href: "/mylecture" },
   { label: "My 캘린더", href: "/mycalendar" },
   { label: "주문/배송 조회", href: "/mycart/orderhistory" },
-  // { label: "강좌 수강 신청", href: "/courses" },
-  // {
-  //   label: "나의 강의실",
-  //   href: "#classroom",
-  //   children: [
-  //     { label: "수강중 강좌", href: "/mylecture" },
-  //     // { label: "강좌 수강신청", href: "/enroll" },
-  //     // { label: "교재신청", href: "/mylecture/book" },
-  //     // { label: "수강 이력 관리", href: "/mylecture/history" },
-  //   ],
-  // },
-  { label: "장바구니", href: "/mycart" },
-  // {
-  //   label: "주문·결제·혜택",
-  //   href: "#payment",
-  //   children: [
-  //     // { label: "주문/배송 조회", href: "/mycart/orderhistory" },
-  //     // { label: "이용권 관리", href: "#voucher" },
-  //     // { label: "쿠폰/포인트", href: "/mypage/couponpoint" },
-  //   ],
-  // },
-  { label: "개인 정보 수정", href: "/mypage/verify" },
-  // {
-  //   label: "나의 정보",
-  //   href: "#info",
-  //   children: [{ label: "나의 Q&A", href: "/customer/qna/my" }],
-  // },
+  { label: "강좌 수강 신청", href: "/courses" },
+  {
+    label: "나의 강의실",
+    href: "#classroom",
+    children: [
+      { label: "수강중 강좌", href: "/mylecture" },
+      { label: "강좌 수강신청", href: "/enroll" },
+      { label: "수강 리포트", href: "/mypage/report" },
+      { label: "성적 관리", href: "/mypage/grades" },
+    ],
+  },
+  {
+    label: "주문·결제·혜택",
+    href: "#payment",
+    children: [
+      { label: "장바구니", href: "/mycart" },
+      { label: "주문/배송 조회", href: "/mycart/orderhistory" },
+      { label: "이용권 관리", href: "#voucher" },
+      { label: "쿠폰/포인트", href: "/mypage/couponpoint" },
+    ],
+  },
+  {
+    label: "나의 정보",
+    href: "#info",
+    children: [
+      { label: "나의 Q&A", href: "/customer/qna/my" },
+      { label: "개인 정보 수정", href: "/mypage/verify" },
+    ],
+  },
 ];
 
 interface MyPageSidebarProps {
