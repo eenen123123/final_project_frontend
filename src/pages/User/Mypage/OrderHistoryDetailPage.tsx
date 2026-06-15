@@ -3,6 +3,15 @@ import MyPageSidebar from "./components/MyPageSidebar";
 import { useEffect, useState } from "react";
 import api from "../../../api/api";
 
+interface OrderInfo {
+  ordSn: number;
+  ordId: string;
+  ordNm: string;
+  totAmt: number;
+  ordStatCd: keyof typeof stat;
+  regDt: string;
+  items: OrderItem[];
+}
 interface OrderItem {
   ordSn: string;
   ordItemSn: string;
@@ -15,6 +24,11 @@ interface OrderItem {
   prodImg?: string; // 상품 썸네일 (추후 API에서 채워짐)
 }
 
+const stat = {
+  EXPIRED: "기간만료",
+  PAID: "결제완료",
+  PENDING: "결제대기",
+};
 const prodDivLabel: Record<string, string> = {
   TEXTBOOK: "교재",
   COURSE: "강좌",
@@ -30,17 +44,17 @@ export default function OrderHistoryDetailPage() {
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState("주문/배송 조회");
   const [loading, setLoading] = useState(true);
-  const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
+  const [orderInfo, setOrderInfo] = useState<OrderInfo | null>(null);
   const [isError, setIsError] = useState(false);
 
   useEffect(() => {
     const getOrderItems = async () => {
       try {
         setLoading(true);
-        const res = await api.get(`/api/orders/detail`, {
+        const res = await api.get<OrderInfo>(`/api/orders/detail`, {
           params: { id: ordSn },
         });
-        setOrderItems(res.data);
+        setOrderInfo(res.data);
         setIsError(false);
       } catch (error) {
         console.error("주문 상세 조회 실패:", error);
@@ -52,10 +66,11 @@ export default function OrderHistoryDetailPage() {
     getOrderItems();
   }, [ordSn]);
 
-  const totalAmount = orderItems.reduce(
-    (sum, item) => sum + item.prodPrice * item.itemQty,
-    0,
-  );
+  const totalAmount =
+    orderInfo?.items.reduce(
+      (sum, item) => sum + item.prodPrice * item.itemQty,
+      0,
+    ) ?? 0;
 
   return (
     <div className="min-h-screen bg-gray-50/50">
@@ -100,6 +115,21 @@ export default function OrderHistoryDetailPage() {
                 </span>{" "}
                 의 상세 내역입니다.
               </p>
+              {orderInfo && (
+                <p
+                  className={`inline-block mt-3 px-2 py-1 text-xs font-bold rounded-md ${
+                    stat[orderInfo.ordStatCd] === "결제완료"
+                      ? "bg-green-50 text-green-600"
+                      : stat[orderInfo.ordStatCd] === "결제대기"
+                        ? "bg-yellow-50 text-yellow-600"
+                        : stat[orderInfo.ordStatCd] === "기간만료"
+                          ? "bg-red-50 text-red-600 line-through"
+                          : "bg-gray-100 text-gray-500"
+                  }`}
+                >
+                  {stat[orderInfo.ordStatCd]}
+                </p>
+              )}
             </div>
 
             {/* 로딩 상태 */}
@@ -136,14 +166,14 @@ export default function OrderHistoryDetailPage() {
             {/* 정상 상태 */}
             {!loading && !isError && (
               <>
-                {orderItems.length === 0 ? (
+                {orderInfo?.items.length === 0 ? (
                   <div className="bg-white border border-gray-200 rounded-xl py-20 text-center text-sm text-gray-400">
                     주문 상세 내역이 없습니다.
                   </div>
                 ) : (
                   <>
                     <div className="space-y-3">
-                      {orderItems.map((item) => (
+                      {orderInfo?.items.map((item) => (
                         <div
                           key={item.ordItemSn}
                           className="group bg-white border border-gray-200 rounded-xl p-5 flex gap-5 hover:shadow-md hover:border-blue-200 transition-all"
@@ -217,7 +247,13 @@ export default function OrderHistoryDetailPage() {
                       <span className="text-sm font-bold text-gray-700">
                         총 결제금액
                       </span>
-                      <span className="text-xl font-bold text-blue-600">
+                      <span
+                        className={`text-xl font-bold text-blue-600 ${
+                          orderInfo?.ordStatCd === "EXPIRED"
+                            ? "line-through text-gray-400 stroke-1"
+                            : ""
+                        }`}
+                      >
                         {totalAmount.toLocaleString()}
                         <span className="text-sm font-normal text-gray-400 ml-0.5">
                           원
