@@ -6,6 +6,7 @@ import type {
   CalendarScheduleResponse,
 } from "../../../../types/MyPageInterface";
 import CalendarEventModal from "./CalendarEventModal";
+import { Link } from "react-router-dom";
 
 const DAYS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 const API_BASE = "http://localhost:8081";
@@ -183,12 +184,12 @@ export default function StudyCalendar() {
             >
               ›
             </button>
-            <a
-              href="/mycalendar"
+            <Link
+              to="/mycalendar"
               className="absolute right-0 text-xs text-gray-400 hover:text-gray-600 transition-colors"
             >
               전체일정 ›
-            </a>
+            </Link>
           </div>
 
           <div className="grid grid-cols-7 mb-1">

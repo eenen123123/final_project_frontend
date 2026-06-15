@@ -23,6 +23,13 @@ export default function BuyProduct() {
     { prodDivCd: "COURSE", prodSn: "", itemQty: 1 },
   ]);
 
+  const [cartItem, setCartItem] = useState({
+    prodDivCd: "COURSE",
+    prodSn: "",
+    prodNm: "",
+    prodPrice: 0,
+  });
+
   const handleItemChange = (
     index: number,
     field: keyof OrderItemForm,
@@ -75,6 +82,20 @@ export default function BuyProduct() {
     }
   };
 
+  const handleAddToCart = async () => {
+    try {
+      const res = await api.post("/api/cart", {
+        prodDivCd: cartItem.prodDivCd,
+        prodSn: Number(cartItem.prodSn),
+        prodNm: cartItem.prodNm,
+        prodPrice: cartItem.prodPrice,
+      });
+      alert("상품이 장바구니에 추가되었습니다.");
+    } catch (error) {
+      console.error("장바구니 추가 실패:", error);
+      alert(getApiErrorMessage(error, "장바구니 추가에 실패했습니다."));
+    }
+  };
   return (
     <div>
       <h1 className="text-2xl font-bold mb-4">상품 구매 페이지</h1>
@@ -147,6 +168,64 @@ export default function BuyProduct() {
             className="bg-blue-500 text-white px-4 py-2 rounded ml-2 cursor-pointer"
           >
             토스페이 결제 요청
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <h1>add to cart</h1>
+
+        <div className="bg-white p-6 rounded shadow-md mt-4">
+          <input
+            type="text"
+            name="prodDivCd"
+            id=""
+            className="border p-2 w-full"
+            placeholder="COURSE or TEXTBOOK"
+            onChange={(e) =>
+              setCartItem((prev) => ({ ...prev, prodDivCd: e.target.value }))
+            }
+          />
+          <input
+            type="text"
+            name="prodSn"
+            id=""
+            className="border p-2 w-full"
+            placeholder="상품 번호"
+            onChange={(e) =>
+              setCartItem((prev) => ({ ...prev, prodSn: e.target.value }))
+            }
+          />
+          <input
+            type="text"
+            name="prodNm"
+            id=""
+            className="border p-2 w-full"
+            placeholder="상품명"
+            onChange={(e) =>
+              setCartItem((prev) => ({ ...prev, prodNm: e.target.value }))
+            }
+          />
+          <input
+            type="number"
+            name="prodPrice"
+            id=""
+            className="border p-2 w-full"
+            placeholder="상품 가격"
+            onChange={(e) =>
+              setCartItem((prev) => ({
+                ...prev,
+                prodPrice: Number(e.target.value),
+              }))
+            }
+          />
+
+          <button
+            type="button"
+            onClick={handleAddToCart}
+            className="bg-blue-500 text-white px-4 py-2 rounded cursor-pointer"
+          >
+            add to cart
           </button>
         </div>
       </div>

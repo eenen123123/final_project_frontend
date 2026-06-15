@@ -57,7 +57,9 @@ import ParentJoinPage from "./pages/User/ParentJoinPage.tsx";
 import CourseListPage from "./pages/course/CourseListPage.tsx";
 import CourseInfoPage from "./pages/course/CourseInfoPage.tsx";
 import HermesVideoViewer from "./components/viewer/HermesVideoViewer.tsx";
+import OrderHistoryDetailPage from "./pages/User/Mypage/OrderHistoryDetailPage.tsx";
 
+/* cSpell:disable */
 export default function AppRoute() {
   return (
     <Routes>
@@ -150,13 +152,19 @@ export default function AppRoute() {
         <Route path="/customer/qna/write" element={<QnaWritePage />} />
         <Route path="/customer/qna/my" element={<QnAPage myOnly />} />
         <Route path="/customer/qna/:postSn/edit" element={<QnaEditPage />} />
-        <Route path="/enroll" element={<LectureEnrollPage />} />
+        {/* <Route path="/enroll" element={<LectureEnrollPage />} /> */}
+        {/* <Route path="/mylecture/book" element={<BookOrderPage />} /> */}
+        {/* <Route path="/mylecture/history" element={<LectureHistoryPage />} /> */}
         <Route path="/mycart" element={<CartPage />} />
         <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/mycart/orderhistory" element={<OrderHistoryPage />} />
-        <Route path="/mypage/couponpoint" element={<CouponPointPage />} />
-        <Route path="/mypage/report" element={<StudyReportPage />} />
-        <Route path="/mypage/grades" element={<GradesPage />} />
+        <Route path="/mycart/orderhistory" element={<OrderHistoryPage />} />
+        <Route
+          path="/mycart/orderhistory/:ordSn"
+          element={<OrderHistoryDetailPage />}
+        />
+
+        {/* <Route path="/mypage/couponpoint" element={<CouponPointPage />} /> */}
         <Route path="/payment" element={<PaymentPage />} />
       </Route>
 
