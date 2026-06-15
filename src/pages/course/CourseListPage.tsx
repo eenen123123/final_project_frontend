@@ -2,6 +2,18 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 
+interface Subject {
+  subjId: number;
+  subjClId: string;
+  subjNm: string;
+  subjExplnCn: string;
+}
+interface SubjectClassification {
+  subjClId: number;
+  subjClNm: string;
+  subjects: Subject[];
+}
+
 const CATEGORY_OPTIONS = [
   { value: "courseName", label: "강좌 이름" },
   { value: "subject", label: "과목" },
@@ -220,6 +232,7 @@ export default function CourseListPage() {
     keyword: searchParams.get("keyword") || "",
     page: 1,
   });
+  const [subjects, setSubjects] = useState<SubjectClassification[]>([]);
 
   const fetchCourses = async (option: SearchOption) => {
     setLoading(true);
@@ -238,6 +251,22 @@ export default function CourseListPage() {
     }
   };
 
+  const handleReset = () => {
+    setSearchOption({ category: "courseName", keyword: "", page: 1 });
+    fetchCourses({ category: "courseName", keyword: "", page: 1 });
+  };
+
+  const getSubjectList = async () => {
+    try {
+      const res = await axios.get<SubjectClassification[]>(
+        "/api/course/subjects",
+      );
+      setSubjects(res.data);
+    } catch (e) {
+      console.error("과목 분류 조회 실패", e);
+    }
+  };
+
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchCourses({
@@ -245,6 +274,7 @@ export default function CourseListPage() {
       keyword: searchParams.get("keyword") || "",
       page: 1,
     });
+    getSubjectList();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -309,33 +339,54 @@ export default function CourseListPage() {
                 <SearchIcon />
                 검색
               </button>
+              <button
+                onClick={handleReset}
+                className="bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm font-bold px-4 py-2.5 rounded-lg transition-all duration-150 cursor-pointer w-full flex items-center justify-center gap-2 shadow-sm"
+              >
+                초기화
+              </button>
             </div>
 
             <div className="mt-5 pt-4 border-t border-gray-100">
-              <p className="text-xs text-gray-400 font-medium mb-2">
-                빠른 선택
-              </p>
-              <div className="flex flex-col gap-1">
-                {/* {CATEGORY_OPTIONS.map((opt) => (
-                  <button
-                    key={opt.value}
-                    onClick={() =>
-                      setSearchOption((prev) => ({
-                        ...prev,
-                        category: opt.value,
-                      }))
-                    }
-                    className={`text-xs px-3 py-1.5 rounded-lg text-left transition-colors cursor-pointer ${
-                      searchOption.category === opt.value
-                        ? "bg-blue-50 text-blue-700 font-semibold"
-                        : "text-gray-500 hover:bg-gray-50"
-                    }`}
-                  >
-                    {opt.label}
-                  </button>
-                ))} */}
-                {/* TODO 빠른 검색 구현하기*/}
-                <p>빠른 검색 구현하기</p>
+              <div className="flex flex-col gap-4">
+                {subjects.map((classification) => (
+                  <div key={classification.subjClId}>
+                    <p className="text-[12px] uppercase tracking-wider text-gray-400 font-bold mb-2">
+                      {classification.subjClNm}
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {classification.subjects.map((subj) => {
+                        const isActive =
+                          searchOption.category === "subject" &&
+                          searchOption.keyword === subj.subjNm;
+                        return (
+                          <button
+                            key={subj.subjId}
+                            onClick={() => {
+                              setSearchOption((prev) => ({
+                                ...prev,
+                                category: "subject",
+                                keyword: subj.subjNm,
+                              }));
+                              fetchCourses({
+                                category: "subject",
+                                keyword: subj.subjNm,
+                                page: 1,
+                              });
+                            }}
+                            className={`text-xs font-medium px-2.5 py-1 rounded-full border transition-all duration-150 cursor-pointer ${
+                              isActive
+                                ? "bg-blue-600 border-blue-600 text-white shadow-sm"
+                                : "bg-gray-50 border-gray-200 text-gray-600 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600"
+                            }`}
+                          >
+                            {subj.subjNm}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
