@@ -150,13 +150,13 @@ export default function AppRoute() {
         <Route path="/customer/qna/write" element={<QnaWritePage />} />
         <Route path="/customer/qna/my" element={<QnAPage myOnly />} />
         <Route path="/customer/qna/:postSn/edit" element={<QnaEditPage />} />
-        <Route path="/enroll" element={<LectureEnrollPage />} />
-        <Route path="/mylecture/book" element={<BookOrderPage />} />
-        <Route path="/mylecture/history" element={<LectureHistoryPage />} />
+        {/* <Route path="/enroll" element={<LectureEnrollPage />} /> */}
+        {/* <Route path="/mylecture/book" element={<BookOrderPage />} /> */}
+        {/* <Route path="/mylecture/history" element={<LectureHistoryPage />} /> */}
         <Route path="/mycart" element={<CartPage />} />
         <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/mycart/orderhistory" element={<OrderHistoryPage />} />
-        <Route path="/mypage/couponpoint" element={<CouponPointPage />} />
+        {/* <Route path="/mypage/couponpoint" element={<CouponPointPage />} /> */}
         <Route path="/payment" element={<PaymentPage />} />
       </Route>
 
