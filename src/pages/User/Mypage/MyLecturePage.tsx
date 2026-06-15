@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import MyPageSidebar from "../Mypage/components/MyPageSidebar";
 import api from "../../../api/api";
+import LectureHistory from "./LectureHistory";
 
-type TabType = "active" | "rest" | "end" | "hidden";
+type TabType = "active" | "end" | "history";
 type SortType = "recent" | "order" | "expire";
 
 // 내 강의실 목록의 강좌 항목 (진도율·D-day·즐겨찾기·상태 포함)
@@ -29,9 +30,8 @@ const THUMB_COLORS = ["#1E3A8A", "#065F46", "#4B5563", "#7C3AED", "#B45309", "#1
 
 const TAB_LABELS: { key: TabType; label: string }[] = [
   { key: "active", label: "수강중인 강좌" },
-  { key: "rest", label: "휴강중인 강좌" },
   { key: "end", label: "수강종료 강좌" },
-  { key: "hidden", label: "숨김 강좌" },
+  { key: "history", label: "수강이력 관리" },
 ];
 
 const LECTURE_TYPES = ["전체", "일반강좌/패키지", "PASS", "PAC", "무료강좌"];
@@ -102,7 +102,7 @@ export default function MyLecturePage() {
             thumbLabel: (e.courseNm ?? "").slice(0, 4),
             thmbImg: e.thmbImg ?? undefined,
             favorite: false,
-            status: "active" as TabType,
+            status: (endDate && endDate.getTime() < now ? "end" : "active") as TabType,
           };
         }));
       })
@@ -159,10 +159,15 @@ export default function MyLecturePage() {
           <MyPageSidebar activeSection={activeSection} onSectionChange={(section) => setActiveSection(section)} />
 
           <div className="flex-1 min-w-0">
-            {/* 상단 타이틀 */}
             <div className="mb-6">
-              <h3 className="text-2xl font-bold text-gray-900 tracking-tight">수강중 강좌</h3>
-              <p className="text-sm text-gray-500 mt-1">신청하신 강좌의 학습 현황을 관리하고 수강할 수 있습니다.</p>
+              <h3 className="text-2xl font-bold text-gray-900 tracking-tight">
+                {activeTab === "history" ? "수강 이력 관리" : "수강중 강좌"}
+              </h3>
+              <p className="text-sm text-gray-500 mt-1">
+                {activeTab === "history"
+                  ? "수강이 종료된 강좌 목록을 확인할 수 있습니다."
+                  : "신청하신 강좌의 학습 현황을 관리하고 수강할 수 있습니다."}
+              </p>
             </div>
 
             {/* 메인 탭 컴포넌트 */}
@@ -185,17 +190,23 @@ export default function MyLecturePage() {
                       }`}
                   >
                     {label}
-                    <span
-                      className={`text-xs px-2 py-0.5 rounded-full transition-colors
-                        ${isSelected ? "bg-blue-50 text-blue-600 font-bold" : "bg-gray-100 text-gray-400"}`}
-                    >
-                      {tabCount(key)}
-                    </span>
+                    {key !== "history" && (
+                      <span
+                        className={`text-xs px-2 py-0.5 rounded-full transition-colors
+                          ${isSelected ? "bg-blue-50 text-blue-600 font-bold" : "bg-gray-100 text-gray-400"}`}
+                      >
+                        {tabCount(key)}
+                      </span>
+                    )}
                   </button>
                 );
               })}
             </div>
 
+            {activeTab === "history" ? (
+              <LectureHistory />
+            ) : (
+            <>
             {/* 표(Table) 형태의 필터 대시보드 */}
             <div className="bg-white border border-gray-200 rounded-xl overflow-hidden mb-5 shadow-sm">
               <table className="w-full border-collapse text-left">
@@ -470,6 +481,8 @@ export default function MyLecturePage() {
                 </ul>
               </div>
             </div>
+            </>
+            )}
           </div>
         </div>
       </div>

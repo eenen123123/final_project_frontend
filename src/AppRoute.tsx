@@ -33,8 +33,8 @@ import MyLecturePage from "./pages/User/Mypage/MyLecturePage";
 import ProfileEditPage from "./pages/User/Mypage/ProfileEditPage";
 import DummyPage from "./pages/User/Mypage/dummy";
 import LectureEnrollPage from "./pages/User/Mypage/LectureEnrollPage";
-import BookOrderPage from "./pages/User/Mypage/BookOrderPage";
-import LectureHistoryPage from "./pages/User/Mypage/LectureHistoryPage";
+import StudyReportPage from "./pages/User/Mypage/StudyReportPage";
+import GradesPage from "./pages/User/Mypage/GradesPage";
 import MyCalendarPage from "./pages/User/Mypage/MyCalendarPage";
 import CartPage from "./pages/User/Mypage/CartPage";
 import CheckoutPage from "./pages/User/Mypage/CheckoutPage";
@@ -151,12 +151,12 @@ export default function AppRoute() {
         <Route path="/customer/qna/my" element={<QnAPage myOnly />} />
         <Route path="/customer/qna/:postSn/edit" element={<QnaEditPage />} />
         <Route path="/enroll" element={<LectureEnrollPage />} />
-        <Route path="/mylecture/book" element={<BookOrderPage />} />
-        <Route path="/mylecture/history" element={<LectureHistoryPage />} />
         <Route path="/mycart" element={<CartPage />} />
         <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/mycart/orderhistory" element={<OrderHistoryPage />} />
         <Route path="/mypage/couponpoint" element={<CouponPointPage />} />
+        <Route path="/mypage/report" element={<StudyReportPage />} />
+        <Route path="/mypage/grades" element={<GradesPage />} />
         <Route path="/payment" element={<PaymentPage />} />
       </Route>
 

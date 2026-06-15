@@ -19,8 +19,8 @@ const NAV: NavItem[] = [
     children: [
       { label: "수강중 강좌", href: "/mylecture" },
       { label: "강좌 수강신청", href: "/enroll" },
-      { label: "교재신청", href: "/mylecture/book" },
-      { label: "수강 이력 관리", href: "/mylecture/history" },
+      { label: "수강 리포트", href: "/mypage/report" },
+      { label: "성적 관리", href: "/mypage/grades" },
     ],
   },
   {
@@ -55,7 +55,7 @@ export default function MyPageSidebar({
   const navigate = useNavigate();
   const { getRole } = useAuth();
   const [openMenus, setOpenMenus] = useState<string[]>(
-    NAV.filter((item) => item.children).map((item) => item.label)
+    NAV.filter((item) => item.children).map((item) => item.label),
   );
 
   const toggleMenu = (label: string) => {
@@ -79,7 +79,11 @@ export default function MyPageSidebar({
   const handleChildClick = (href: string, label: string) => {
     if (href === "/mypage/verify") {
       const roleRaw = getRole();
-      const roles = Array.isArray(roleRaw) ? roleRaw : roleRaw ? [roleRaw as unknown as string] : [];
+      const roles = Array.isArray(roleRaw)
+        ? roleRaw
+        : roleRaw
+          ? [roleRaw as unknown as string]
+          : [];
       if (!roles.some((r) => ALLOWED_ROLES.includes(r))) {
         alert("일반 회원만 접근 가능합니다.");
         return;
