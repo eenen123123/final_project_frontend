@@ -260,7 +260,7 @@ export default function CourseListPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* 상단 히어로 배너 */}
-      <div className="bg-linear-to-r from-blue-600 via-blue-700 to-indigo-700 text-white">
+      <div className="bg-linear-to-r from-blue-400 via-blue-500 to-indigo-600 text-white">
         <div className="max-w-6xl mx-auto px-4 md:px-6 py-10">
           <p className="text-blue-200 text-sm font-medium mb-1">온라인 강좌</p>
           <h1 className="text-2xl md:text-3xl font-extrabold mb-2 tracking-tight">
@@ -316,7 +316,7 @@ export default function CourseListPage() {
                 빠른 선택
               </p>
               <div className="flex flex-col gap-1">
-                {CATEGORY_OPTIONS.map((opt) => (
+                {/* {CATEGORY_OPTIONS.map((opt) => (
                   <button
                     key={opt.value}
                     onClick={() =>
@@ -333,7 +333,9 @@ export default function CourseListPage() {
                   >
                     {opt.label}
                   </button>
-                ))}
+                ))} */}
+                {/* TODO 빠른 검색 구현하기*/}
+                <p>빠른 검색 구현하기</p>
               </div>
             </div>
           </div>

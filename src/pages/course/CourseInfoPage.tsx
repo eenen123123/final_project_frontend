@@ -1,85 +1,7 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import api from "../../api/api";
-
-/*
-bookSmry: "태스트 요약\r\n태스트 요약 2"
-courseNm: null
-courseSn: 81
-
-
-dlvrAmt: 3000
-
-
-instrUserNm: null
-
-
-isbnNo: "1234567891011"
-
-
-keyword: null
-
-
-lastMdfrId: "testuser20"
-
-
-mdfcnDt: "2026-06-10T12:00:14.55"
-
-
-pubrNm: "지학사"
-
-
-purchPrcAmt: 10000
-
-
-regDt: "2026-06-10T12:00:14.55"
-
-
-rgtrId: "testuser20"
-
-
-salePrcAmt: 38900
-
-
-showArchived: false
-
-
-sort: null
-
-
-subjClId: null
-
-
-subjClNm: null
-
-
-subjId: 6
-
-
-subjNm: null
-
-
-tagline: "태그라인 테스트(부제목)"
-
-
-textbookNm: "5일간의 수학"
-
-
-textbookSn: 21
-
-
-thmbImg: "http://res.cloudinary.com/dczqmsune/image/upload/v1781060415/mhndcapfncllre8synnf.png"
-
-
-tocCn: "PART1. \r\nPART2.\r\nPART3."
-
-
-trgtGrdCn: "[교재 구성]\r\n알참\r\n\r\n[교재 특징]\r\n라면받침 용도 특화"
-
-
-useYn: "Y"
-*/
 
 interface Textbook {
   textbookSn: number;
@@ -107,6 +29,7 @@ interface Course {
   isBest: boolean;
   isNew: boolean;
   instructorProfileImg: string;
+  instrUuid: string;
 }
 
 interface Lecture {
@@ -272,23 +195,25 @@ export default function CourseInfoPage() {
               </div>
             </div>
 
-            {/* 강사 + OT 버튼 */}
+            {/* 강사 */}
             <div className="flex items-center gap-3">
-              <span className="text-sm text-gray-800">
-                {course.subjectName} {course.instructorName} 선생님{" "}
-                <span className="text-gray-400">🏠</span>
-              </span>
-              <button className="text-xs border border-gray-400 text-gray-600 rounded px-4 py-1 hover:bg-gray-100 cursor-pointer transition-colors">
-                OT
-              </button>
+              <Link
+                to={`/instructor/${course.instrUuid}`}
+                className="text-sm text-gray-800 hover:text-gray-900 transition-colors"
+              >
+                <span className="text-sm text-gray-800 underline hover:no-underline transition-colors">
+                  {course.subjectName} {course.instructorName} 선생님{" "}
+                  <span className="text-gray-400">🏠</span>
+                </span>
+              </Link>
             </div>
           </div>
         </div>
 
         {/* 구매혜택 */}
-        <div className="px-5 py-2.5 bg-gray-50 border-t border-gray-100 text-xs text-gray-500">
+        {/* <div className="px-5 py-2.5 bg-gray-50 border-t border-gray-100 text-xs text-gray-500">
           구매혜택
-        </div>
+        </div> */}
       </div>
 
       {/* 구매 섹션 */}
@@ -371,14 +296,9 @@ export default function CourseInfoPage() {
 
         {/* 버튼 영역 */}
         <div className="flex items-center justify-between px-5 py-4 bg-gray-50">
-          <button className="text-sm border border-gray-300 text-gray-600 rounded px-4 py-2 hover:bg-gray-100 cursor-pointer transition-colors">
-            쿠폰조회
-          </button>
+          <div></div>
           <div className="flex gap-2">
             <button className="text-sm font-semibold text-white bg-blue-500 hover:bg-blue-600 rounded px-5 py-2 cursor-pointer transition-colors">
-              패스 수강
-            </button>
-            <button className="text-sm font-semibold text-white bg-gray-800 hover:bg-gray-900 rounded px-5 py-2 cursor-pointer transition-colors">
               장바구니
             </button>
             <button className="text-sm font-semibold text-white bg-orange-500 hover:bg-orange-600 rounded px-5 py-2 cursor-pointer transition-colors">
