@@ -12,27 +12,27 @@ const NAV: NavItem[] = [
   { label: "수강중 강좌", href: "/mylecture" },
   { label: "My 캘린더", href: "/mycalendar" },
   { label: "주문/배송 조회", href: "/mycart/orderhistory" },
-  { label: "강좌 수강 신청", href: "/courses" },
-  {
-    label: "나의 강의실",
-    href: "#classroom",
-    children: [
-      { label: "수강중 강좌", href: "/mylecture" },
-      { label: "강좌 수강신청", href: "/enroll" },
-      { label: "교재신청", href: "/mylecture/book" },
-      { label: "수강 이력 관리", href: "/mylecture/history" },
-    ],
-  },
-  {
-    label: "주문·결제·혜택",
-    href: "#payment",
-    children: [
-      { label: "장바구니", href: "/mycart" },
-      { label: "주문/배송 조회", href: "/mycart/orderhistory" },
-      { label: "이용권 관리", href: "#voucher" },
-      { label: "쿠폰/포인트", href: "/mypage/couponpoint" },
-    ],
-  },
+  // { label: "강좌 수강 신청", href: "/courses" },
+  // {
+  //   label: "나의 강의실",
+  //   href: "#classroom",
+  //   children: [
+  //     { label: "수강중 강좌", href: "/mylecture" },
+  //     // { label: "강좌 수강신청", href: "/enroll" },
+  //     // { label: "교재신청", href: "/mylecture/book" },
+  //     // { label: "수강 이력 관리", href: "/mylecture/history" },
+  //   ],
+  // },
+  { label: "장바구니", href: "/mycart" },
+  // {
+  //   label: "주문·결제·혜택",
+  //   href: "#payment",
+  //   children: [
+  //     // { label: "주문/배송 조회", href: "/mycart/orderhistory" },
+  //     // { label: "이용권 관리", href: "#voucher" },
+  //     // { label: "쿠폰/포인트", href: "/mypage/couponpoint" },
+  //   ],
+  // },
   {
     label: "나의 정보",
     href: "#info",
@@ -55,7 +55,7 @@ export default function MyPageSidebar({
   const navigate = useNavigate();
   const { getRole } = useAuth();
   const [openMenus, setOpenMenus] = useState<string[]>(
-    NAV.filter((item) => item.children).map((item) => item.label)
+    NAV.filter((item) => item.children).map((item) => item.label),
   );
 
   const toggleMenu = (label: string) => {
@@ -79,7 +79,11 @@ export default function MyPageSidebar({
   const handleChildClick = (href: string, label: string) => {
     if (href === "/mypage/verify") {
       const roleRaw = getRole();
-      const roles = Array.isArray(roleRaw) ? roleRaw : roleRaw ? [roleRaw as unknown as string] : [];
+      const roles = Array.isArray(roleRaw)
+        ? roleRaw
+        : roleRaw
+          ? [roleRaw as unknown as string]
+          : [];
       if (!roles.some((r) => ALLOWED_ROLES.includes(r))) {
         alert("일반 회원만 접근 가능합니다.");
         return;
