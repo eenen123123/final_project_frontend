@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import MyPageSidebar from "./components/MyPageSidebar";
 import api from "../../../api/api";
-import type { PageResponse } from "../../../hooks/usePaginatedSearch";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { useAuth } from "../../../auth/AuthContext";
 
 interface OrderItem {
@@ -18,6 +17,12 @@ const stat = {
   EXPIRED: "기간만료",
   PAID: "결제완료",
   PENDING: "결제대기",
+};
+
+const statBadge: Record<string, string> = {
+  PAID: "bg-blue-50 text-blue-600",
+  PENDING: "bg-orange-50 text-orange-600",
+  EXPIRED: "bg-gray-100 text-gray-500",
 };
 
 const GUIDE_LINES = [
@@ -52,6 +57,7 @@ export default function OrderHistoryPage() {
   );
   const [endDate, setEndDate] = useState(formatDateString(today));
   const [selectedPeriod, setSelectedPeriod] = useState<number>(90);
+  const [guideOpen, setGuideOpen] = useState(true);
 
   const handlePeriodChange = (days: number) => {
     setSelectedPeriod(days);
@@ -112,9 +118,14 @@ export default function OrderHistoryPage() {
 
           {/* 2. 메인 콘텐츠 */}
           <div className="flex-1 min-w-0">
-            <h2 className="text-2xl font-bold text-gray-900 mb-5">
-              주문/배송 조회
-            </h2>
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">
+                주문/배송 조회
+              </h2>
+              <p className="text-sm text-gray-500 mt-1.5">
+                주문하신 상품의 결제 및 배송 현황을 확인하실 수 있습니다.
+              </p>
+            </div>
 
             {/* 주문 상태 카운터 보드 */}
             {/* <div className="border border-gray-200 bg-white grid grid-cols-6 divide-x divide-gray-200 mb-2">
@@ -167,11 +178,13 @@ export default function OrderHistoryPage() {
             {/* 기간검색 필터 */}
             <form
               onSubmit={handleSearchSubmit}
-              className="border border-gray-200 bg-white p-3.5 flex flex-wrap items-center gap-4 text-xs font-semibold text-gray-700 mb-6"
+              className="bg-white border border-gray-200 rounded-xl p-5 flex flex-wrap items-center gap-x-6 gap-y-4 mb-6"
             >
               <div className="flex items-center gap-3">
-                <span className="text-gray-500 font-bold">기간검색</span>
-                <div className="flex bg-gray-100 p-0.5 border border-gray-200">
+                <span className="text-sm font-bold text-gray-700">
+                  기간검색
+                </span>
+                <div className="flex flex-wrap gap-1.5">
                   {[
                     { label: "1주일", days: 7 },
                     { label: "1개월", days: 30 },
@@ -182,10 +195,10 @@ export default function OrderHistoryPage() {
                       key={p.days}
                       type="button"
                       onClick={() => handlePeriodChange(p.days)}
-                      className={`px-3 py-1 text-[11px] font-bold transition-all cursor-pointer ${
+                      className={`px-3.5 py-1.5 text-xs font-bold rounded-full border transition-all cursor-pointer ${
                         selectedPeriod === p.days
-                          ? "bg-gray-800 text-white"
-                          : "text-gray-500 hover:text-gray-800 bg-white border border-gray-200"
+                          ? "bg-blue-600 border-blue-600 text-white"
+                          : "bg-white border-gray-200 text-gray-500 hover:border-gray-300 hover:text-gray-700"
                       }`}
                     >
                       {p.label}
@@ -194,7 +207,7 @@ export default function OrderHistoryPage() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1.5">
                 <input
                   type="date"
                   value={startDate}
@@ -202,9 +215,9 @@ export default function OrderHistoryPage() {
                     setStartDate(e.target.value);
                     setSelectedPeriod(0);
                   }}
-                  className="border border-gray-300 px-2 py-1 text-xs text-gray-600 rounded-2xs focus:outline-none focus:border-gray-500 bg-white"
+                  className="border border-gray-200 px-3 py-1.5 text-xs text-gray-600 rounded-lg focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-50 bg-white"
                 />
-                <span className="text-gray-400 font-normal">~</span>
+                <span className="text-gray-300">~</span>
                 <input
                   type="date"
                   value={endDate}
@@ -212,137 +225,188 @@ export default function OrderHistoryPage() {
                     setEndDate(e.target.value);
                     setSelectedPeriod(0);
                   }}
-                  className="border border-gray-300 px-2 py-1 text-xs text-gray-600 rounded-2xs focus:outline-none focus:border-gray-500 bg-white"
+                  className="border border-gray-200 px-3 py-1.5 text-xs text-gray-600 rounded-lg focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-50 bg-white"
                 />
               </div>
 
               <button
                 type="submit"
-                className="ml-auto px-4 py-1.5 bg-gray-600 hover:bg-gray-800 text-white text-xs font-bold transition-colors cursor-pointer"
+                className="ml-auto px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition-colors cursor-pointer"
               >
-                검색 &gt;
+                검색
               </button>
             </form>
 
-            {/* ── 3. 주문 리스트 테이블 (상/하단 테두리 선 보정 및 뱃지 인라인 배치) ── */}
-            <div className="border-t border-b border-gray-300 mb-6">
-              <table className="w-full text-sm border-collapse table-fixed">
-                <colgroup>
-                  <col style={{ width: "130px" }} />
-                  <col style={{ width: "auto" }} />
-                  <col style={{ width: "110px" }} />
-                  <col style={{ width: "110px" }} />
-                  <col style={{ width: "80px" }} />
-                  <col style={{ width: "110px" }} />
-                </colgroup>
-                <thead>
-                  <tr className="border-b border-gray-200 bg-gray-50/80">
-                    <th className="py-3 px-2 text-center font-semibold text-gray-600">
-                      주문번호
-                    </th>
-                    <th className="py-3 px-4 text-center font-semibold text-gray-600">
-                      주문내역
-                    </th>
-                    <th className="py-3 px-2 text-center font-semibold text-gray-600">
-                      결제가
-                    </th>
-                    <th className="py-3 px-2 text-center font-semibold text-gray-600">
-                      결제일
-                    </th>
-                    <th className="py-3 px-2 text-center font-semibold text-gray-600">
-                      결제 상태
-                    </th>
-                    <th className="py-3 px-2 text-center font-semibold text-gray-600">
-                      배송상태/조회
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {orders.length === 0 ? (
-                    <tr>
-                      <td
-                        colSpan={6}
-                        className="py-24 text-center text-gray-400 text-xs font-medium bg-white"
-                      >
-                        대상 기간 동안의 주문/배송 내역이 없습니다.
-                      </td>
-                    </tr>
-                  ) : (
-                    orders.map((item) => (
-                      <tr
-                        key={item.ordSn}
-                        className="border-b border-gray-200 bg-white last:border-b-0 hover:bg-gray-50/30 transition-colors"
-                      >
-                        <td
-                          className="py-4 px-2 text-center align-middle font-mono text-xs font-bold text-gray-700 underline cursor-pointer truncate"
-                          title={item.ordId}
+            {/* 주문 건수 */}
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-sm text-gray-500">
+                총 <span className="font-bold text-blue-600">{totalCount}</span>
+                개의 주문
+              </p>
+            </div>
+
+            {/* 주문 카드 리스트 */}
+            {orders.length === 0 ? (
+              <div className="bg-white border border-gray-200 rounded-xl py-24 text-center text-sm text-gray-400 mb-6">
+                대상 기간 동안의 주문/배송 내역이 없습니다.
+              </div>
+            ) : (
+              <div className="space-y-3 mb-6">
+                {orders.map((item) => (
+                  <div
+                    key={item.ordSn}
+                    className="group bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md hover:border-blue-200 transition-all"
+                  >
+                    <div className="flex items-center gap-5">
+                      <div className="hidden sm:flex shrink-0 w-14 h-14 rounded-xl bg-blue-50 items-center justify-center text-blue-600">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          strokeWidth={1.6}
+                          stroke="currentColor"
+                          className="w-6 h-6"
                         >
-                          {item.ordId}
-                        </td>
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z"
+                          />
+                        </svg>
+                      </div>
 
-                        <td className="py-4 px-4 text-left">{item.ordNm}</td>
-
-                        <td className="py-4 px-2 text-center align-middle font-bold text-gray-800 text-xs">
-                          {item.totAmt.toLocaleString("ko-KR")}원
-                        </td>
-                        <td className="py-4 px-2 text-center align-middle font-mono text-xs text-gray-400 whitespace-nowrap">
-                          {item.regDt?.slice(0, 10)}
-                        </td>
-                        <td className="py-4 px-2 text-center align-middle">
-                          <span className="text-xs font-bold text-gray-700">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <span
+                            className={`px-2 py-0.5 rounded-md text-[11px] font-bold ${
+                              statBadge[item.ordStatCd] ??
+                              "bg-gray-100 text-gray-500"
+                            }`}
+                          >
                             {item.ordStatCd in stat
                               ? stat[item.ordStatCd as keyof typeof stat]
                               : "알 수 없음"}
                           </span>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
+                          <span
+                            className="font-mono text-[11px] text-gray-400 truncate"
+                            title={item.ordId}
+                          >
+                            {item.ordId}
+                          </span>
+                        </div>
+                        <h3 className="font-bold text-gray-900 truncate">
+                          {item.ordNm}
+                        </h3>
+                        <p className="text-xs text-gray-400 mt-1">
+                          {item.regDt?.slice(0, 10)} 결제
+                        </p>
+                      </div>
+
+                      <div className="shrink-0 text-right">
+                        <p className="text-lg font-bold text-gray-900">
+                          {item.totAmt.toLocaleString("ko-KR")}
+                          <span className="text-xs font-normal text-gray-400 ml-0.5">
+                            원
+                          </span>
+                        </p>
+                        <button
+                          type="button"
+                          className="mt-2 px-3.5 py-1.5 text-xs font-bold text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors cursor-pointer"
+                        >
+                          <Link to={`/mycart/orderhistory/${item.ordSn}`}>
+                            주문상세
+                          </Link>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
 
             {/* 하단 페이지네이션 */}
-            <div className="flex justify-center items-center gap-4 text-xs font-bold text-gray-400 mb-12">
+            <div className="flex justify-center items-center gap-3 text-xs font-bold mb-12">
               <button
                 disabled={currentPage === "1"}
                 onClick={() =>
                   setCurrentPage((prev) => String(Number(prev) - 1))
                 }
-                className="px-3 py-1 rounded-md bg-gray-200 hover:bg-gray-300 disabled:bg-gray-100 disabled:text-gray-300 transition-colors cursor-pointer"
+                className="px-4 py-2 rounded-lg border border-gray-200 text-gray-500 hover:border-gray-300 hover:text-gray-700 disabled:opacity-40 disabled:hover:border-gray-200 transition-colors cursor-pointer"
               >
                 이전
               </button>
-              <span>
-                {currentPage} / {Math.ceil(totalCount / 10)}
+              <span className="text-gray-600">
+                {currentPage}
+                <span className="text-gray-300">
+                  {" "}
+                  / {Math.max(1, Math.ceil(totalCount / 10))}
+                </span>
               </span>
               <button
                 disabled={currentPage === String(Math.ceil(totalCount / 10))}
                 onClick={() =>
                   setCurrentPage((prev) => String(Number(prev) + 1))
                 }
-                className="px-3 py-1 rounded-md bg-gray-200 hover:bg-gray-300 disabled:bg-gray-100 disabled:text-gray-300 transition-colors cursor-pointer"
+                className="px-4 py-2 rounded-lg border border-gray-200 text-gray-500 hover:border-gray-300 hover:text-gray-700 disabled:opacity-40 disabled:hover:border-gray-200 transition-colors cursor-pointer"
               >
                 다음
               </button>
             </div>
 
             {/* 하단 안내 가이드 */}
-            <div className="border border-gray-200 bg-gray-50/60 p-5 rounded-xs">
-              <strong className="block text-xs font-bold text-gray-800 mb-3">
-                주문/배송 안내
-              </strong>
-              <ul className="space-y-1.5">
-                {GUIDE_LINES.map((line, idx) => (
-                  <li
-                    key={idx}
-                    className="text-[11px] leading-relaxed text-gray-400 flex items-start gap-1"
+            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+              <button
+                type="button"
+                onClick={() => setGuideOpen((v) => !v)}
+                className="w-full flex items-center justify-between px-5 py-4 cursor-pointer"
+              >
+                <span className="flex items-center gap-2 text-sm font-bold text-gray-800">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    className="w-5 h-5 text-blue-500"
                   >
-                    <span className="shrink-0 font-bold select-none">·</span>
-                    <span>{line}</span>
-                  </li>
-                ))}
-              </ul>
+                    <path
+                      fillRule="evenodd"
+                      d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12Zm8.706-1.442c1.146-.573 2.437.463 2.126 1.706l-.709 2.836.042-.02a.75.75 0 0 1 .67 1.34l-.04.022c-1.147.573-2.438-.463-2.127-1.706l.71-2.836-.042.02a.75.75 0 1 1-.671-1.34l.041-.022ZM12 9a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  주문/배송 이용안내
+                </span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2}
+                  stroke="currentColor"
+                  className={`w-4 h-4 text-gray-400 transition-transform ${
+                    guideOpen ? "rotate-180" : ""
+                  }`}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="m19.5 8.25-7.5 7.5-7.5-7.5"
+                  />
+                </svg>
+              </button>
+              {guideOpen && (
+                <ul className="px-5 pb-5 pt-4 space-y-2 border-t border-gray-100">
+                  {GUIDE_LINES.map((line, idx) => (
+                    <li
+                      key={idx}
+                      className="text-[11px] leading-relaxed text-gray-400 flex items-start gap-1.5"
+                    >
+                      <span className="shrink-0 text-blue-300 font-bold select-none">
+                        ·
+                      </span>
+                      <span>{line}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
           </div>
         </div>
