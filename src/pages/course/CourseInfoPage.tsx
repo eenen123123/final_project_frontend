@@ -126,7 +126,7 @@ export default function CourseInfoPage() {
       <div className="border border-gray-200 rounded mb-2">
         <div className="flex gap-5 p-5">
           {/* 강사 프로필 이미지 */}
-          <div className="flex-shrink-0 w-36 h-40 bg-gray-100 rounded overflow-hidden">
+          <div className="shrink-0 w-36 h-40 bg-gray-100 rounded overflow-hidden">
             {course.instructorProfileImg ? (
               <img
                 src={course.instructorProfileImg}
@@ -224,13 +224,13 @@ export default function CourseInfoPage() {
             type="checkbox"
             checked
             readOnly
-            className="w-4 h-4 accent-blue-600 flex-shrink-0"
+            className="w-4 h-4 accent-blue-600 shrink-0"
           />
-          <span className="text-xs text-gray-400 w-12 flex-shrink-0">강좌</span>
+          <span className="text-xs text-gray-400 w-12 shrink-0">강좌</span>
           <span className="flex-1 text-sm text-gray-900">
             {course.courseName}
           </span>
-          <span className="text-sm font-semibold text-gray-900 flex-shrink-0">
+          <span className="text-sm font-semibold text-gray-900 shrink-0">
             {coursePrice.toLocaleString()}원
           </span>
         </div>
@@ -241,15 +241,15 @@ export default function CourseInfoPage() {
             type="checkbox"
             checked={includeTextbook}
             onChange={(e) => setIncludeTextbook(e.target.checked)}
-            className="w-4 h-4 accent-blue-600 flex-shrink-0 cursor-pointer"
+            className="w-4 h-4 accent-blue-600 shrink-0 cursor-pointer"
           />
-          <span className="text-xs text-gray-400 w-12 flex-shrink-0">
+          <span className="text-xs text-gray-400 w-12 shrink-0">
             주교재
           </span>
           <span className="flex-1 text-sm text-gray-900">
             {course.courseName}
           </span>
-          <span className="text-sm font-semibold text-gray-900 flex-shrink-0">
+          <span className="text-sm font-semibold text-gray-900 shrink-0">
             {TEXTBOOK_PRICE.toLocaleString()}원
           </span>
 
@@ -265,15 +265,15 @@ export default function CourseInfoPage() {
                 type="checkbox"
                 checked={includeTextbook}
                 onChange={(e) => setIncludeTextbook(e.target.checked)}
-                className="w-4 h-4 accent-blue-600 flex-shrink-0 cursor-pointer"
+                className="w-4 h-4 accent-blue-600 shrink-0 cursor-pointer"
               />
-              <span className="text-xs text-gray-400 w-12 flex-shrink-0">
+              <span className="text-xs text-gray-400 w-12 shrink-0">
                 주교재
               </span>
               <span className="flex-1 text-sm text-gray-900">
                 {tb.textbookNm}
               </span>
-              <span className="text-sm font-semibold text-gray-900 flex-shrink-0">
+              <span className="text-sm font-semibold text-gray-900 shrink-0">
                 {tb.salePrcAmt.toLocaleString()}원
               </span>
             </div>
@@ -387,7 +387,7 @@ export default function CourseInfoPage() {
               >
                 {/* 상단: 이미지 + 기본 정보 */}
                 <div className="flex gap-5 mb-5 pb-5 border-b border-gray-100">
-                  <div className="w-28 h-36 bg-gray-100 rounded overflow-hidden flex-shrink-0 shadow-sm">
+                  <div className="w-28 h-36 bg-gray-100 rounded overflow-hidden shrink-0 shadow-sm">
                     {tb.thmbImg ? (
                       <img
                         src={tb.thmbImg}
@@ -409,7 +409,7 @@ export default function CourseInfoPage() {
                     </p>
                     <div className="space-y-1 text-sm">
                       <div className="flex items-center gap-2">
-                        <span className="text-gray-400 w-12 text-xs flex-shrink-0">
+                        <span className="text-gray-400 w-12 text-xs shrink-0">
                           정가
                         </span>
                         <span className="text-gray-400 line-through text-xs">
@@ -417,7 +417,7 @@ export default function CourseInfoPage() {
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-gray-400 w-12 text-xs flex-shrink-0">
+                        <span className="text-gray-400 w-12 text-xs shrink-0">
                           판매가
                         </span>
                         <span className="font-bold text-gray-900">
@@ -425,7 +425,7 @@ export default function CourseInfoPage() {
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-gray-400 w-12 text-xs flex-shrink-0">
+                        <span className="text-gray-400 w-12 text-xs shrink-0">
                           배송비
                         </span>
                         <span className="text-xs text-gray-600">
@@ -490,11 +490,11 @@ export default function CourseInfoPage() {
                   key={lecture.lectureSn}
                   className="flex items-center gap-4 py-3 text-sm text-gray-700 hover:bg-gray-50 px-2"
                 >
-                  <span className="text-gray-400 w-6 text-right flex-shrink-0">
+                  <span className="text-gray-400 w-6 text-right shrink-0">
                     {idx + 1}
                   </span>
                   <span className="flex-1">{lecture.lectureName}</span>
-                  <span className="text-xs text-gray-400 flex-shrink-0">
+                  <span className="text-xs text-gray-400 shrink-0">
                     {formatDuration(lecture.lectureDuration)}
                   </span>
                 </li>
