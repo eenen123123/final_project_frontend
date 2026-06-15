@@ -1,85 +1,7 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import api from "../../api/api";
-
-/*
-bookSmry: "태스트 요약\r\n태스트 요약 2"
-courseNm: null
-courseSn: 81
-
-
-dlvrAmt: 3000
-
-
-instrUserNm: null
-
-
-isbnNo: "1234567891011"
-
-
-keyword: null
-
-
-lastMdfrId: "testuser20"
-
-
-mdfcnDt: "2026-06-10T12:00:14.55"
-
-
-pubrNm: "지학사"
-
-
-purchPrcAmt: 10000
-
-
-regDt: "2026-06-10T12:00:14.55"
-
-
-rgtrId: "testuser20"
-
-
-salePrcAmt: 38900
-
-
-showArchived: false
-
-
-sort: null
-
-
-subjClId: null
-
-
-subjClNm: null
-
-
-subjId: 6
-
-
-subjNm: null
-
-
-tagline: "태그라인 테스트(부제목)"
-
-
-textbookNm: "5일간의 수학"
-
-
-textbookSn: 21
-
-
-thmbImg: "http://res.cloudinary.com/dczqmsune/image/upload/v1781060415/mhndcapfncllre8synnf.png"
-
-
-tocCn: "PART1. \r\nPART2.\r\nPART3."
-
-
-trgtGrdCn: "[교재 구성]\r\n알참\r\n\r\n[교재 특징]\r\n라면받침 용도 특화"
-
-
-useYn: "Y"
-*/
 
 interface Textbook {
   textbookSn: number;
@@ -107,6 +29,7 @@ interface Course {
   isBest: boolean;
   isNew: boolean;
   instructorProfileImg: string;
+  instrUuid: string;
 }
 
 interface Lecture {
@@ -203,7 +126,7 @@ export default function CourseInfoPage() {
       <div className="border border-gray-200 rounded mb-2">
         <div className="flex gap-5 p-5">
           {/* 강사 프로필 이미지 */}
-          <div className="flex-shrink-0 w-36 h-40 bg-gray-100 rounded overflow-hidden">
+          <div className="shrink-0 w-36 h-40 bg-gray-100 rounded overflow-hidden">
             {course.instructorProfileImg ? (
               <img
                 src={course.instructorProfileImg}
@@ -272,23 +195,25 @@ export default function CourseInfoPage() {
               </div>
             </div>
 
-            {/* 강사 + OT 버튼 */}
+            {/* 강사 */}
             <div className="flex items-center gap-3">
-              <span className="text-sm text-gray-800">
-                {course.subjectName} {course.instructorName} 선생님{" "}
-                <span className="text-gray-400">🏠</span>
-              </span>
-              <button className="text-xs border border-gray-400 text-gray-600 rounded px-4 py-1 hover:bg-gray-100 cursor-pointer transition-colors">
-                OT
-              </button>
+              <Link
+                to={`/instructor/${course.instrUuid}`}
+                className="text-sm text-gray-800 hover:text-gray-900 transition-colors"
+              >
+                <span className="text-sm text-gray-800 underline hover:no-underline transition-colors">
+                  {course.subjectName} {course.instructorName} 선생님{" "}
+                  <span className="text-gray-400">🏠</span>
+                </span>
+              </Link>
             </div>
           </div>
         </div>
 
         {/* 구매혜택 */}
-        <div className="px-5 py-2.5 bg-gray-50 border-t border-gray-100 text-xs text-gray-500">
+        {/* <div className="px-5 py-2.5 bg-gray-50 border-t border-gray-100 text-xs text-gray-500">
           구매혜택
-        </div>
+        </div> */}
       </div>
 
       {/* 구매 섹션 */}
@@ -299,13 +224,13 @@ export default function CourseInfoPage() {
             type="checkbox"
             checked
             readOnly
-            className="w-4 h-4 accent-blue-600 flex-shrink-0"
+            className="w-4 h-4 accent-blue-600 shrink-0"
           />
-          <span className="text-xs text-gray-400 w-12 flex-shrink-0">강좌</span>
+          <span className="text-xs text-gray-400 w-12 shrink-0">강좌</span>
           <span className="flex-1 text-sm text-gray-900">
             {course.courseName}
           </span>
-          <span className="text-sm font-semibold text-gray-900 flex-shrink-0">
+          <span className="text-sm font-semibold text-gray-900 shrink-0">
             {coursePrice.toLocaleString()}원
           </span>
         </div>
@@ -316,15 +241,15 @@ export default function CourseInfoPage() {
             type="checkbox"
             checked={includeTextbook}
             onChange={(e) => setIncludeTextbook(e.target.checked)}
-            className="w-4 h-4 accent-blue-600 flex-shrink-0 cursor-pointer"
+            className="w-4 h-4 accent-blue-600 shrink-0 cursor-pointer"
           />
-          <span className="text-xs text-gray-400 w-12 flex-shrink-0">
+          <span className="text-xs text-gray-400 w-12 shrink-0">
             주교재
           </span>
           <span className="flex-1 text-sm text-gray-900">
             {course.courseName}
           </span>
-          <span className="text-sm font-semibold text-gray-900 flex-shrink-0">
+          <span className="text-sm font-semibold text-gray-900 shrink-0">
             {TEXTBOOK_PRICE.toLocaleString()}원
           </span>
 
@@ -340,15 +265,15 @@ export default function CourseInfoPage() {
                 type="checkbox"
                 checked={includeTextbook}
                 onChange={(e) => setIncludeTextbook(e.target.checked)}
-                className="w-4 h-4 accent-blue-600 flex-shrink-0 cursor-pointer"
+                className="w-4 h-4 accent-blue-600 shrink-0 cursor-pointer"
               />
-              <span className="text-xs text-gray-400 w-12 flex-shrink-0">
+              <span className="text-xs text-gray-400 w-12 shrink-0">
                 주교재
               </span>
               <span className="flex-1 text-sm text-gray-900">
                 {tb.textbookNm}
               </span>
-              <span className="text-sm font-semibold text-gray-900 flex-shrink-0">
+              <span className="text-sm font-semibold text-gray-900 shrink-0">
                 {tb.salePrcAmt.toLocaleString()}원
               </span>
             </div>
@@ -371,14 +296,9 @@ export default function CourseInfoPage() {
 
         {/* 버튼 영역 */}
         <div className="flex items-center justify-between px-5 py-4 bg-gray-50">
-          <button className="text-sm border border-gray-300 text-gray-600 rounded px-4 py-2 hover:bg-gray-100 cursor-pointer transition-colors">
-            쿠폰조회
-          </button>
+          <div></div>
           <div className="flex gap-2">
             <button className="text-sm font-semibold text-white bg-blue-500 hover:bg-blue-600 rounded px-5 py-2 cursor-pointer transition-colors">
-              패스 수강
-            </button>
-            <button className="text-sm font-semibold text-white bg-gray-800 hover:bg-gray-900 rounded px-5 py-2 cursor-pointer transition-colors">
               장바구니
             </button>
             <button className="text-sm font-semibold text-white bg-orange-500 hover:bg-orange-600 rounded px-5 py-2 cursor-pointer transition-colors">
@@ -467,7 +387,7 @@ export default function CourseInfoPage() {
               >
                 {/* 상단: 이미지 + 기본 정보 */}
                 <div className="flex gap-5 mb-5 pb-5 border-b border-gray-100">
-                  <div className="w-28 h-36 bg-gray-100 rounded overflow-hidden flex-shrink-0 shadow-sm">
+                  <div className="w-28 h-36 bg-gray-100 rounded overflow-hidden shrink-0 shadow-sm">
                     {tb.thmbImg ? (
                       <img
                         src={tb.thmbImg}
@@ -489,7 +409,7 @@ export default function CourseInfoPage() {
                     </p>
                     <div className="space-y-1 text-sm">
                       <div className="flex items-center gap-2">
-                        <span className="text-gray-400 w-12 text-xs flex-shrink-0">
+                        <span className="text-gray-400 w-12 text-xs shrink-0">
                           정가
                         </span>
                         <span className="text-gray-400 line-through text-xs">
@@ -497,7 +417,7 @@ export default function CourseInfoPage() {
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-gray-400 w-12 text-xs flex-shrink-0">
+                        <span className="text-gray-400 w-12 text-xs shrink-0">
                           판매가
                         </span>
                         <span className="font-bold text-gray-900">
@@ -505,7 +425,7 @@ export default function CourseInfoPage() {
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-gray-400 w-12 text-xs flex-shrink-0">
+                        <span className="text-gray-400 w-12 text-xs shrink-0">
                           배송비
                         </span>
                         <span className="text-xs text-gray-600">
@@ -570,11 +490,11 @@ export default function CourseInfoPage() {
                   key={lecture.lectureSn}
                   className="flex items-center gap-4 py-3 text-sm text-gray-700 hover:bg-gray-50 px-2"
                 >
-                  <span className="text-gray-400 w-6 text-right flex-shrink-0">
+                  <span className="text-gray-400 w-6 text-right shrink-0">
                     {idx + 1}
                   </span>
                   <span className="flex-1">{lecture.lectureName}</span>
-                  <span className="text-xs text-gray-400 flex-shrink-0">
+                  <span className="text-xs text-gray-400 shrink-0">
                     {formatDuration(lecture.lectureDuration)}
                   </span>
                 </li>
