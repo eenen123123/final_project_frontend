@@ -1,7 +1,15 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import api, { getApiErrorMessage } from "../../api/api";
+
+interface AccountInfo {
+  userId: string;
+  userName: string;
+  userRole: string;
+  department: string;
+  jobGrade: string;
+}
 
 interface LoginForm {
   userId: string;
@@ -15,6 +23,8 @@ export default function Login() {
     userId: "",
     userPswd: "",
   });
+  const [hidden, setHidden] = useState(true);
+  const [accounts, setAccounts] = useState<AccountInfo[]>([]);
 
   const location = useLocation();
   const from =
@@ -45,6 +55,30 @@ export default function Login() {
       
       alert(getApiErrorMessage(error, "로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요."));
     }
+  };
+
+  const handleHidden = () => {
+    setHidden((prev) => !prev);
+  };
+
+  useEffect(() => {
+    const fetchAccounts = async () => {
+      try {
+        const response = await api.get("/api/temp/accounts");
+        setAccounts(response.data);
+      } catch (error) {
+        console.error("Failed to fetch accounts", error);
+      }
+    };
+
+    fetchAccounts();
+  }, []);
+
+  const bgColor: { [key: string]: string } = {
+    "N/A": "bg-red-100",
+    행정팀: "bg-indigo-100",
+    PD팀: "bg-yellow-100",
+    강사팀: "bg-green-100",
   };
 
   return (
@@ -112,6 +146,45 @@ export default function Login() {
               </button>
             </div>
           </form>
+        </div>
+        <div>
+          <button
+            onClick={handleHidden}
+            className="w-full py-2.5 mt-4 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors cursor-pointer"
+          >
+            {hidden ? "열기" : "접기"}
+          </button>
+        </div>
+        <div
+          className={`text-center text-sm text-gray-500 mt-6 ${hidden ? "hidden" : ""}`}
+        >
+          <table className="z-10 w-[700px] border-collapse mx-auto mt-4 text-center absolute left-1/2 -translate-x-1/2 font-bold">
+            <thead className="bg-gray-100">
+              <tr className="border">
+                <th className="px-4 py-2 border">아이디</th>
+                <th className="px-4 py-2 border">이름</th>
+                <th className="px-4 py-2 border">Role</th>
+                <th className="px-4 py-2 border">부서</th>
+                <th className="px-4 py-2 border">직급</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white">
+              {accounts.map((account) => (
+                <tr
+                  key={account.userId}
+                  className={`border ${bgColor[account.department] || "bg-gray-50"}`}
+                >
+                  <td className="border px-4 py-2">{account.userId}</td>
+                  <td className="border px-4 py-2">{account.userName}</td>
+                  <td className="border px-4 py-2 text-[12px]">
+                    {account.userRole}
+                  </td>
+                  <td className="border px-4 py-2">{account.department}</td>
+                  <td className="border px-4 py-2">{account.jobGrade}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
