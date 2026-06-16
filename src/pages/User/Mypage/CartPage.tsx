@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import MyPageSidebar from "./components/MyPageSidebar";
 import CartGuideAccordion from "./components/CartGuideAccordion";
+import axios from "axios";
 import api from "../../../api/api";
 
 type Step = "cart" | "payment" | "complete";
@@ -108,18 +109,16 @@ export default function CartPage() {
   const [items, setItems] = useState<CartItem[]>([]);
   const [currentStep] = useState<Step>("cart");
   const [loading, setLoading] = useState(true);
+  const [qtyInputs, setQtyInputs] = useState<Record<number, string>>({});
 
   useEffect(() => {
     const fetchCart = async () => {
       setLoading(true);
       try {
         const res = await api.get("/api/cart");
-        setItems(
-          res.data.map((d: Omit<CartItem, "checked">) => ({
-            ...d,
-            checked: true,
-          })),
-        );
+        const loaded = res.data.map((d: Omit<CartItem, "checked">) => ({ ...d, checked: true }));
+        setItems(loaded);
+        setQtyInputs(Object.fromEntries(loaded.map((i: CartItem) => [i.cartSn, String(i.itemQty)])));
       } catch {
         // 401이면 api.ts 인터셉터가 /login으로 리다이렉트
       } finally {
@@ -141,29 +140,65 @@ export default function CartPage() {
 
   const deleteItem = async (cartSn: number) => {
     if (!window.confirm("상품을 삭제하시겠습니까?")) return;
-    await api.delete(`/api/cart/${cartSn}`);
-    setItems((prev) => prev.filter((item) => item.cartSn !== cartSn));
+    try {
+      await api.delete(`/api/cart/${cartSn}`);
+      setItems((prev) => prev.filter((item) => item.cartSn !== cartSn));
+    } catch (err) {
+      if (axios.isAxiosError(err)) alert(err.response?.data?.message ?? "삭제 중 오류가 발생했습니다.");
+    }
   };
 
   const deleteSelected = async () => {
-    if (!items.some((i) => i.checked)) {
-      alert("선택된 상품이 없습니다.");
+    if (!items.some((i) => i.checked)) return;
+    if (!window.confirm("선택된 상품을 삭제하시겠습니까?")) return;
+    try {
+      const targets = items.filter((i) => i.checked);
+      await Promise.all(targets.map((i) => api.delete(`/api/cart/${i.cartSn}`)));
+      setItems((prev) => prev.filter((item) => !item.checked));
+    } catch (err) {
+      if (axios.isAxiosError(err)) alert(err.response?.data?.message ?? "삭제 중 오류가 발생했습니다.");
+    }
+  };
+
+  const updateQty = async (cartSn: number, newQty: number) => {
+    if (newQty < 1) return;
+    if (newQty > 50) {
+      alert("최대 구입수량은 50 개 입니다.");
+      setItems((prev) => {
+        const current = prev.find((i) => i.cartSn === cartSn);
+        if (current) setQtyInputs((q) => ({ ...q, [cartSn]: String(current.itemQty) }));
+        return prev;
+      });
       return;
     }
-    if (!window.confirm("선택된 상품을 삭제하시겠습니까?")) return;
-    const targets = items.filter((i) => i.checked);
-    await Promise.all(targets.map((i) => api.delete(`/api/cart/${i.cartSn}`)));
-    setItems((prev) => prev.filter((item) => !item.checked));
+    try {
+      await api.patch(`/api/cart/${cartSn}`, { itemQty: newQty });
+      setItems((prev) =>
+        prev.map((item) =>
+          item.cartSn === cartSn ? { ...item, itemQty: newQty } : item,
+        ),
+      );
+      setQtyInputs((prev) => ({ ...prev, [cartSn]: String(newQty) }));
+    } catch (err) {
+      // 실패 시 입력값을 현재 수량으로 되돌림
+      setItems((prev) => {
+        const current = prev.find((i) => i.cartSn === cartSn);
+        if (current) setQtyInputs((q) => ({ ...q, [cartSn]: String(current.itemQty) }));
+        return prev;
+      });
+      if (axios.isAxiosError(err)) alert(err.response?.data?.message ?? "수량 변경 중 오류가 발생했습니다.");
+    }
   };
 
   const deleteAll = async () => {
-    if (items.length === 0) {
-      alert("장바구니에 상품이 없습니다.");
-      return;
-    }
+    if (items.length === 0) return;
     if (!window.confirm("전체 상품을 삭제하시겠습니까?")) return;
-    await api.delete("/api/cart");
-    setItems([]);
+    try {
+      await api.delete("/api/cart");
+      setItems([]);
+    } catch (err) {
+      if (axios.isAxiosError(err)) alert(err.response?.data?.message ?? "삭제 중 오류가 발생했습니다.");
+    }
   };
 
   const allChecked = items.length > 0 && items.every((i) => i.checked);
@@ -257,10 +292,10 @@ export default function CartPage() {
                         <th className="py-3 px-4 w-24 text-center font-semibold text-gray-700">
                           판매가
                         </th>
-                        <th className="py-3 px-4 w-14 text-center font-semibold text-gray-700 whitespace-nowrap">
+                        <th className="py-3 px-2 w-24 text-center font-semibold text-gray-700 whitespace-nowrap">
                           수량
                         </th>
-                        <th className="py-3 px-4 w-24 text-center font-semibold text-gray-700">
+                        <th className="py-3 px-4 w-28 text-center font-semibold text-gray-700 whitespace-nowrap">
                           결제가
                         </th>
                         <th className="py-3 px-4 w-24 text-center font-semibold text-gray-700">
@@ -313,11 +348,52 @@ export default function CartPage() {
                           <td className="py-4 px-4 text-center align-middle text-sm text-gray-700">
                             {formatPrice(item.prodPrice)}원
                           </td>
-                          <td className="py-4 px-4 text-center align-middle text-gray-700 text-sm">
-                            {item.itemQty}
+                          <td className="py-4 px-2 text-center align-middle text-gray-700 text-sm">
+                            {item.prodDivCd === "COURSE" ? (
+                              <span>1</span>
+                            ) : (
+                              <div className="flex items-center justify-center">
+                                <input
+                                  type="text"
+                                  inputMode="numeric"
+                                  value={qtyInputs[item.cartSn] ?? item.itemQty}
+                                  onChange={(e) => {
+                                    const val = e.target.value.replace(/\D/g, "");
+                                    setQtyInputs((prev) => ({ ...prev, [item.cartSn]: val }));
+                                  }}
+                                  onBlur={() => {
+                                    const val = parseInt(qtyInputs[item.cartSn] ?? "");
+                                    if (!isNaN(val) && val >= 1 && val !== item.itemQty) {
+                                      updateQty(item.cartSn, val);
+                                    } else {
+                                      setQtyInputs((prev) => ({ ...prev, [item.cartSn]: String(item.itemQty) }));
+                                    }
+                                  }}
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+                                  }}
+                                  className="w-12 h-7 border border-gray-300 text-center text-sm focus:outline-none focus:border-gray-500"
+                                />
+                                <div className="flex flex-col h-7 border border-l-0 border-gray-300">
+                                  <button
+                                    onClick={() => updateQty(item.cartSn, item.itemQty + 1)}
+                                    className="flex-1 px-1.5 text-gray-500 hover:bg-gray-100 cursor-pointer leading-none text-[10px]"
+                                  >
+                                    ▲
+                                  </button>
+                                  <button
+                                    onClick={() => updateQty(item.cartSn, item.itemQty - 1)}
+                                    disabled={item.itemQty <= 1}
+                                    className="flex-1 px-1.5 text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer leading-none text-[10px] border-t border-gray-300"
+                                  >
+                                    ▼
+                                  </button>
+                                </div>
+                              </div>
+                            )}
                           </td>
                           <td className="py-4 px-4 text-center align-middle">
-                            <p className="font-bold text-orange-500 text-sm">
+                            <p className="font-bold text-orange-500 text-sm whitespace-nowrap">
                               {formatPrice(item.prodPrice * item.itemQty)}원
                             </p>
                           </td>
