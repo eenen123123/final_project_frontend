@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   GraduationCap,
   Star,
@@ -7,6 +7,16 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import CouponPointModal, { ExpiryDetailModal } from "./CouponPointModal";
+import api from "../../../../api/api";
+
+interface UserCoupon {
+  userCouponSn: number;
+  couponNm: string;
+  issueDt: string;
+  expiryDt: string;
+  useYn: "N" | "Y" | "E";
+  useDt?: string;
+}
 
 type TabType = "hm-coupon" | "hm-point-buy" | "hm-point" | "hm-money";
 
@@ -103,7 +113,14 @@ const NOTICE_CONFIGS: Record<
 
 export default function CouponPointContent() {
   const [activeTab, setActiveTab] = useState<TabType>("hm-coupon");
+  const [coupons, setCoupons] = useState<UserCoupon[]>([]);
   const [showModal, setShowModal] = useState(false);
+
+  useEffect(() => {
+    api.get<UserCoupon[]>("/api/coupons/my")
+      .then(res => setCoupons(res.data))
+      .catch(() => {});
+  }, []);
   const [showExpiryModal, setShowExpiryModal] = useState(false);
   const [startDate, setStartDate] = useState("2026-05-30");
   const [endDate, setEndDate] = useState("2026-06-06");
@@ -173,7 +190,9 @@ export default function CouponPointContent() {
                   <p
                     className={`text-sm ${isActive ? "text-white" : "text-gray-950"} font-bold`}
                   >
-                    {tab.value}
+                    {tab.id === "hm-coupon"
+                      ? coupons.filter(c => c.useYn === "N").length
+                      : tab.value}
                     <span className="text-xs font-normal ml-0.5">
                       {tab.unit}
                     </span>
@@ -198,7 +217,9 @@ export default function CouponPointContent() {
               <p
                 className={`font-black text-emerald-600 font-mono ${activeTab === "hm-money" ? "text-3xl" : "text-2xl"}`}
               >
-                0
+                {activeTab === "hm-coupon"
+                  ? coupons.filter(c => c.useYn === "N").length
+                  : 0}
                 <span className="text-sm font-normal text-gray-500 ml-0.5">
                   {tabUnit}
                 </span>
@@ -341,50 +362,95 @@ export default function CouponPointContent() {
               className="border border-gray-300 bg-white px-3 py-1.5 text-xs text-gray-600 font-medium focus:outline-none min-w-[100px]"
             >
               <option value="">전체내역</option>
-              <option value="Y">적립내역</option>
-              <option value="N">사용내역</option>
+              {activeTab === "hm-coupon" ? (
+                <>
+                  <option value="Y">미사용</option>
+                  <option value="N">사용/소멸</option>
+                </>
+              ) : (
+                <>
+                  <option value="Y">적립내역</option>
+                  <option value="N">사용내역</option>
+                </>
+              )}
             </select>
           </div>
 
           <div className="border-t border-b border-gray-300 mb-5">
-            <table className="w-full text-xs border-collapse">
-              <colgroup>
-                <col style={{ width: "16%" }} />
-                <col style={{ width: "40%" }} />
-                <col style={{ width: "15%" }} />
-                <col style={{ width: "15%" }} />
-                <col style={{ width: "14%" }} />
-              </colgroup>
-              <thead>
-                <tr className="border-b border-gray-200 bg-white">
-                  <th className="py-3 px-2 text-center font-bold text-gray-700">
-                    날짜
-                  </th>
-                  <th className="py-3 px-4 text-center font-bold text-gray-700">
-                    사용내역
-                  </th>
-                  <th className="py-3 px-2 text-center font-bold text-gray-700">
-                    적립포인트
-                  </th>
-                  <th className="py-3 px-2 text-center font-bold text-gray-700">
-                    사용/소멸 포인트
-                  </th>
-                  <th className="py-3 px-2 text-center font-bold text-gray-700">
-                    유효기간
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td
-                    colSpan={5}
-                    className="py-14 text-center text-gray-500 font-medium bg-white"
-                  >
-                    내역이 없습니다.
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+            {activeTab === "hm-coupon" ? (
+              <table className="w-full text-xs border-collapse">
+                <colgroup>
+                  <col style={{ width: "18%" }} />
+                  <col style={{ width: "42%" }} />
+                  <col style={{ width: "16%" }} />
+                  <col style={{ width: "24%" }} />
+                </colgroup>
+                <thead>
+                  <tr className="border-b border-gray-200 bg-white">
+                    <th className="py-3 px-2 text-center font-bold text-gray-700">발급일</th>
+                    <th className="py-3 px-4 text-center font-bold text-gray-700">쿠폰명</th>
+                    <th className="py-3 px-2 text-center font-bold text-gray-700">상태</th>
+                    <th className="py-3 px-2 text-center font-bold text-gray-700">유효기간</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(() => {
+                    const filtered = coupons.filter(c => {
+                      if (sortType === "Y") return c.useYn === "N";
+                      if (sortType === "N") return c.useYn !== "N";
+                      return true;
+                    });
+                    if (filtered.length === 0) {
+                      return (
+                        <tr>
+                          <td colSpan={4} className="py-14 text-center text-gray-500 font-medium bg-white">
+                            보유 쿠폰이 없습니다.
+                          </td>
+                        </tr>
+                      );
+                    }
+                    const useYnLabel: Record<string, string> = { N: "미사용", Y: "사용완료", E: "소멸" };
+                    const useYnColor: Record<string, string> = { N: "text-emerald-600", Y: "text-gray-400", E: "text-red-400" };
+                    return filtered.map(c => (
+                      <tr key={c.userCouponSn} className="border-b border-gray-100 last:border-b-0">
+                        <td className="py-3 px-2 text-center text-gray-600">{c.issueDt.slice(0, 10)}</td>
+                        <td className="py-3 px-4 text-left text-gray-800 font-medium">{c.couponNm}</td>
+                        <td className={`py-3 px-2 text-center font-bold ${useYnColor[c.useYn] ?? "text-gray-500"}`}>
+                          {useYnLabel[c.useYn] ?? c.useYn}
+                        </td>
+                        <td className="py-3 px-2 text-center text-gray-600">{c.expiryDt}</td>
+                      </tr>
+                    ));
+                  })()}
+                </tbody>
+              </table>
+            ) : (
+              <table className="w-full text-xs border-collapse">
+                <colgroup>
+                  <col style={{ width: "16%" }} />
+                  <col style={{ width: "40%" }} />
+                  <col style={{ width: "15%" }} />
+                  <col style={{ width: "15%" }} />
+                  <col style={{ width: "14%" }} />
+                </colgroup>
+                <thead>
+                  <tr className="border-b border-gray-200 bg-white">
+                    <th className="py-3 px-2 text-center font-bold text-gray-700">날짜</th>
+                    <th className="py-3 px-4 text-center font-bold text-gray-700">사용내역</th>
+                    <th className="py-3 px-2 text-center font-bold text-gray-700">적립포인트</th>
+                    <th className="py-3 px-2 text-center font-bold text-gray-700">사용/소멸 포인트</th>
+                    <th className="py-3 px-2 text-center font-bold text-gray-700">유효기간</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td colSpan={5} className="py-14 text-center text-gray-500 font-medium bg-white">
+                      내역이 없습니다.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            )}
           </div>
 
           <div className="flex justify-center items-center gap-3 text-xs text-gray-400 font-medium mb-8">

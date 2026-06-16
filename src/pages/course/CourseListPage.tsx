@@ -1,6 +1,7 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import api from "../../api/api";
 
 interface Subject {
   subjId: number;
@@ -123,9 +124,29 @@ function CourseBadges({ course }: { course: Course }) {
 }
 
 function CourseItem({ course }: { course: Course }) {
+  const navigate = useNavigate();
   const formattedPrice = course.coursePrice
     ? course.coursePrice.toLocaleString() + "원"
     : null;
+
+  const addToCart = async () => {
+    try {
+      const res = await api.post("/api/cart", { prodDivCd: "COURSE", prodSn: course.courseSn, itemQty: 1 });
+      const go = window.confirm(`${res.data}\n마이페이지(장바구니)에서 확인하시겠습니까?`);
+      if (go) navigate("/mycart");
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        const status = err.response?.status;
+        if (status === 401) { alert("로그인이 필요합니다."); return; }
+        if (status === 409) {
+          const go = window.confirm(`${err.response?.data?.message}\n마이페이지(장바구니)에서 확인하시겠습니까?`);
+          if (go) navigate("/mycart");
+        } else {
+          alert(err.response?.data?.message ?? "오류가 발생했습니다.");
+        }
+      }
+    }
+  };
 
   return (
     <li className="group flex items-center gap-5 py-5 px-5 border-b border-gray-100 hover:bg-linear-to-r hover:from-blue-50/40 hover:to-transparent transition-all duration-200">
@@ -191,6 +212,7 @@ function CourseItem({ course }: { course: Course }) {
           </div>
         )}
         <button
+          onClick={addToCart}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border-2 border-orange-400 text-orange-500 text-xs font-semibold hover:bg-orange-400 hover:text-white transition-all duration-150 cursor-pointer shadow-sm"
           title="장바구니 담기"
         >

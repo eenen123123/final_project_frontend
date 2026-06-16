@@ -18,7 +18,6 @@ const NAV: NavItem[] = [
     href: "#classroom",
     children: [
       { label: "수강중 강좌", href: "/mylecture" },
-      { label: "강좌 수강신청", href: "/enroll" },
       { label: "수강 리포트", href: "/mypage/report" },
       { label: "성적 관리", href: "/mypage/grades" },
     ],
