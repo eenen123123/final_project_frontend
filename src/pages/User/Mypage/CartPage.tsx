@@ -350,7 +350,7 @@ export default function CartPage() {
                           </td>
                           <td className="py-4 px-2 text-center align-middle text-gray-700 text-sm">
                             {item.prodDivCd === "COURSE" ? (
-                              <span>1</span>
+                              <span>-</span>
                             ) : (
                               <div className="flex items-center justify-center">
                                 <input
