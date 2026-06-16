@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { ChevronDown, ChevronUp, Home } from "lucide-react";
 import api from "../../api/api";
 import { type TextbookDto } from "./components/BookCard";
+import { useAuth } from "../../auth/AuthContext";
 
 const NOW = Date.now();
 
@@ -101,6 +102,7 @@ export default function BookDetailPage() {
   const [book, setBook] = useState<TextbookDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [courseOpen, setCourseOpen] = useState(true);
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     if (!textbookSn) return;
@@ -130,9 +132,19 @@ export default function BookDetailPage() {
 
   const inStock = book.salableCnt == null || book.salableCnt > 0;
   const total = book.salePrcAmt + (book.dlvrAmt ?? 0);
-  const isNew = !!book.regDt && NOW - new Date(book.regDt).getTime() < 30 * 24 * 60 * 60 * 1000;
+  const isNew =
+    !!book.regDt &&
+    NOW - new Date(book.regDt).getTime() < 30 * 24 * 60 * 60 * 1000;
 
   const handleAddToCart = async () => {
+    if (!isAuthenticated) {
+      if (
+        window.confirm("로그인이 필요합니다. 로그인 페이지로 이동하시겠습니까?")
+      ) {
+        navigate("/login");
+      }
+      return;
+    }
     try {
       const res = await api.post("/api/cart", {
         prodDivCd: "TEXTBOOK",
@@ -142,15 +154,21 @@ export default function BookDetailPage() {
         itemQty: 1,
       });
       // 201 Created — 새로 담김
-      const go = window.confirm(`${res.data}\n마이페이지(장바구니)에서 확인하시겠습니까?`);
+      const go = window.confirm(
+        `${res.data}\n마이페이지(장바구니)에서 확인하시겠습니까?`,
+      );
       if (go) navigate("/mycart");
     } catch (err) {
-      const axiosErr = err as { response?: { status?: number; data?: { message?: string } } };
+      const axiosErr = err as {
+        response?: { status?: number; data?: { message?: string } };
+      };
       const status = axiosErr.response?.status;
       const message = axiosErr.response?.data?.message;
       if (status === 409) {
         // 409 Conflict — 이미 담긴 상품 (CART_ITEM_ALREADY_EXISTS)
-        const go = window.confirm(`${message}\n마이페이지(장바구니)에서 확인하시겠습니까?`);
+        const go = window.confirm(
+          `${message}\n마이페이지(장바구니)에서 확인하시겠습니까?`,
+        );
         if (go) navigate("/mycart");
       } else if (status === 401) {
         alert("로그인이 필요합니다.");
@@ -159,7 +177,6 @@ export default function BookDetailPage() {
       }
     }
   };
-
 
   return (
     <div className="min-h-screen bg-white">
