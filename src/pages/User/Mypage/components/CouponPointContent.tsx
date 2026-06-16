@@ -49,10 +49,7 @@ const SUMMARY_NOTICES: Record<TabType, React.ReactNode[]> = {
     </>,
     "스터디포인트는 적립일로부터 1년간 이용이 유효하며, 1년 후 잔여 포인트는 자동 소멸됩니다.",
   ],
-  "hm-money": [
-    "HM머니는 유효기간이 없으며, 사용하고 남은 잔액은 고객센터를 통해 환불 요청하실 수 있습니다.",
-    "HM머니로 결제 후 취소 시 HM머니로 재적립되며, 원하시는 경우 현금 환불도 가능합니다.",
-  ],
+  "hm-money": ["헤르메스에서 현금처럼 사용하실 수 있는 온라인 재화 입니다"],
 };
 
 const NOTICE_CONFIGS: Record<
@@ -112,7 +109,9 @@ export default function CouponPointContent() {
   const [endDate, setEndDate] = useState("2026-06-06");
   const [selectedPeriod, setSelectedPeriod] = useState(7);
   const [sortType, setSortType] = useState("");
-  const [moneySubTab, setMoneySubTab] = useState<"history" | "charge">("history");
+  const [moneySubTab, setMoneySubTab] = useState<"history" | "charge">(
+    "history",
+  );
   const [chargeAmount, setChargeAmount] = useState("1000");
   const [selectedPreset, setSelectedPreset] = useState<number | null>(null);
   const [emailAgreed, setEmailAgreed] = useState(false);
@@ -187,19 +186,27 @@ export default function CouponPointContent() {
 
         {/* 잔액 요약 */}
         <div className="bg-[#FAF8F5] p-6">
-          <div className={`flex items-center text-center py-4 border-b border-gray-200 mb-6 ${activeTab === "hm-money" ? "justify-center" : "justify-around"}`}>
+          <div
+            className={`flex items-center text-center py-4 border-b border-gray-200 mb-6 ${activeTab === "hm-money" ? "justify-center" : "justify-around"}`}
+          >
             <div>
-              <p className={`font-bold text-gray-500 mb-2 ${activeTab === "hm-money" ? "text-sm" : "text-xs"}`}>
+              <p
+                className={`font-bold text-gray-500 mb-2 ${activeTab === "hm-money" ? "text-sm" : "text-xs"}`}
+              >
                 사용 가능한 {tabTitle}
               </p>
-              <p className={`font-black text-emerald-600 font-mono ${activeTab === "hm-money" ? "text-3xl" : "text-2xl"}`}>
+              <p
+                className={`font-black text-emerald-600 font-mono ${activeTab === "hm-money" ? "text-3xl" : "text-2xl"}`}
+              >
                 0
                 <span className="text-sm font-normal text-gray-500 ml-0.5">
                   {tabUnit}
                 </span>
               </p>
             </div>
-            {activeTab !== "hm-money" && <div className="w-px h-10 bg-gray-300/60" />}
+            {activeTab !== "hm-money" && (
+              <div className="w-px h-10 bg-gray-300/60" />
+            )}
             {activeTab !== "hm-money" && (
               <div>
                 <p className="text-xs font-bold text-gray-500 mb-1">
@@ -267,129 +274,129 @@ export default function CouponPointContent() {
           </div>
 
           <form
-        onSubmit={handleSearchSubmit}
-        className="border border-gray-300 bg-[#FAFAFA] p-4 flex items-center gap-6 text-xs text-gray-700 mb-3"
-      >
-        <div className="flex items-center gap-4">
-          <span className="text-gray-500 font-bold tracking-tight">
-            기간검색
-          </span>
-          <div className="flex rounded-xs border border-gray-300 bg-white overflow-hidden">
-            {[
-              { label: "1주일", days: 7 },
-              { label: "1개월", days: 30 },
-              { label: "3개월", days: 90 },
-              { label: "6개월", days: 180 },
-            ].map((p) => (
-              <button
-                key={p.days}
-                type="button"
-                onClick={() => handlePeriodChange(p.days)}
-                className={`px-3 py-1.5 text-[11px] font-medium border-r last:border-r-0 border-gray-200 transition-colors cursor-pointer ${
-                  selectedPeriod === p.days
-                    ? "bg-gray-700 text-white font-bold"
-                    : "text-gray-600 hover:bg-gray-50 bg-white"
-                }`}
-              >
-                {p.label}
-              </button>
-            ))}
+            onSubmit={handleSearchSubmit}
+            className="border border-gray-300 bg-[#FAFAFA] p-4 flex items-center gap-6 text-xs text-gray-700 mb-3"
+          >
+            <div className="flex items-center gap-4">
+              <span className="text-gray-500 font-bold tracking-tight">
+                기간검색
+              </span>
+              <div className="flex rounded-xs border border-gray-300 bg-white overflow-hidden">
+                {[
+                  { label: "1주일", days: 7 },
+                  { label: "1개월", days: 30 },
+                  { label: "3개월", days: 90 },
+                  { label: "6개월", days: 180 },
+                ].map((p) => (
+                  <button
+                    key={p.days}
+                    type="button"
+                    onClick={() => handlePeriodChange(p.days)}
+                    className={`px-3 py-1.5 text-[11px] font-medium border-r last:border-r-0 border-gray-200 transition-colors cursor-pointer ${
+                      selectedPeriod === p.days
+                        ? "bg-gray-700 text-white font-bold"
+                        : "text-gray-600 hover:bg-gray-50 bg-white"
+                    }`}
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1.5">
+              <input
+                type="text"
+                value={startDate}
+                onChange={(e) => {
+                  setStartDate(e.target.value);
+                  setSelectedPeriod(0);
+                }}
+                className="border border-gray-300 px-2 py-1.5 w-28 text-center text-xs text-gray-700 bg-white focus:outline-none"
+              />
+              <span className="text-gray-400 font-normal">~</span>
+              <input
+                type="text"
+                value={endDate}
+                onChange={(e) => {
+                  setEndDate(e.target.value);
+                  setSelectedPeriod(0);
+                }}
+                className="border border-gray-300 px-2 py-1.5 w-28 text-center text-xs text-gray-700 bg-white focus:outline-none"
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="px-4 py-1.5 bg-[#757575] hover:bg-gray-800 text-white text-xs font-medium transition-colors cursor-pointer rounded-xs"
+            >
+              검색 &gt;
+            </button>
+          </form>
+
+          <div className="flex justify-end mb-2.5">
+            <select
+              value={sortType}
+              onChange={(e) => setSortType(e.target.value)}
+              className="border border-gray-300 bg-white px-3 py-1.5 text-xs text-gray-600 font-medium focus:outline-none min-w-[100px]"
+            >
+              <option value="">전체내역</option>
+              <option value="Y">적립내역</option>
+              <option value="N">사용내역</option>
+            </select>
           </div>
-        </div>
 
-        <div className="flex items-center gap-1.5">
-          <input
-            type="text"
-            value={startDate}
-            onChange={(e) => {
-              setStartDate(e.target.value);
-              setSelectedPeriod(0);
-            }}
-            className="border border-gray-300 px-2 py-1.5 w-28 text-center text-xs text-gray-700 bg-white focus:outline-none"
-          />
-          <span className="text-gray-400 font-normal">~</span>
-          <input
-            type="text"
-            value={endDate}
-            onChange={(e) => {
-              setEndDate(e.target.value);
-              setSelectedPeriod(0);
-            }}
-            className="border border-gray-300 px-2 py-1.5 w-28 text-center text-xs text-gray-700 bg-white focus:outline-none"
-          />
-        </div>
+          <div className="border-t border-b border-gray-300 mb-5">
+            <table className="w-full text-xs border-collapse">
+              <colgroup>
+                <col style={{ width: "16%" }} />
+                <col style={{ width: "40%" }} />
+                <col style={{ width: "15%" }} />
+                <col style={{ width: "15%" }} />
+                <col style={{ width: "14%" }} />
+              </colgroup>
+              <thead>
+                <tr className="border-b border-gray-200 bg-white">
+                  <th className="py-3 px-2 text-center font-bold text-gray-700">
+                    날짜
+                  </th>
+                  <th className="py-3 px-4 text-center font-bold text-gray-700">
+                    사용내역
+                  </th>
+                  <th className="py-3 px-2 text-center font-bold text-gray-700">
+                    적립포인트
+                  </th>
+                  <th className="py-3 px-2 text-center font-bold text-gray-700">
+                    사용/소멸 포인트
+                  </th>
+                  <th className="py-3 px-2 text-center font-bold text-gray-700">
+                    유효기간
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td
+                    colSpan={5}
+                    className="py-14 text-center text-gray-500 font-medium bg-white"
+                  >
+                    내역이 없습니다.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
-        <button
-          type="submit"
-          className="px-4 py-1.5 bg-[#757575] hover:bg-gray-800 text-white text-xs font-medium transition-colors cursor-pointer rounded-xs"
-        >
-          검색 &gt;
-        </button>
-      </form>
-
-      <div className="flex justify-end mb-2.5">
-        <select
-          value={sortType}
-          onChange={(e) => setSortType(e.target.value)}
-          className="border border-gray-300 bg-white px-3 py-1.5 text-xs text-gray-600 font-medium focus:outline-none min-w-[100px]"
-        >
-          <option value="">전체내역</option>
-          <option value="Y">적립내역</option>
-          <option value="N">사용내역</option>
-        </select>
-      </div>
-
-      <div className="border-t border-b border-gray-300 mb-5">
-        <table className="w-full text-xs border-collapse">
-          <colgroup>
-            <col style={{ width: "16%" }} />
-            <col style={{ width: "40%" }} />
-            <col style={{ width: "15%" }} />
-            <col style={{ width: "15%" }} />
-            <col style={{ width: "14%" }} />
-          </colgroup>
-          <thead>
-            <tr className="border-b border-gray-200 bg-white">
-              <th className="py-3 px-2 text-center font-bold text-gray-700">
-                날짜
-              </th>
-              <th className="py-3 px-4 text-center font-bold text-gray-700">
-                사용내역
-              </th>
-              <th className="py-3 px-2 text-center font-bold text-gray-700">
-                적립포인트
-              </th>
-              <th className="py-3 px-2 text-center font-bold text-gray-700">
-                사용/소멸 포인트
-              </th>
-              <th className="py-3 px-2 text-center font-bold text-gray-700">
-                유효기간
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td
-                colSpan={5}
-                className="py-14 text-center text-gray-500 font-medium bg-white"
-              >
-                내역이 없습니다.
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div className="flex justify-center items-center gap-3 text-xs text-gray-400 font-medium mb-8">
-        <span className="text-gray-900 font-bold underline cursor-pointer">
-          1
-        </span>
-        <span className="text-gray-300 font-normal">|</span>
-        <span className="text-gray-500 hover:text-gray-900 cursor-pointer font-mono font-bold">
-          »
-        </span>
-        <span className="hover:text-gray-900 cursor-pointer">1</span>
-      </div>
+          <div className="flex justify-center items-center gap-3 text-xs text-gray-400 font-medium mb-8">
+            <span className="text-gray-900 font-bold underline cursor-pointer">
+              1
+            </span>
+            <span className="text-gray-300 font-normal">|</span>
+            <span className="text-gray-500 hover:text-gray-900 cursor-pointer font-mono font-bold">
+              »
+            </span>
+            <span className="hover:text-gray-900 cursor-pointer">1</span>
+          </div>
         </>
       )}
 
@@ -408,26 +415,47 @@ export default function CouponPointContent() {
                     <input
                       type="text"
                       value={chargeAmount}
-                      onChange={(e) => { setChargeAmount(e.target.value); setSelectedPreset(null); }}
+                      onChange={(e) => {
+                        setChargeAmount(e.target.value);
+                        setSelectedPreset(null);
+                      }}
                       className="border border-gray-300 px-2 py-1.5 w-28 text-right text-xs text-gray-700 bg-white focus:outline-none focus:border-gray-500"
                     />
                     <span className="text-gray-600">원</span>
                     <label className="flex items-center gap-1 text-gray-500 ml-1">
-                      <input type="radio" checked readOnly className="accent-gray-600" />
+                      <input
+                        type="radio"
+                        checked
+                        readOnly
+                        className="accent-gray-600"
+                      />
                       직접입력
                     </label>
-                    <span className="text-gray-400">(최소입력단위 1,000원)</span>
+                    <span className="text-gray-400">
+                      (최소입력단위 1,000원)
+                    </span>
                   </div>
                   <div className="grid grid-cols-5 gap-2">
-                    {[1000, 3000, 5000, 10000, 50000, 100000, 150000, 200000, 250000, 500000].map((amt) => (
-                      <label key={amt} className="flex items-center gap-1 cursor-pointer">
+                    {[
+                      1000, 3000, 5000, 10000, 50000, 100000, 150000, 200000,
+                      250000, 500000,
+                    ].map((amt) => (
+                      <label
+                        key={amt}
+                        className="flex items-center gap-1 cursor-pointer"
+                      >
                         <input
                           type="radio"
                           checked={selectedPreset === amt}
-                          onChange={() => { setSelectedPreset(amt); setChargeAmount(String(amt)); }}
+                          onChange={() => {
+                            setSelectedPreset(amt);
+                            setChargeAmount(String(amt));
+                          }}
                           className="accent-gray-600"
                         />
-                        <span className="text-gray-700">{amt.toLocaleString()}원</span>
+                        <span className="text-gray-700">
+                          {amt.toLocaleString()}원
+                        </span>
                       </label>
                     ))}
                   </div>
@@ -445,9 +473,13 @@ export default function CouponPointContent() {
                 className="mt-0.5 accent-gray-600"
               />
               <span>
-                <span className="font-bold">(선택) 본 결제 건에 대한 상품 이용 약관을 이메일로 받겠습니다.</span>
+                <span className="font-bold">
+                  (선택) 본 결제 건에 대한 상품 이용 약관을 이메일로 받겠습니다.
+                </span>
                 <br />
-                <span className="text-gray-400">(회원정보상의 이메일로 전송됩니다.)</span>
+                <span className="text-gray-400">
+                  (회원정보상의 이메일로 전송됩니다.)
+                </span>
               </span>
             </label>
           </div>
@@ -455,7 +487,11 @@ export default function CouponPointContent() {
           <div className="flex justify-center gap-3 mt-6">
             <button
               type="button"
-              onClick={() => { setChargeAmount("1000"); setSelectedPreset(null); setEmailAgreed(false); }}
+              onClick={() => {
+                setChargeAmount("1000");
+                setSelectedPreset(null);
+                setEmailAgreed(false);
+              }}
               className="px-6 py-2.5 bg-gray-600 hover:bg-gray-700 text-white text-xs font-bold transition-colors cursor-pointer"
             >
               새로고침 &gt;
