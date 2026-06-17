@@ -148,6 +148,9 @@ export default function AppRoute() {
         <Route path="/mypage" element={<MyPage />} />
         <Route path="/mycalendar" element={<MyCalendarPage />} />
         <Route path="/mylecture" element={<MyLecturePage />} />
+        <Route path="/mypage/report" element={<StudyReportPage />} />
+        <Route path="/mypage/grades" element={<GradesPage />} />
+        <Route path="/mypage/couponpoint" element={<CouponPointPage />} />
         <Route path="/mypage/verify" element={<VerifyPasswordPage />} />
         <Route path="/mypage/profile/edit" element={<ProfileEditPage />} />
         <Route path="/my-classrooms" element={<MyClassroomsPage />} />

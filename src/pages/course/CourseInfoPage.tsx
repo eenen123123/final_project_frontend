@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import api from "../../api/api";
 
 interface Textbook {
@@ -68,6 +68,7 @@ const TEXTBOOK_PRICE = 28000;
 const SHIPPING_FEE = 2800;
 
 export default function CourseInfoPage() {
+  const navigate = useNavigate();
   const { courseSn } = useParams<{ courseSn: string }>();
   const [course, setCourse] = useState<Course | null>(null);
   const [lectures, setLectures] = useState<Lecture[]>([]);
@@ -119,6 +120,44 @@ export default function CourseInfoPage() {
   const coursePrice = course.coursePrice ?? 0;
   const total =
     coursePrice + (includeTextbook ? TEXTBOOK_PRICE + SHIPPING_FEE : 0);
+
+  const addCourseToCart = async () => {
+    const messages: string[] = [];
+
+    // 강좌 담기
+    try {
+      const res = await api.post("/api/cart", { prodDivCd: "COURSE", prodSn: course.courseSn, itemQty: 1 });
+      messages.push(String(res.data));
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        const status = err.response?.status;
+        if (status === 401) { alert("로그인이 필요합니다."); return; }
+        if (status === 409) { messages.push(err.response?.data?.message ?? "이미 담긴 강좌입니다."); }
+        else { alert(err.response?.data?.message ?? "오류가 발생했습니다."); return; }
+      }
+    }
+
+    // 교재 담기 (체크된 경우)
+    if (includeTextbook && textBooks.length > 0) {
+      for (const tb of textBooks) {
+        try {
+          const res = await api.post("/api/cart", { prodDivCd: "TEXTBOOK", prodSn: tb.textbookSn, itemQty: 1 });
+          messages.push(String(res.data));
+        } catch (err) {
+          if (axios.isAxiosError(err)) {
+            const status = err.response?.status;
+            if (status === 409) { messages.push(err.response?.data?.message ?? "이미 담긴 교재입니다."); }
+            else { alert(err.response?.data?.message ?? "오류가 발생했습니다."); }
+          }
+        }
+      }
+    }
+
+    if (messages.length > 0) {
+      const go = window.confirm(`${[...new Set(messages)].join("\n")}\n마이페이지(장바구니)에서 확인하시겠습니까?`);
+      if (go) navigate("/mycart");
+    }
+  };
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
@@ -298,7 +337,10 @@ export default function CourseInfoPage() {
         <div className="flex items-center justify-between px-5 py-4 bg-gray-50">
           <div></div>
           <div className="flex gap-2">
-            <button className="text-sm font-semibold text-white bg-blue-500 hover:bg-blue-600 rounded px-5 py-2 cursor-pointer transition-colors">
+            <button
+              onClick={addCourseToCart}
+              className="text-sm font-semibold text-white bg-blue-500 hover:bg-blue-600 rounded px-5 py-2 cursor-pointer transition-colors"
+            >
               장바구니
             </button>
             <button className="text-sm font-semibold text-white bg-orange-500 hover:bg-orange-600 rounded px-5 py-2 cursor-pointer transition-colors">
