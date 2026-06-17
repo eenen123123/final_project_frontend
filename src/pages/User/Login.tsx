@@ -52,8 +52,13 @@ export default function Login() {
       navigate(from, { replace: true });
     } catch (error) {
       console.error("Login Failed", error);
-      
-      alert(getApiErrorMessage(error, "로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요."));
+
+      alert(
+        getApiErrorMessage(
+          error,
+          "로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.",
+        ),
+      );
     }
   };
 
@@ -152,7 +157,7 @@ export default function Login() {
             onClick={handleHidden}
             className="w-full py-2.5 mt-4 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors cursor-pointer"
           >
-            {hidden ? "열기" : "접기"}
+            {hidden ? "열기" : "접기 (클릭해서 아이디 입력)"}
           </button>
         </div>
         <div
@@ -172,7 +177,13 @@ export default function Login() {
               {accounts.map((account) => (
                 <tr
                   key={account.userId}
-                  className={`border ${bgColor[account.department] || "bg-gray-50"}`}
+                  className={`border ${bgColor[account.department] || "bg-gray-50"} cursor-pointer hover:bg-white transition-colors`}
+                  onClick={() => {
+                    setFormData((prev) => ({
+                      ...prev,
+                      userId: account.userId,
+                    }));
+                  }}
                 >
                   <td className="border px-4 py-2">{account.userId}</td>
                   <td className="border px-4 py-2">{account.userName}</td>
