@@ -58,6 +58,7 @@ import CourseListPage from "./pages/course/CourseListPage.tsx";
 import CourseInfoPage from "./pages/course/CourseInfoPage.tsx";
 import HermesVideoViewer from "./components/viewer/HermesVideoViewer.tsx";
 import OrderHistoryDetailPage from "./pages/User/Mypage/OrderHistoryDetailPage.tsx";
+import SuneungGradeCutPage from "./pages/Suneung/SuneungGradeCutPage.tsx";
 
 /* cSpell:disable */
 export default function AppRoute() {
@@ -79,6 +80,9 @@ export default function AppRoute() {
         path="/test/toss-pay/success"
         element={<TossPaySuccessTestPage />}
       />
+
+      <Route path="/gradeCut" element={<SuneungGradeCutPage />} />
+
       {/* 공용 라우트 */}
       <Route path="/test/toss-pay/fail" element={<TossPayFailTestPage />} />
       <Route path="/instructors" element={<Instructors />} />
