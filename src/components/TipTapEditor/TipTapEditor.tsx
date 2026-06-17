@@ -42,6 +42,7 @@ interface ImageNodeAttrs {
   fileId: number | null;
   alt: string | null;
   uploadStatus: UploadStatus;
+  width: number | null;
 }
 
 export interface TipTapEditorProps {
@@ -58,12 +59,13 @@ export interface TipTapEditorProps {
 
 // --- ImageNodeView ---
 
-const ImageNodeView = ({ node }: NodeViewProps) => {
-  const { src, fileId, uploadStatus, alt } = node.attrs as ImageNodeAttrs;
+const ImageNodeView = ({ node, updateAttributes, editor }: NodeViewProps) => {
+  const { src, fileId, uploadStatus, alt, width } = node.attrs as ImageNodeAttrs;
   const tokenMap = useContext(ImageTokenContext);
   const resolver = useContext(ImageUrlResolverContext);
 
   const [fetchedSrc, setFetchedSrc] = useState<string | null>(null);
+  const imgRef = useRef<HTMLImageElement>(null);
 
   const displaySrc = src?.startsWith("blob:")
     ? src
@@ -74,7 +76,7 @@ const ImageNodeView = ({ node }: NodeViewProps) => {
         : fetchedSrc;
 
   useEffect(() => {
-    if (resolver) return; // resolver 있으면 토큰 fetch 불필요
+    if (resolver) return;
     if (fileId == null || src?.startsWith("blob:")) return;
     if (tokenMap === null) return;
     if (tokenMap[fileId]) return;
@@ -83,6 +85,30 @@ const ImageNodeView = ({ node }: NodeViewProps) => {
       .then(({ viewUrl }) => setFetchedSrc(viewUrl))
       .catch(() => {});
   }, [fileId, src, tokenMap, resolver]);
+
+  const handleResizeMouseDown = (e: React.MouseEvent, side: "left" | "right") => {
+    e.preventDefault();
+    const startX = e.clientX;
+    const startWidth = imgRef.current?.offsetWidth ?? width ?? 300;
+
+    const onMouseMove = (moveEvent: MouseEvent) => {
+      const delta =
+        side === "right" ? moveEvent.clientX - startX : startX - moveEvent.clientX;
+      const newWidth = Math.max(50, Math.round(startWidth + delta));
+      updateAttributes({ width: newWidth });
+    };
+
+    const onMouseUp = () => {
+      document.removeEventListener("mousemove", onMouseMove);
+      document.removeEventListener("mouseup", onMouseUp);
+    };
+
+    document.addEventListener("mousemove", onMouseMove);
+    document.addEventListener("mouseup", onMouseUp);
+  };
+
+  const isEditable = editor?.isEditable ?? false;
+  const showHandles = isEditable && !!displaySrc && uploadStatus !== "uploading";
 
   if (uploadStatus === "error") {
     return (
@@ -96,12 +122,17 @@ const ImageNodeView = ({ node }: NodeViewProps) => {
 
   return (
     <NodeViewWrapper>
-      <div className="relative my-2">
+      <div
+        className="relative my-2 inline-block"
+        style={{ width: width ? `${width}px` : undefined }}
+      >
         {displaySrc ? (
           <img
+            ref={imgRef}
             src={displaySrc}
             alt={alt ?? ""}
-            className="max-w-full rounded"
+            style={{ width: width ? `${width}px` : undefined }}
+            className="block max-w-full rounded"
           />
         ) : (
           <div className="flex h-32 items-center justify-center rounded bg-slate-100 text-sm text-slate-400">
@@ -112,6 +143,22 @@ const ImageNodeView = ({ node }: NodeViewProps) => {
           <div className="absolute inset-0 flex items-center justify-center rounded bg-white/60">
             <span className="text-sm text-slate-600">업로드 중...</span>
           </div>
+        )}
+        {showHandles && (
+          <>
+            <div
+              className="absolute inset-y-0 left-0 flex w-3 cursor-ew-resize items-center justify-center"
+              onMouseDown={(e) => handleResizeMouseDown(e, "left")}
+            >
+              <div className="h-10 w-1.5 rounded-full bg-blue-500 opacity-70" />
+            </div>
+            <div
+              className="absolute inset-y-0 right-0 flex w-3 cursor-ew-resize items-center justify-center"
+              onMouseDown={(e) => handleResizeMouseDown(e, "right")}
+            >
+              <div className="h-10 w-1.5 rounded-full bg-blue-500 opacity-70" />
+            </div>
+          </>
         )}
       </div>
     </NodeViewWrapper>
@@ -145,6 +192,15 @@ const ImageNode = Node.create({
       uploadStatus: {
         default: "idle" as UploadStatus,
         renderHTML: () => ({}),
+      },
+      width: {
+        default: null,
+        parseHTML: (el) => {
+          const val = el.getAttribute("width");
+          return val ? parseInt(val, 10) : null;
+        },
+        renderHTML: (attrs) =>
+          attrs.width != null ? { width: attrs.width } : {},
       },
     };
   },
