@@ -43,8 +43,10 @@ interface Course {
   explain: string;
   isBest: boolean;
   isNew: boolean;
+  thumbnailImg?: string;
 }
 
+// MARK: 장바구니 아이콘
 function CartIcon() {
   return (
     <svg
@@ -64,6 +66,7 @@ function CartIcon() {
   );
 }
 
+// MARK: 책 아이콘
 function BookIcon() {
   return (
     <svg
@@ -82,6 +85,7 @@ function BookIcon() {
   );
 }
 
+// MARK: 검색 아이콘
 function SearchIcon() {
   return (
     <svg
@@ -100,6 +104,7 @@ function SearchIcon() {
   );
 }
 
+// MARK: 강좌 뱃지 컴포넌트
 function CourseBadges({ course }: { course: Course }) {
   return (
     <div className="flex flex-wrap gap-1.5 mb-2">
@@ -123,6 +128,7 @@ function CourseBadges({ course }: { course: Course }) {
   );
 }
 
+// MARK: 개별 강좌 아이템
 function CourseItem({ course }: { course: Course }) {
   const navigate = useNavigate();
   const formattedPrice = course.coursePrice
@@ -131,15 +137,26 @@ function CourseItem({ course }: { course: Course }) {
 
   const addToCart = async () => {
     try {
-      const res = await api.post("/api/cart", { prodDivCd: "COURSE", prodSn: course.courseSn, itemQty: 1 });
-      const go = window.confirm(`${res.data}\n마이페이지(장바구니)에서 확인하시겠습니까?`);
+      const res = await api.post("/api/cart", {
+        prodDivCd: "COURSE",
+        prodSn: course.courseSn,
+        itemQty: 1,
+      });
+      const go = window.confirm(
+        `${res.data}\n마이페이지(장바구니)에서 확인하시겠습니까?`,
+      );
       if (go) navigate("/mycart");
     } catch (err) {
       if (axios.isAxiosError(err)) {
         const status = err.response?.status;
-        if (status === 401) { alert("로그인이 필요합니다."); return; }
+        if (status === 401) {
+          alert("로그인이 필요합니다.");
+          return;
+        }
         if (status === 409) {
-          const go = window.confirm(`${err.response?.data?.message}\n마이페이지(장바구니)에서 확인하시겠습니까?`);
+          const go = window.confirm(
+            `${err.response?.data?.message}\n마이페이지(장바구니)에서 확인하시겠습니까?`,
+          );
           if (go) navigate("/mycart");
         } else {
           alert(err.response?.data?.message ?? "오류가 발생했습니다.");
@@ -151,8 +168,17 @@ function CourseItem({ course }: { course: Course }) {
   return (
     <li className="group flex items-center gap-5 py-5 px-5 border-b border-gray-100 hover:bg-linear-to-r hover:from-blue-50/40 hover:to-transparent transition-all duration-200">
       {/* 과목 아이콘 */}
-      <div className="shrink-0 w-12 h-12 rounded-xl bg-linear-to-br from-blue-100 to-indigo-100 flex items-center justify-center text-blue-500 group-hover:from-blue-200 group-hover:to-indigo-200 transition-colors">
-        <BookIcon />
+      <div className="shrink-0 w-24 h-auto rounded-xl bg-linear-to-br from-blue-100 to-indigo-100 flex items-center justify-center text-blue-500 group-hover:from-blue-200 group-hover:to-indigo-200 transition-colors">
+        {/* <BookIcon /> */}
+        {course.thumbnailImg ? (
+          <img
+            src={course.thumbnailImg}
+            alt={`${course.courseName} 책 이미지`}
+            className="w-full h-full object-cover rounded-xl"
+          />
+        ) : (
+          <BookIcon />
+        )}
       </div>
 
       {/* 왼쪽: 뱃지 + 제목 + 메타 */}
@@ -224,6 +250,7 @@ function CourseItem({ course }: { course: Course }) {
   );
 }
 
+// MARK: 로딩 스켈레톤
 function SkeletonItem() {
   return (
     <li className="flex items-center gap-5 py-5 px-5 border-b border-gray-100 animate-pulse">
@@ -244,6 +271,7 @@ function SkeletonItem() {
   );
 }
 
+// MARK: 전체 강좌 페이지
 export default function CourseListPage() {
   const [searchParams] = useSearchParams();
   const [courses, setCourses] = useState<Course[]>([]);
@@ -310,6 +338,7 @@ export default function CourseListPage() {
   const handleSearch = () => fetchCourses(searchOption);
 
   return (
+    // MARK: 전체 페이지 컨테이너
     <div className="min-h-screen bg-gray-50">
       {/* 상단 히어로 배너 */}
       <div className="bg-linear-to-r from-blue-400 via-blue-500 to-indigo-600 text-white">
@@ -325,7 +354,7 @@ export default function CourseListPage() {
       </div>
 
       <div className="max-w-6xl mx-auto px-4 md:px-6 py-8 flex gap-7 items-start">
-        {/* 사이드바 */}
+        {/* MARK: 사이드바 */}
         <aside className="w-56 shrink-0 sticky top-6">
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
             <h2 className="text-sm font-bold text-gray-700 mb-4 flex items-center gap-2">
@@ -369,6 +398,7 @@ export default function CourseListPage() {
               </button>
             </div>
 
+            {/* MARK: 과목 분류 */}
             <div className="mt-5 pt-4 border-t border-gray-100">
               <div className="flex flex-col gap-4">
                 {subjects.map((classification) => (
@@ -414,7 +444,7 @@ export default function CourseListPage() {
           </div>
         </aside>
 
-        {/* 메인 콘텐츠 */}
+        {/* MARK: 메인 콘텐츠 */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
