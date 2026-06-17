@@ -128,10 +128,24 @@ const ImageNode = Node.create({
 
   addAttributes() {
     return {
-      src: { default: null },
-      fileId: { default: null },
+      src: {
+        default: null,
+        renderHTML: (attrs) => (attrs.src ? { src: attrs.src } : {}),
+      },
+      fileId: {
+        default: null,
+        parseHTML: (el) => {
+          const val = el.getAttribute("data-file-id");
+          return val != null ? parseInt(val, 10) : null;
+        },
+        renderHTML: (attrs) =>
+          attrs.fileId != null ? { "data-file-id": attrs.fileId } : {},
+      },
       alt: { default: null },
-      uploadStatus: { default: "idle" as UploadStatus },
+      uploadStatus: {
+        default: "idle" as UploadStatus,
+        renderHTML: () => ({}),
+      },
     };
   },
 
@@ -313,7 +327,7 @@ export default function TipTapEditor({
       setUploadingCount((c) => c - 1);
       URL.revokeObjectURL(objectUrl);
       updateImageNodeInEditor(editor, objectUrl, {
-        src: null,
+        src: imageUrlResolver ? imageUrlResolver(fileId) : null,
         fileId,
         uploadStatus: "done",
       });
