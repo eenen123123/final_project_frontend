@@ -10,12 +10,26 @@ import CouponPointModal, { ExpiryDetailModal } from "./CouponPointModal";
 import api from "../../../../api/api";
 
 interface UserCoupon {
-  userCouponSn: number;
+  mcpntSn: number;
   couponNm: string;
   issueDt: string;
   expiryDt: string;
   useYn: "N" | "Y" | "E";
   useDt?: string;
+}
+
+interface PointHist {
+  pointHistSn: number;
+  histType: "EARN" | "USE" | "EXPIRE";
+  changeAmt: number;
+  memo: string;
+  regDt: string;
+  expiryDt?: string;
+}
+
+interface PageResponse<T> {
+  items: T[];
+  totalCount: number;
 }
 
 type TabType = "hm-coupon" | "hm-point-buy" | "hm-point" | "hm-money";
@@ -111,20 +125,102 @@ const NOTICE_CONFIGS: Record<
   },
 };
 
+const TAB_ASSET_MAP: Partial<Record<TabType, string>> = {
+  "hm-point-buy": "HM_POINT",
+  "hm-point": "STUDY_POINT",
+  "hm-money": "HM_MONEY",
+};
+
+const fmtDate = (d: Date) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+const getDefaultDates = () => {
+  const end = new Date();
+  const start = new Date();
+  start.setDate(start.getDate() - 7);
+  return { start: fmtDate(start), end: fmtDate(end) };
+};
+
 export default function CouponPointContent() {
   const [activeTab, setActiveTab] = useState<TabType>("hm-coupon");
   const [coupons, setCoupons] = useState<UserCoupon[]>([]);
   const [showModal, setShowModal] = useState(false);
 
+  // 포인트 잔액
+  const [hmPointBal, setHmPointBal] = useState(0);
+  const [studyBal, setStudyBal] = useState(0);
+  const [hmMoneyBal, setHmMoneyBal] = useState(0);
+
+  // 소멸 예정 (잔액)
+  const [hmPointExpiring, setHmPointExpiring] = useState(0);
+  const [studyExpiring, setStudyExpiring] = useState(0);
+  const [couponExpiring, setCouponExpiring] = useState(0);
+
+  // 포인트 이력
+  const [pointHistory, setPointHistory] = useState<PointHist[]>([]);
+
+  // 잔액 + 소멸예정 최초 로드
   useEffect(() => {
-    api.get<UserCoupon[]>("/api/coupons/my")
-      .then(res => setCoupons(res.data))
+    api
+      .get<UserCoupon[]>("/api/coupons/my")
+      .then((res) => setCoupons(res.data))
       .catch(() => {});
+
+    api
+      .get<UserCoupon[]>("/api/coupons/my/expiring")
+      .then((res) => setCouponExpiring(res.data.length))
+      .catch(() => {});
+
+    const fetchBalance = async () => {
+      try {
+        const [hm, study, money, hmExp, studyExp] = await Promise.all([
+          api.get<number>("/api/points/balance?assetType=HM_POINT"),
+          api.get<number>("/api/points/balance?assetType=STUDY_POINT"),
+          api.get<number>("/api/points/balance?assetType=HM_MONEY"),
+          api.get<number>("/api/points/expiring?assetType=HM_POINT"),
+          api.get<number>("/api/points/expiring?assetType=STUDY_POINT"),
+        ]);
+        setHmPointBal(hm.data);
+        setStudyBal(study.data);
+        setHmMoneyBal(money.data);
+        setHmPointExpiring(hmExp.data);
+        setStudyExpiring(studyExp.data);
+      } catch {}
+    };
+    fetchBalance();
   }, []);
+
+  // 탭 전환 시 이력 조회 (포인트 탭만)
+  useEffect(() => {
+    const assetType = TAB_ASSET_MAP[activeTab];
+    if (!assetType) return;
+    api
+      .get<PointHist[]>(`/api/points/history?assetType=${assetType}`)
+      .then((res) => setPointHistory(res.data))
+      .catch(() => setPointHistory([]));
+  }, [activeTab]);
+
+  // 탭별 잔액 반환
+  const getBalance = () => {
+    if (activeTab === "hm-point-buy") return hmPointBal;
+    if (activeTab === "hm-point") return studyBal;
+    if (activeTab === "hm-money") return hmMoneyBal;
+    return coupons.filter((c) => c.useYn === "N").length;
+  };
+
+  // 탭별 소멸예정 반환
+  const getExpiring = () => {
+    if (activeTab === "hm-coupon") return couponExpiring;
+    if (activeTab === "hm-point-buy") return hmPointExpiring;
+    if (activeTab === "hm-point") return studyExpiring;
+    return 0;
+  };
   const [showExpiryModal, setShowExpiryModal] = useState(false);
-  const [startDate, setStartDate] = useState("2026-05-30");
-  const [endDate, setEndDate] = useState("2026-06-06");
   const [selectedPeriod, setSelectedPeriod] = useState(7);
+
+  const { start: defaultStart, end: defaultEnd } = getDefaultDates();
+  const [startDate, setStartDate] = useState(defaultStart);
+  const [endDate, setEndDate] = useState(defaultEnd);
   const [sortType, setSortType] = useState("");
   const [moneySubTab, setMoneySubTab] = useState<"history" | "charge">(
     "history",
@@ -144,17 +240,32 @@ export default function CouponPointContent() {
 
   const handlePeriodChange = (days: number) => {
     setSelectedPeriod(days);
-    const end = new Date(2026, 5, 6);
-    const start = new Date(2026, 5, 6);
+    const end = new Date();
+    const start = new Date();
     start.setDate(start.getDate() - days);
-    const fmt = (d: Date) =>
-      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-    setStartDate(fmt(start));
-    setEndDate(fmt(end));
+    setStartDate(fmtDate(start));
+    setEndDate(fmtDate(end));
   };
 
   const handleSearchSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (activeTab === "hm-coupon") {
+      api
+        .get<UserCoupon[]>(
+          `/api/coupons/my?startDate=${startDate}&endDate=${endDate}`,
+        )
+        .then((res) => setCoupons(res.data))
+        .catch(() => {});
+    } else {
+      const assetType = TAB_ASSET_MAP[activeTab];
+      if (!assetType) return;
+      api
+        .get<PointHist[]>(
+          `/api/points/history?assetType=${assetType}&startDate=${startDate}&endDate=${endDate}`,
+        )
+        .then((res) => setPointHistory(res.data))
+        .catch(() => setPointHistory([]));
+    }
   };
 
   return (
@@ -191,8 +302,14 @@ export default function CouponPointContent() {
                     className={`text-sm ${isActive ? "text-white" : "text-gray-950"} font-bold`}
                   >
                     {tab.id === "hm-coupon"
-                      ? coupons.filter(c => c.useYn === "N").length
-                      : tab.value}
+                      ? coupons.filter((c) => c.useYn === "N").length
+                      : tab.id === "hm-point-buy"
+                        ? hmPointBal.toLocaleString()
+                        : tab.id === "hm-point"
+                          ? studyBal.toLocaleString()
+                          : tab.id === "hm-money"
+                            ? hmMoneyBal.toLocaleString()
+                            : 0}
                     <span className="text-xs font-normal ml-0.5">
                       {tab.unit}
                     </span>
@@ -218,8 +335,8 @@ export default function CouponPointContent() {
                 className={`font-black text-emerald-600 font-mono ${activeTab === "hm-money" ? "text-3xl" : "text-2xl"}`}
               >
                 {activeTab === "hm-coupon"
-                  ? coupons.filter(c => c.useYn === "N").length
-                  : 0}
+                  ? coupons.filter((c) => c.useYn === "N").length
+                  : getBalance().toLocaleString()}
                 <span className="text-sm font-normal text-gray-500 ml-0.5">
                   {tabUnit}
                 </span>
@@ -241,7 +358,7 @@ export default function CouponPointContent() {
                   소멸예정 {tabTitle} 자세히보기 +
                 </button>
                 <p className="text-2xl font-black text-gray-700 font-mono">
-                  0
+                  {getExpiring().toLocaleString()}
                   <span className="text-sm font-normal text-gray-500 ml-0.5">
                     {tabUnit}
                   </span>
@@ -387,15 +504,23 @@ export default function CouponPointContent() {
                 </colgroup>
                 <thead>
                   <tr className="border-b border-gray-200 bg-white">
-                    <th className="py-3 px-2 text-center font-bold text-gray-700">발급일</th>
-                    <th className="py-3 px-4 text-center font-bold text-gray-700">쿠폰명</th>
-                    <th className="py-3 px-2 text-center font-bold text-gray-700">상태</th>
-                    <th className="py-3 px-2 text-center font-bold text-gray-700">유효기간</th>
+                    <th className="py-3 px-2 text-center font-bold text-gray-700">
+                      발급일
+                    </th>
+                    <th className="py-3 px-4 text-center font-bold text-gray-700">
+                      쿠폰명
+                    </th>
+                    <th className="py-3 px-2 text-center font-bold text-gray-700">
+                      상태
+                    </th>
+                    <th className="py-3 px-2 text-center font-bold text-gray-700">
+                      유효기간
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {(() => {
-                    const filtered = coupons.filter(c => {
+                    const filtered = coupons.filter((c) => {
                       if (sortType === "Y") return c.useYn === "N";
                       if (sortType === "N") return c.useYn !== "N";
                       return true;
@@ -403,22 +528,44 @@ export default function CouponPointContent() {
                     if (filtered.length === 0) {
                       return (
                         <tr>
-                          <td colSpan={4} className="py-14 text-center text-gray-500 font-medium bg-white">
+                          <td
+                            colSpan={4}
+                            className="py-14 text-center text-gray-500 font-medium bg-white"
+                          >
                             보유 쿠폰이 없습니다.
                           </td>
                         </tr>
                       );
                     }
-                    const useYnLabel: Record<string, string> = { N: "미사용", Y: "사용완료", E: "소멸" };
-                    const useYnColor: Record<string, string> = { N: "text-emerald-600", Y: "text-gray-400", E: "text-red-400" };
-                    return filtered.map(c => (
-                      <tr key={c.userCouponSn} className="border-b border-gray-100 last:border-b-0">
-                        <td className="py-3 px-2 text-center text-gray-600">{c.issueDt.slice(0, 10)}</td>
-                        <td className="py-3 px-4 text-left text-gray-800 font-medium">{c.couponNm}</td>
-                        <td className={`py-3 px-2 text-center font-bold ${useYnColor[c.useYn] ?? "text-gray-500"}`}>
+                    const useYnLabel: Record<string, string> = {
+                      N: "미사용",
+                      Y: "사용완료",
+                      E: "소멸",
+                    };
+                    const useYnColor: Record<string, string> = {
+                      N: "text-emerald-600",
+                      Y: "text-gray-400",
+                      E: "text-red-400",
+                    };
+                    return filtered.map((c) => (
+                      <tr
+                        key={c.mcpntSn}
+                        className="border-b border-gray-100 last:border-b-0"
+                      >
+                        <td className="py-3 px-2 text-center text-gray-600">
+                          {c.issueDt.slice(0, 10)}
+                        </td>
+                        <td className="py-3 px-4 text-left text-gray-800 font-medium">
+                          {c.couponNm}
+                        </td>
+                        <td
+                          className={`py-3 px-2 text-center font-bold ${useYnColor[c.useYn] ?? "text-gray-500"}`}
+                        >
                           {useYnLabel[c.useYn] ?? c.useYn}
                         </td>
-                        <td className="py-3 px-2 text-center text-gray-600">{c.expiryDt}</td>
+                        <td className="py-3 px-2 text-center text-gray-600">
+                          {c.expiryDt}
+                        </td>
                       </tr>
                     ));
                   })()}
@@ -435,19 +582,71 @@ export default function CouponPointContent() {
                 </colgroup>
                 <thead>
                   <tr className="border-b border-gray-200 bg-white">
-                    <th className="py-3 px-2 text-center font-bold text-gray-700">날짜</th>
-                    <th className="py-3 px-4 text-center font-bold text-gray-700">사용내역</th>
-                    <th className="py-3 px-2 text-center font-bold text-gray-700">적립포인트</th>
-                    <th className="py-3 px-2 text-center font-bold text-gray-700">사용/소멸 포인트</th>
-                    <th className="py-3 px-2 text-center font-bold text-gray-700">유효기간</th>
+                    <th className="py-3 px-2 text-center font-bold text-gray-700">
+                      날짜
+                    </th>
+                    <th className="py-3 px-4 text-center font-bold text-gray-700">
+                      사용내역
+                    </th>
+                    <th className="py-3 px-2 text-center font-bold text-gray-700">
+                      적립포인트
+                    </th>
+                    <th className="py-3 px-2 text-center font-bold text-gray-700">
+                      사용/소멸 포인트
+                    </th>
+                    <th className="py-3 px-2 text-center font-bold text-gray-700">
+                      유효기간
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <td colSpan={5} className="py-14 text-center text-gray-500 font-medium bg-white">
-                      내역이 없습니다.
-                    </td>
-                  </tr>
+                  {(() => {
+                    const filtered = pointHistory.filter((h) => {
+                      if (sortType === "Y") return h.histType === "EARN";
+                      if (sortType === "N")
+                        return h.histType === "USE" || h.histType === "EXPIRE";
+                      return true;
+                    });
+                    if (filtered.length === 0) {
+                      return (
+                        <tr>
+                          <td
+                            colSpan={5}
+                            className="py-14 text-center text-gray-500 font-medium bg-white"
+                          >
+                            내역이 없습니다.
+                          </td>
+                        </tr>
+                      );
+                    }
+                    return filtered.map((h) => {
+                      const isEarn = h.changeAmt > 0;
+                      return (
+                        <tr
+                          key={h.pointHistSn}
+                          className="border-b border-gray-100 last:border-b-0"
+                        >
+                          <td className="py-3 px-2 text-center text-gray-600">
+                            {h.regDt?.slice(0, 10)}
+                          </td>
+                          <td className="py-3 px-4 text-left text-gray-800">
+                            {h.memo || "-"}
+                          </td>
+                          <td className="py-3 px-2 text-center text-emerald-600 font-bold">
+                            {isEarn ? `+${h.changeAmt.toLocaleString()}` : ""}
+                          </td>
+                          <td className="py-3 px-2 text-center text-red-400 font-bold">
+                            {!isEarn
+                              ? Math.abs(h.changeAmt).toLocaleString()
+                              : ""}
+                          </td>
+                          <td className="py-3 px-2 text-center text-gray-500">
+                            {h.expiryDt ?? "-"}
+                          </td>
+                        </tr>
+                      );
+                    });
+                  })()}
                 </tbody>
               </table>
             )}
@@ -564,9 +763,10 @@ export default function CouponPointContent() {
             </button>
             <button
               type="button"
-              className="px-6 py-2.5 bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold transition-colors cursor-pointer"
+              onClick={() => alert("HM머니 충전 기능은 준비 중입니다.")}
+              className="px-6 py-2.5 bg-gray-400 text-white text-xs font-bold cursor-not-allowed"
             >
-              결제하기 &gt;
+              준비 중
             </button>
           </div>
         </div>

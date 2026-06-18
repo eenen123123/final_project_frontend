@@ -1,3 +1,21 @@
+import { useState, useEffect } from "react";
+import api from "../../../../api/api";
+
+interface ExpiringCoupon {
+  mcpntSn: number;
+  couponNm: string;
+  issueDt: string;
+  expiryDt: string;
+}
+
+interface ExpiringPoint {
+  mcpntSn: number;
+  pointAmt: number;
+  issueDt: string;
+  expiryDt: string;
+  memo?: string;
+}
+
 interface InfoModalProps {
   tabId: string;
   isOpen: boolean;
@@ -219,6 +237,23 @@ function getNextMonthLabel() {
 }
 
 export function ExpiryDetailModal({ tabId, tabTitle, isOpen, onClose }: ExpiryModalProps) {
+  const [expiringCoupons, setExpiringCoupons] = useState<ExpiringCoupon[]>([]);
+  const [expiringPoints, setExpiringPoints]   = useState<ExpiringPoint[]>([]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    if (tabId === "hm-coupon") {
+      api.get<ExpiringCoupon[]>("/api/coupons/my/expiring")
+        .then(res => setExpiringCoupons(res.data))
+        .catch(() => {});
+    } else {
+      const assetType = tabId === "hm-point-buy" ? "HM_POINT" : "STUDY_POINT";
+      api.get<ExpiringPoint[]>(`/api/points/expiring/items?assetType=${assetType}`)
+        .then(res => setExpiringPoints(res.data))
+        .catch(() => {});
+    }
+  }, [isOpen, tabId]);
+
   if (!isOpen) return null;
 
   const description = EXPIRY_DESCRIPTIONS[tabId];
@@ -271,11 +306,19 @@ export function ExpiryDetailModal({ tabId, tabTitle, isOpen, onClose }: ExpiryMo
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td colSpan={3} className="py-10 text-center text-gray-500 font-medium">
-                    소멸 예정인 {tabTitle}이 없습니다.
-                  </td>
-                </tr>
+                {expiringCoupons.length === 0 ? (
+                  <tr>
+                    <td colSpan={3} className="py-10 text-center text-gray-500 font-medium">
+                      소멸 예정인 {tabTitle}이 없습니다.
+                    </td>
+                  </tr>
+                ) : expiringCoupons.map(c => (
+                  <tr key={c.mcpntSn} className="border-b border-gray-200">
+                    <td className="py-2.5 px-3 text-center text-gray-600 border-r border-gray-300">{c.issueDt?.slice(0,10)}</td>
+                    <td className="py-2.5 px-3 text-left text-gray-800 font-medium border-r border-gray-300">{c.couponNm}</td>
+                    <td className="py-2.5 px-3 text-center text-gray-600">{c.expiryDt}</td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           ) : (
@@ -295,11 +338,20 @@ export function ExpiryDetailModal({ tabId, tabTitle, isOpen, onClose }: ExpiryMo
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td colSpan={4} className="py-10 text-center text-gray-500 font-medium">
-                    소멸 예정인 {tabTitle}이 없습니다.
-                  </td>
-                </tr>
+                {expiringPoints.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="py-10 text-center text-gray-500 font-medium">
+                      소멸 예정인 {tabTitle}이 없습니다.
+                    </td>
+                  </tr>
+                ) : expiringPoints.map(p => (
+                  <tr key={p.mcpntSn} className="border-b border-gray-200">
+                    <td className="py-2.5 px-3 text-center text-gray-600 border-r border-gray-300">{p.issueDt?.slice(0,10)}</td>
+                    <td className="py-2.5 px-3 text-left text-gray-800 border-r border-gray-300">{p.memo || "-"}</td>
+                    <td className="py-2.5 px-3 text-center text-emerald-600 font-bold border-r border-gray-300">+{p.pointAmt?.toLocaleString()}</td>
+                    <td className="py-2.5 px-3 text-center text-gray-600">{p.expiryDt}</td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           )}
