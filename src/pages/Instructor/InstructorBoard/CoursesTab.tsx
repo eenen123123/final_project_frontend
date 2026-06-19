@@ -24,10 +24,18 @@ export default function CoursesTab() {
     let cancelled = false;
     api
       .get<Course[]>(`/api/instructors/${instrUuid}/courses`)
-      .then((res) => { if (!cancelled) setCourses(res.data); })
-      .catch((e) => { if (!cancelled) console.error("강좌 목록 조회 실패", e); })
-      .finally(() => { if (!cancelled) setLoading(false); });
-    return () => { cancelled = true; };
+      .then((res) => {
+        if (!cancelled) setCourses(res.data);
+      })
+      .catch((e) => {
+        if (!cancelled) console.error("강좌 목록 조회 실패", e);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [instrUuid]);
 
   if (loading) {
@@ -49,23 +57,35 @@ export default function CoursesTab() {
         {courses.map((course) => (
           <div
             key={course.courseSn}
-            onClick={() => navigate(`/instructor/${instrUuid}/courses/${course.courseSn}`)}
+            onClick={() =>
+              navigate(`/instructor/${instrUuid}/courses/${course.courseSn}`)
+            }
             className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
           >
-            <div className="w-full aspect-video bg-gray-100 flex items-center justify-center">
+            <div className="relative w-full aspect-video bg-gray-100 overflow-hidden flex items-center justify-center">
               {course.thumbnailUrl ? (
-                <img
-                  src={course.thumbnailUrl}
-                  alt={course.title}
-                  className="w-full h-full object-cover"
-                />
+                <>
+                  <img
+                    src={course.thumbnailUrl}
+                    alt=""
+                    aria-hidden
+                    className="absolute inset-0 w-full h-full object-cover blur-xl scale-110 opacity-60"
+                  />
+                  <img
+                    src={course.thumbnailUrl}
+                    alt={course.title}
+                    className="relative h-full w-auto object-contain"
+                  />
+                </>
               ) : (
                 <span className="text-gray-300 text-sm">{course.category}</span>
               )}
             </div>
 
             <div className="p-4">
-              <p className="text-xs text-blue-500 font-medium mb-1">{course.category}</p>
+              <p className="text-xs text-blue-500 font-medium mb-1">
+                {course.category}
+              </p>
               <h3 className="text-sm font-bold text-gray-800 leading-snug mb-3 line-clamp-2">
                 {course.title}
               </h3>
@@ -78,7 +98,9 @@ export default function CoursesTab() {
 
               <div className="flex items-center justify-between">
                 <span className="text-base font-extrabold text-gray-900">
-                  {course.price === 0 ? "무료" : `${course.price.toLocaleString()}원`}
+                  {course.price === 0
+                    ? "무료"
+                    : `${course.price.toLocaleString()}원`}
                 </span>
                 <button className="text-xs px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
                   수강신청

@@ -1,14 +1,26 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, type SetStateAction } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { loadTossPayments } from "@tosspayments/tosspayments-sdk";
 import MyPageSidebar from "./components/MyPageSidebar";
 import api, { getApiErrorMessage } from "../../../api/api";
+<<<<<<< HEAD
 import { useAuth } from "../../../auth/AuthContext";
 
 const TOSS_CLIENT_KEY = "test_ck_ALnQvDd2VJ209bO49mMOVMj7X41m";
 
 type PointType = "HM_POINT" | "STUDY_POINT";
+=======
+import {
+  loadTossPayments,
+  ANONYMOUS,
+  type TossPaymentsPayment,
+} from "@tosspayments/tosspayments-sdk";
+>>>>>>> main
 
+import { Currency } from "lucide-react";
+
+const clientKey = "test_ck_ALnQvDd2VJ209bO49mMOVMj7X41m";
+const customerKey = "zWkWyass3Ey1PYSPyJhVr"; // dev
 interface CheckoutItem {
   cartSn: number;
   prodDivCd: string;
@@ -120,6 +132,7 @@ export default function CheckoutPage() {
   const [notifyConsent, setNotifyConsent] = useState(true);
   const [payMethod, setPayMethod] = useState("card");
 
+<<<<<<< HEAD
   // [포인트 시스템] 포인트 잔액 및 사용 상태
   const [hmPointBalance, setHmPointBalance] = useState(0);
   const [studyBalance, setStudyBalance] = useState(0);
@@ -216,6 +229,19 @@ export default function CheckoutPage() {
       setUsedPointType(null);
     }
   };
+=======
+  // MARK: 결제 준비
+  const hasBook = items.some((i) => i.prodDivCd === "TEXTBOOK");
+  const totalPrice = items.reduce((sum, i) => sum + i.prodPrice * i.itemQty, 0);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null);
+  const [payment, setPayment] = useState<TossPaymentsPayment | null>(null);
+
+  function selectPaymentMethod(method: SetStateAction<null>) {
+    setSelectedPaymentMethod(method);
+  }
+
+  const [payReady, setPayReady] = useState(false);
+>>>>>>> main
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -249,6 +275,72 @@ export default function CheckoutPage() {
     };
     fetchProfile();
   }, []);
+
+  useEffect(() => {
+    async function fetchPayment() {
+      try {
+        const tossPayments = await loadTossPayments(clientKey);
+
+        // 회원 결제
+        // @docs https://docs.tosspayments.com/sdk/v2/js#tosspaymentspayment
+        const payment = tossPayments.payment({
+          customerKey,
+        });
+        // 비회원 결제
+        // const payment = tossPayments.payment({ customerKey: ANONYMOUS });
+
+        setPayment(payment);
+      } catch (error) {
+        console.error("Error fetching payment:", error);
+      }
+    }
+
+    fetchPayment();
+  }, [clientKey, customerKey]);
+
+  async function requestPayment() {
+    if (items.length === 0) {
+      alert("주문할 상품이 없습니다.");
+      return;
+    }
+    try {
+      // 결제 전 서버에 주문 선생성(PENDING). 서버가 ordId를 발급하고 금액을 재계산하므로
+      // 결제 과정에서 악의적으로 금액이 바뀌어도 승인 단계에서 걸러진다.
+      const res = await api.post(
+        "/api/orders",
+        items.map((i) => ({
+          prodDivCd: i.prodDivCd,
+          prodSn: i.prodSn,
+          itemQty: i.itemQty,
+        })),
+      );
+      const { ordId, ordNm, totAmt } = res.data;
+
+      await payment?.requestPayment({
+        method: "CARD", // 카드 및 간편결제
+        amount: { currency: "KRW", value: totAmt },
+        orderId: ordId, // 서버가 발급한 주문번호
+        orderName: ordNm, // 주문명
+        successUrl: window.location.origin + "/success", // 결제 요청이 성공하면 리다이렉트되는 URL
+        failUrl: window.location.origin + "/fail", // 결제 요청이 실패하면 리다이렉트되는 URL
+        customerEmail: profile?.userEmailAddr ?? "",
+        customerName: profile?.userName ?? "",
+        customerMobilePhone: profile?.userTelno ?? "",
+        // 카드 결제에 필요한 정보
+        card: {
+          useEscrow: false,
+          flowMode: "DEFAULT", // 통합결제창 여는 옵션
+          useCardPoint: false,
+          useAppCardOnly: false,
+        },
+      });
+    } catch (error) {
+      // 토스 결제창에서 사용자가 닫거나 실패하면 reject되지만 failUrl로 처리되므로
+      // 여기서는 주로 주문 생성 실패를 처리한다.
+      console.error("주문 생성/결제 요청 실패:", error);
+      alert(getApiErrorMessage(error, "결제 요청에 실패했습니다."));
+    }
+  }
 
   const STEPS = [
     { key: "cart", label: "장바구니", icon: STEP_ICONS.cart },
@@ -308,7 +400,6 @@ export default function CheckoutPage() {
                 );
               })}
             </div>
-
             {/* 주문정보 */}
             <h2 className="text-base font-bold text-gray-900 mb-3">주문정보</h2>
             <div className="border-t-2 border-gray-800 border-b border-gray-200 mb-4">
@@ -365,7 +456,6 @@ export default function CheckoutPage() {
                 </tbody>
               </table>
             </div>
-
             {/* 학습관리 알림 (강좌 있을 때) */}
             {items.some((i) => i.prodDivCd === "20") && (
               <div className="border border-blue-200 bg-blue-50 px-4 py-3 mb-2 flex items-start gap-2">
@@ -393,7 +483,6 @@ export default function CheckoutPage() {
               · 회원님께 특별 제공되는 개별할인을 원치 않으시면 [자동할인 취소]
               버튼을 클릭해주세요.
             </p>
-
             {/* 배송지 (교재 있을 때) */}
             {hasBook && (
               <>
@@ -484,7 +573,6 @@ export default function CheckoutPage() {
                 </div>
               </>
             )}
-
             {/* 구매자 정보 */}
             <h2 className="text-base font-bold text-gray-900 mb-3">
               구매자 정보
@@ -580,9 +668,8 @@ export default function CheckoutPage() {
                 </div>
               </div>
             </div>
-
-            {/* 결제정보 */}
-            <h2 className="text-base font-bold text-gray-900 mb-3">결제정보</h2>
+            {/* MARK: 결제 */}
+            <h2 className="text-base font-bold text-gray-900 mb-3">결제</h2>
             <div className="border border-gray-300 mb-8">
               <div className="grid grid-cols-3 divide-x divide-gray-200">
                 {/* 왼쪽: 금액 요약 */}
@@ -614,14 +701,19 @@ export default function CheckoutPage() {
                       할인 적용
                     </span>
                     <span className="text-sm font-bold text-orange-500">
+<<<<<<< HEAD
                       {usedPointAmt > 0
                         ? `-${usedPointAmt.toLocaleString()}원`
                         : "0원"}
+=======
+                      0원
+>>>>>>> main
                     </span>
                   </div>
 
                   {/* HM 포인트 */}
                   {[
+<<<<<<< HEAD
                     {
                       type: "HM_POINT" as PointType,
                       label: "HM 포인트",
@@ -682,6 +774,38 @@ export default function CheckoutPage() {
                             </>
                           )}
                         </div>
+=======
+                    { label: "HERMES 포인트", sub: "(0p보유)", unit: "P" },
+                    { label: "PayBack포인트", sub: "(0p보유)", unit: "P" },
+                    { label: "적립금", sub: "(0원보유)", unit: "원" },
+                    {
+                      label: "할인쿠폰",
+                      sub: "(0장보유)",
+                      unit: "원",
+                      extra: "등록",
+                    },
+                  ].map((row) => (
+                    <div
+                      key={row.label}
+                      className="flex items-center justify-between py-1.5 border-t border-gray-100 text-xs"
+                    >
+                      <span className="text-gray-600 leading-tight">
+                        {row.label}
+                        <br />
+                        <span className="text-gray-400">{row.sub}</span>
+                      </span>
+                      <div className="flex items-center gap-1">
+                        {row.extra && (
+                          <button className="px-1.5 py-0.5 border border-gray-300 text-gray-500 hover:bg-gray-50 cursor-pointer text-[10px]">
+                            {row.extra}
+                          </button>
+                        )}
+                        <span className="text-gray-500 w-8 text-right">0</span>
+                        <span className="text-gray-400">{row.unit}</span>
+                        <button className="px-1.5 py-0.5 border border-gray-300 text-gray-500 hover:bg-gray-50 cursor-pointer">
+                          사용
+                        </button>
+>>>>>>> main
                       </div>
                     </div>
                   ))}
@@ -694,36 +818,32 @@ export default function CheckoutPage() {
                   </div>
                   <p className="text-xs text-gray-500 mb-2">총 결제금액</p>
                   <p className="text-2xl font-bold text-orange-500">
+<<<<<<< HEAD
                     {formatPrice(finalAmt)}
+=======
+                    {formatPrice(totalPrice + (hasBook ? 3000 : 0))}
+>>>>>>> main
                     <span className="text-sm font-normal text-gray-400 ml-0.5">
                       원
                     </span>
                   </p>
                   <p className="text-xs text-gray-400 mt-3">
+<<<<<<< HEAD
                     총 예상 적립혜택{" "}
                     <span className="font-semibold">
                       {Math.floor(finalAmt / 100).toLocaleString()}p
                     </span>
+=======
+                    총 예상 적립혜택 <span className="font-semibold">0p</span>
+>>>>>>> main
                   </p>
                 </div>
               </div>
             </div>
-
-            {/* 결제수단 */}
-            <h2 className="text-base font-bold text-gray-900 mb-3">결제수단</h2>
-            <div className="border border-gray-300 mb-4">
-              <div className="flex border-b border-gray-300">
-                {PAY_METHODS.map((m) => (
-                  <button
-                    key={m.key}
-                    onClick={() => setPayMethod(m.key)}
-                    className={`flex-1 py-3.5 text-sm font-semibold border-r last:border-r-0 border-gray-300 transition-colors cursor-pointer
-                      ${payMethod === m.key ? "bg-gray-100 text-gray-900" : "bg-white text-gray-500 hover:bg-gray-50"}`}
-                  >
-                    {m.label}
-                  </button>
-                ))}
-              </div>
+            {/* MARK: 결제 */}
+            {/* <h2 className="text-base font-bold text-gray-900 mb-3">결제</h2> */}
+            <div className="wrapper mb-4"></div>
+            {/* <div className="border border-gray-300 mb-4">
               <div className="px-5 py-4">
                 <ul className="space-y-1">
                   {(
@@ -761,8 +881,7 @@ export default function CheckoutPage() {
                   ))}
                 </ul>
               </div>
-            </div>
-
+            </div> */}
             {/* 안내사항 */}
             <div className="border border-gray-300 bg-gray-50 mb-8">
               <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-gray-200">
@@ -809,7 +928,6 @@ export default function CheckoutPage() {
                 </div>
               </div>
             </div>
-
             {/* 하단 버튼 */}
             <div className="flex justify-center gap-3">
               <button
@@ -818,7 +936,14 @@ export default function CheckoutPage() {
               >
                 장바구니 가기 &gt;
               </button>
+<<<<<<< HEAD
               <button className="px-12 py-3.5 bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600 transition-colors cursor-pointer">
+=======
+              <button
+                onClick={() => requestPayment()}
+                className="px-12 py-3.5 bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600 transition-colors cursor-pointer"
+              >
+>>>>>>> main
                 결제하기 &gt;
               </button>
             </div>

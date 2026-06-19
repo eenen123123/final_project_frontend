@@ -38,6 +38,8 @@ import GradesPage from "./pages/User/Mypage/GradesPage";
 import MyCalendarPage from "./pages/User/Mypage/MyCalendarPage";
 import CartPage from "./pages/User/Mypage/CartPage";
 import CheckoutPage from "./pages/User/Mypage/CheckoutPage";
+import CheckoutSuccessPage from "./pages/User/Mypage/CheckoutSuccessPage";
+import CheckoutFailPage from "./pages/User/Mypage/CheckoutFailPage";
 import Instructors from "./pages/Instructor/InstructorsPage";
 import InstructorDetailPage from "./pages/Instructor/InstructorDetailPage";
 import InstructorBoardLayout from "./pages/Instructor/InstructorBoardLayout";
@@ -58,6 +60,7 @@ import CourseListPage from "./pages/course/CourseListPage.tsx";
 import CourseInfoPage from "./pages/course/CourseInfoPage.tsx";
 import HermesVideoViewer from "./components/viewer/HermesVideoViewer.tsx";
 import OrderHistoryDetailPage from "./pages/User/Mypage/OrderHistoryDetailPage.tsx";
+import SuneungGradeCutPage from "./pages/Suneung/SuneungGradeCutPage.tsx";
 
 /* cSpell:disable */
 export default function AppRoute() {
@@ -79,8 +82,14 @@ export default function AppRoute() {
         path="/test/toss-pay/success"
         element={<TossPaySuccessTestPage />}
       />
+
+      <Route path="/gradeCut" element={<SuneungGradeCutPage />} />
+
       {/* 공용 라우트 */}
       <Route path="/test/toss-pay/fail" element={<TossPayFailTestPage />} />
+      {/* 토스 결제 완료/실패 리다이렉트 (결제창에서 successUrl/failUrl로 이동) */}
+      <Route path="/success" element={<CheckoutSuccessPage />} />
+      <Route path="/fail" element={<CheckoutFailPage />} />
       <Route path="/instructors" element={<Instructors />} />
       <Route path="/instructor/:instrUuid">
         <Route index element={<InstructorDetailPage />} />

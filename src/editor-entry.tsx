@@ -1,6 +1,6 @@
 import { createRoot } from "react-dom/client";
 import type { JSONContent } from "@tiptap/react";
-import TipTapEditor from "./components/TipTapEditor";
+import TipTapEditor from "./components/TipTapEditor/TipTapEditor";
 import { setApiAccessToken } from "./api/api";
 
 interface MountOptions {
