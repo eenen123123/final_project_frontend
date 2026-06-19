@@ -159,11 +159,17 @@ export default function CouponPointContent() {
   // 포인트 이력
   const [pointHistory, setPointHistory] = useState<PointHist[]>([]);
 
+  // 페이징
+  const [couponPage, setCouponPage] = useState(1);
+  const [couponTotal, setCouponTotal] = useState(0);
+  const [histPage, setHistPage] = useState(1);
+  const [histTotal, setHistTotal] = useState(0);
+
   // 잔액 + 소멸예정 최초 로드
   useEffect(() => {
     api
-      .get<UserCoupon[]>("/api/coupons/my")
-      .then((res) => setCoupons(res.data))
+      .get<PageResponse<UserCoupon>>("/api/coupons/my?page=1")
+      .then((res) => { setCoupons(res.data.items); setCouponTotal(res.data.totalCount); })
       .catch(() => {});
 
     api
@@ -194,10 +200,11 @@ export default function CouponPointContent() {
   useEffect(() => {
     const assetType = TAB_ASSET_MAP[activeTab];
     if (!assetType) return;
+    setHistPage(1);
     api
-      .get<PointHist[]>(`/api/points/history?assetType=${assetType}`)
-      .then((res) => setPointHistory(res.data))
-      .catch(() => setPointHistory([]));
+      .get<PageResponse<PointHist>>(`/api/points/history?assetType=${assetType}&page=1`)
+      .then((res) => { setPointHistory(res.data.items); setHistTotal(res.data.totalCount); })
+      .catch(() => { setPointHistory([]); setHistTotal(0); });
   }, [activeTab]);
 
   // 탭별 잔액 반환
@@ -247,24 +254,28 @@ export default function CouponPointContent() {
     setEndDate(fmtDate(end));
   };
 
+  const fetchCoupons = (page: number) => {
+    api
+      .get<PageResponse<UserCoupon>>(`/api/coupons/my?startDate=${startDate}&endDate=${endDate}&page=${page}`)
+      .then((res) => { setCoupons(res.data.items); setCouponTotal(res.data.totalCount); setCouponPage(page); })
+      .catch(() => {});
+  };
+
+  const fetchHistory = (page: number) => {
+    const assetType = TAB_ASSET_MAP[activeTab];
+    if (!assetType) return;
+    api
+      .get<PageResponse<PointHist>>(`/api/points/history?assetType=${assetType}&startDate=${startDate}&endDate=${endDate}&page=${page}`)
+      .then((res) => { setPointHistory(res.data.items); setHistTotal(res.data.totalCount); setHistPage(page); })
+      .catch(() => { setPointHistory([]); setHistTotal(0); });
+  };
+
   const handleSearchSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (activeTab === "hm-coupon") {
-      api
-        .get<UserCoupon[]>(
-          `/api/coupons/my?startDate=${startDate}&endDate=${endDate}`,
-        )
-        .then((res) => setCoupons(res.data))
-        .catch(() => {});
+      fetchCoupons(1);
     } else {
-      const assetType = TAB_ASSET_MAP[activeTab];
-      if (!assetType) return;
-      api
-        .get<PointHist[]>(
-          `/api/points/history?assetType=${assetType}&startDate=${startDate}&endDate=${endDate}`,
-        )
-        .then((res) => setPointHistory(res.data))
-        .catch(() => setPointHistory([]));
+      fetchHistory(1);
     }
   };
 
@@ -652,16 +663,34 @@ export default function CouponPointContent() {
             )}
           </div>
 
-          <div className="flex justify-center items-center gap-3 text-xs text-gray-400 font-medium mb-8">
-            <span className="text-gray-900 font-bold underline cursor-pointer">
-              1
-            </span>
-            <span className="text-gray-300 font-normal">|</span>
-            <span className="text-gray-500 hover:text-gray-900 cursor-pointer font-mono font-bold">
-              »
-            </span>
-            <span className="hover:text-gray-900 cursor-pointer">1</span>
-          </div>
+          {(() => {
+            const page = activeTab === "hm-coupon" ? couponPage : histPage;
+            const total = activeTab === "hm-coupon" ? couponTotal : histTotal;
+            const totalPages = Math.ceil(total / 10) || 1;
+            const goPage = (p: number) => activeTab === "hm-coupon" ? fetchCoupons(p) : fetchHistory(p);
+            const GROUP = 5;
+            const group = Math.ceil(page / GROUP);
+            const start = (group - 1) * GROUP + 1;
+            const end = Math.min(group * GROUP, totalPages);
+            return totalPages <= 1 ? null : (
+              <div className="flex justify-center items-center gap-1.5 text-xs font-medium mb-8">
+                {group > 1 && (
+                  <button onClick={() => goPage((group - 1) * GROUP)}
+                    className="w-7 h-7 border border-gray-300 text-gray-500 hover:bg-gray-50 cursor-pointer">&lt;</button>
+                )}
+                {Array.from({ length: end - start + 1 }, (_, i) => start + i).map(p => (
+                  <button key={p} onClick={() => goPage(p)}
+                    className={`w-7 h-7 border cursor-pointer ${p === page ? "border-gray-700 bg-gray-700 text-white font-bold" : "border-gray-300 text-gray-500 hover:bg-gray-50"}`}>
+                    {p}
+                  </button>
+                ))}
+                {end < totalPages && (
+                  <button onClick={() => goPage(end + 1)}
+                    className="w-7 h-7 border border-gray-300 text-gray-500 hover:bg-gray-50 cursor-pointer">&gt;</button>
+                )}
+              </div>
+            );
+          })()}
         </>
       )}
 

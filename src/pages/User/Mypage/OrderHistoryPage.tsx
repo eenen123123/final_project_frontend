@@ -11,6 +11,7 @@ interface OrderItem {
   totAmt: number;
   ordStatCd: string;
   regDt: string;
+  hasTextbook: boolean;
 }
 
 const stat = {
@@ -330,22 +331,33 @@ export default function OrderHistoryPage() {
                             원
                           </span>
                         </p>
-                        <button
-                          type="button"
-                          className="mt-2 px-3.5 py-1.5 text-xs font-bold text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors cursor-pointer"
-                        >
-                          <Link
-                            to={`/mycart/orderhistory/${item.ordSn}`}
-                            onClick={() =>
-                              sessionStorage.setItem(
-                                "orderHistoryScrollY",
-                                String(window.scrollY),
-                              )
-                            }
+                        <div className="flex gap-2 mt-2">
+                          {item.hasTextbook && (
+                            <Link
+                              to={`/mycart/orderhistory/${item.ordSn}/shipping`}
+                              className="px-3 py-1.5 text-xs font-bold text-orange-500 border border-orange-200 rounded-lg hover:bg-orange-50 transition-colors"
+                              title="배송 조회"
+                            >
+                              <i className="fa-solid fa-truck" />
+                            </Link>
+                          )}
+                          <button
+                            type="button"
+                            className="px-3.5 py-1.5 text-xs font-bold text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors cursor-pointer"
                           >
-                            주문상세
-                          </Link>
-                        </button>
+                            <Link
+                              to={`/mycart/orderhistory/${item.ordSn}`}
+                              onClick={() =>
+                                sessionStorage.setItem(
+                                  "orderHistoryScrollY",
+                                  String(window.scrollY),
+                                )
+                              }
+                            >
+                              주문상세
+                            </Link>
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
