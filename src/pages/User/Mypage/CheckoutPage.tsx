@@ -1,13 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { loadTossPayments, type TossPaymentsPayment } from "@tosspayments/tosspayments-sdk";
+import { loadTossPayments } from "@tosspayments/tosspayments-sdk";
+import { useKakaoPostcodePopup } from "react-daum-postcode";
 import MyPageSidebar from "./components/MyPageSidebar";
 import api, { getApiErrorMessage } from "../../../api/api";
 import { useAuth } from "../../../auth/AuthContext";
 
 const TOSS_CLIENT_KEY = "test_ck_ALnQvDd2VJ209bO49mMOVMj7X41m";
-const clientKey = "test_ck_ALnQvDd2VJ209bO49mMOVMj7X41m";
-const customerKey = "zWkWyass3Ey1PYSPyJhVr"; // dev
 
 type PointType = "HM_POINT" | "STUDY_POINT";
 interface CheckoutItem {
@@ -97,7 +96,8 @@ export default function CheckoutPage() {
   const { getUserId } = useAuth();
   const items: CheckoutItem[] = location.state?.items ?? [];
   const [paying, setPaying] = useState(false);
-  const [payment, setPayment] = useState<TossPaymentsPayment | null>(null);
+
+  const openPostcode = useKakaoPostcodePopup();
 
   const [activeSection, setActiveSection] = useState("장바구니");
   const [profile, setProfile] = useState<MemberProfile | null>(null);
@@ -115,12 +115,22 @@ export default function CheckoutPage() {
   const [receiverTel, setReceiverTel] = useState("");
   const [zipCd, setZipCd] = useState("");
   const [addr, setAddr] = useState("");
+  const [addrJibun, setAddrJibun] = useState("");
   const [addrDtl, setAddrDtl] = useState("");
   const [deliveryMsg, setDeliveryMsg] = useState("");
 
+  const handleAddressSearch = () => {
+    openPostcode({
+      onComplete: (data) => {
+        setZipCd(data.zonecode);
+        setAddr(data.address);
+        setAddrJibun(data.jibunAddress);
+      },
+    });
+  };
+
   // 기타
   const [notifyConsent, setNotifyConsent] = useState(true);
-  const [payMethod, setPayMethod] = useState("card");
 
   // [포인트 시스템] 포인트 잔액 및 사용 상태
   const [hmPointBalance, setHmPointBalance] = useState(0);
@@ -172,8 +182,41 @@ export default function CheckoutPage() {
   // 주문 생성 → 서버 검증 → 에러 시 서버 메시지 출력 → 성공 시 토스 결제창 호출
   const handlePayment = async () => {
     if (paying) return;
+
+    // 구매자 전화번호 체크
+    if (!phoneMid || !phoneLast) {
+      alert("구매자 휴대폰 번호를 입력해주세요.");
+      return;
+    }
+
+    // 구매자 이메일 체크
+    if (!emailId) {
+      alert("구매자 이메일을 입력해주세요.");
+      return;
+    }
+    if (emailDomain === "직접입력" && !emailCustom) {
+      alert("이메일 도메인을 입력해주세요.");
+      return;
+    }
+
+    if (hasBook) {
+      if (!receiverNm || !receiverTel || !zipCd || !addr) {
+        alert("배송지 정보(수령인, 연락처, 주소)를 모두 입력해주세요.");
+        return;
+      }
+      if (!/^0\d{1,2}-\d{3,4}-\d{4}$/.test(receiverTel)) {
+        alert("수령인 연락처를 올바른 형식으로 입력해주세요. (예: 010-1234-5678)");
+        return;
+      }
+    }
+
     setPaying(true);
     try {
+      const buyerEmail =
+        emailDomain === "직접입력"
+          ? `${emailId}@${emailCustom}`
+          : `${emailId}@${emailDomain}`;
+
       const res = await api.post("/api/orders", {
         items: items.map((i) => ({
           prodDivCd: i.prodDivCd,
@@ -182,6 +225,20 @@ export default function CheckoutPage() {
         })),
         pointAmt: usedPointAmt,
         pointType: usedPointType ?? undefined,
+        shipping: hasBook
+          ? {
+              buyerNm: profile?.userName ?? "",
+              buyerTel: `${phoneCode}-${phoneMid}-${phoneLast}`,
+              buyerEmail,
+              receiverNm,
+              receiverTel,
+              zipCd,
+              addrRoad: addr,
+              addrJibun,
+              addrDtl,
+              deliveryMsg,
+            }
+          : undefined,
       });
 
       const { ordId, ordNm, totAmt } = res.data;
@@ -252,71 +309,6 @@ export default function CheckoutPage() {
     fetchProfile();
   }, []);
 
-  useEffect(() => {
-    async function fetchPayment() {
-      try {
-        const tossPayments = await loadTossPayments(clientKey);
-
-        // 회원 결제
-        // @docs https://docs.tosspayments.com/sdk/v2/js#tosspaymentspayment
-        const payment = tossPayments.payment({
-          customerKey,
-        });
-        // 비회원 결제
-        // const payment = tossPayments.payment({ customerKey: ANONYMOUS });
-
-        setPayment(payment);
-      } catch (error) {
-        console.error("Error fetching payment:", error);
-      }
-    }
-
-    fetchPayment();
-  }, [clientKey, customerKey]);
-
-  async function requestPayment() {
-    if (items.length === 0) {
-      alert("주문할 상품이 없습니다.");
-      return;
-    }
-    try {
-      // 결제 전 서버에 주문 선생성(PENDING). 서버가 ordId를 발급하고 금액을 재계산하므로
-      // 결제 과정에서 악의적으로 금액이 바뀌어도 승인 단계에서 걸러진다.
-      const res = await api.post(
-        "/api/orders",
-        items.map((i) => ({
-          prodDivCd: i.prodDivCd,
-          prodSn: i.prodSn,
-          itemQty: i.itemQty,
-        })),
-      );
-      const { ordId, ordNm, totAmt } = res.data;
-
-      await payment?.requestPayment({
-        method: "CARD", // 카드 및 간편결제
-        amount: { currency: "KRW", value: totAmt },
-        orderId: ordId, // 서버가 발급한 주문번호
-        orderName: ordNm, // 주문명
-        successUrl: window.location.origin + "/success", // 결제 요청이 성공하면 리다이렉트되는 URL
-        failUrl: window.location.origin + "/fail", // 결제 요청이 실패하면 리다이렉트되는 URL
-        customerEmail: profile?.userEmailAddr ?? "",
-        customerName: profile?.userName ?? "",
-        customerMobilePhone: profile?.userTelno ?? "",
-        // 카드 결제에 필요한 정보
-        card: {
-          useEscrow: false,
-          flowMode: "DEFAULT", // 통합결제창 여는 옵션
-          useCardPoint: false,
-          useAppCardOnly: false,
-        },
-      });
-    } catch (error) {
-      // 토스 결제창에서 사용자가 닫거나 실패하면 reject되지만 failUrl로 처리되므로
-      // 여기서는 주로 주문 생성 실패를 처리한다.
-      console.error("주문 생성/결제 요청 실패:", error);
-      alert(getApiErrorMessage(error, "결제 요청에 실패했습니다."));
-    }
-  }
 
   const STEPS = [
     { key: "cart", label: "장바구니", icon: STEP_ICONS.cart },
@@ -512,7 +504,11 @@ export default function CheckoutPage() {
                             placeholder="우편번호"
                             className="w-32 border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-100"
                           />
-                          <button className="px-4 py-2 bg-gray-700 text-white text-xs hover:bg-gray-900 transition-colors cursor-pointer">
+                          <button
+                            type="button"
+                            onClick={handleAddressSearch}
+                            className="px-4 py-2 bg-gray-700 text-white text-xs hover:bg-gray-900 transition-colors cursor-pointer"
+                          >
                             주소 검색
                           </button>
                         </div>

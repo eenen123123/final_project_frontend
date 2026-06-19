@@ -60,6 +60,7 @@ import CourseListPage from "./pages/course/CourseListPage.tsx";
 import CourseInfoPage from "./pages/course/CourseInfoPage.tsx";
 import HermesVideoViewer from "./components/viewer/HermesVideoViewer.tsx";
 import OrderHistoryDetailPage from "./pages/User/Mypage/OrderHistoryDetailPage.tsx";
+import ShippingDetailPage from "./pages/User/Mypage/ShippingDetailPage.tsx";
 import SuneungGradeCutPage from "./pages/Suneung/SuneungGradeCutPage.tsx";
 
 /* cSpell:disable */
@@ -174,6 +175,10 @@ export default function AppRoute() {
         <Route
           path="/mycart/orderhistory/:ordSn"
           element={<OrderHistoryDetailPage />}
+        />
+        <Route
+          path="/mycart/orderhistory/:ordSn/shipping"
+          element={<ShippingDetailPage />}
         />
 
         {/* <Route path="/mypage/couponpoint" element={<CouponPointPage />} /> */}
