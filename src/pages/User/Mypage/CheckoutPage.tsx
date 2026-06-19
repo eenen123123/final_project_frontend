@@ -1,17 +1,15 @@
-import { useState, useEffect, type SetStateAction } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { loadTossPayments, type TossPaymentsPayment } from "@tosspayments/tosspayments-sdk";
 import MyPageSidebar from "./components/MyPageSidebar";
 import api, { getApiErrorMessage } from "../../../api/api";
-import {
-  loadTossPayments,
-  ANONYMOUS,
-  type TossPaymentsPayment,
-} from "@tosspayments/tosspayments-sdk";
+import { useAuth } from "../../../auth/AuthContext";
 
-import { Currency } from "lucide-react";
-
+const TOSS_CLIENT_KEY = "test_ck_ALnQvDd2VJ209bO49mMOVMj7X41m";
 const clientKey = "test_ck_ALnQvDd2VJ209bO49mMOVMj7X41m";
 const customerKey = "zWkWyass3Ey1PYSPyJhVr"; // dev
+
+type PointType = "HM_POINT" | "STUDY_POINT";
 interface CheckoutItem {
   cartSn: number;
   prodDivCd: string;
@@ -96,7 +94,10 @@ function formatPrice(p: number) {
 export default function CheckoutPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { getUserId } = useAuth();
   const items: CheckoutItem[] = location.state?.items ?? [];
+  const [paying, setPaying] = useState(false);
+  const [payment, setPayment] = useState<TossPaymentsPayment | null>(null);
 
   const [activeSection, setActiveSection] = useState("장바구니");
   const [profile, setProfile] = useState<MemberProfile | null>(null);
@@ -121,17 +122,102 @@ export default function CheckoutPage() {
   const [notifyConsent, setNotifyConsent] = useState(true);
   const [payMethod, setPayMethod] = useState("card");
 
-  // MARK: 결제 준비
+  // [포인트 시스템] 포인트 잔액 및 사용 상태
+  const [hmPointBalance, setHmPointBalance] = useState(0);
+  const [studyBalance, setStudyBalance] = useState(0);
+  const [usedPointType, setUsedPointType] = useState<PointType | null>(null);
+  const [usedPointAmt, setUsedPointAmt] = useState(0);
+  const [pointInput, setPointInput] = useState("");
+
   const hasBook = items.some((i) => i.prodDivCd === "TEXTBOOK");
   const totalPrice = items.reduce((sum, i) => sum + i.prodPrice * i.itemQty, 0);
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null);
-  const [payment, setPayment] = useState<TossPaymentsPayment | null>(null);
+  // [포인트 시스템] 배송비 포함 최종 현금 결제액
+  const shippingFee = hasBook ? 3000 : 0;
+  const finalAmt = totalPrice + shippingFee - usedPointAmt;
 
-  function selectPaymentMethod(method: SetStateAction<null>) {
-    setSelectedPaymentMethod(method);
-  }
+  // [포인트 시스템] 포인트 잔액 조회
+  useEffect(() => {
+    Promise.all([
+      api.get<number>("/api/points/balance?assetType=HM_POINT"),
+      api.get<number>("/api/points/balance?assetType=STUDY_POINT"),
+    ])
+      .then(([hm, study]) => {
+        setHmPointBalance(hm.data);
+        setStudyBalance(study.data);
+      })
+      .catch(() => {});
+  }, []);
 
-  const [payReady, setPayReady] = useState(false);
+  // [포인트 시스템] 포인트 사용 핸들러
+  // UI 단에서 단일 타입만 허용 (비즈니스 검증은 결제하기 버튼 클릭 시 서버에서 수행)
+  const handleUsePoint = (type: PointType) => {
+    if (usedPointType && usedPointType !== type) {
+      alert("하나의 포인트만 사용 가능합니다.");
+      return;
+    }
+    const balance = type === "HM_POINT" ? hmPointBalance : studyBalance;
+    const max = Math.min(balance, totalPrice + shippingFee);
+    setUsedPointType(type);
+    setUsedPointAmt(max);
+    setPointInput(String(max));
+  };
+
+  const handleCancelPoint = () => {
+    setUsedPointType(null);
+    setUsedPointAmt(0);
+    setPointInput("");
+  };
+
+  // [포인트 시스템] 결제하기 핸들러
+  // 주문 생성 → 서버 검증 → 에러 시 서버 메시지 출력 → 성공 시 토스 결제창 호출
+  const handlePayment = async () => {
+    if (paying) return;
+    setPaying(true);
+    try {
+      const res = await api.post("/api/orders", {
+        items: items.map((i) => ({
+          prodDivCd: i.prodDivCd,
+          prodSn: i.prodSn,
+          itemQty: i.itemQty,
+        })),
+        pointAmt: usedPointAmt,
+        pointType: usedPointType ?? undefined,
+      });
+
+      const { ordId, ordNm, totAmt } = res.data;
+
+      const tossPayments = await loadTossPayments(TOSS_CLIENT_KEY);
+      const payment = tossPayments.payment({
+        customerKey: getUserId() ?? crypto.randomUUID(),
+      });
+
+      await payment.requestPayment({
+        method: "CARD",
+        amount: { currency: "KRW", value: totAmt },
+        orderId: ordId,
+        orderName: ordNm,
+        successUrl: `${window.location.origin}/test/toss-pay/success`,
+        failUrl: `${window.location.origin}/test/toss-pay/fail`,
+      });
+    } catch (error) {
+      // 서버 에러 메시지 출력 (POINT_MINIMUM_USAGE, POINT_INSUFFICIENT_BALANCE 등)
+      alert(getApiErrorMessage(error, "결제 처리 중 오류가 발생했습니다."));
+    } finally {
+      setPaying(false);
+    }
+  };
+
+  const handlePointInputChange = (type: PointType, value: string) => {
+    const num = Number(value.replace(/\D/g, ""));
+    const balance = type === "HM_POINT" ? hmPointBalance : studyBalance;
+    const max = Math.min(balance, totalPrice + shippingFee);
+    const clamped = Math.min(num, max);
+    setPointInput(String(clamped));
+    setUsedPointAmt(clamped);
+    if (clamped === 0) {
+      setUsedPointType(null);
+    }
+  };
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -591,40 +677,74 @@ export default function CheckoutPage() {
                       할인 적용
                     </span>
                     <span className="text-sm font-bold text-orange-500">
-                      0원
+                      {usedPointAmt > 0
+                        ? `-${usedPointAmt.toLocaleString()}원`
+                        : "0원"}
                     </span>
                   </div>
+
+                  {/* HM 포인트 */}
                   {[
-                    { label: "HERMES 포인트", sub: "(0p보유)", unit: "P" },
-                    { label: "PayBack포인트", sub: "(0p보유)", unit: "P" },
-                    { label: "적립금", sub: "(0원보유)", unit: "원" },
                     {
-                      label: "할인쿠폰",
-                      sub: "(0장보유)",
-                      unit: "원",
-                      extra: "등록",
+                      type: "HM_POINT" as PointType,
+                      label: "HM 포인트",
+                      balance: hmPointBalance,
+                    },
+                    {
+                      type: "STUDY_POINT" as PointType,
+                      label: "스터디포인트",
+                      balance: studyBalance,
                     },
                   ].map((row) => (
                     <div
-                      key={row.label}
-                      className="flex items-center justify-between py-1.5 border-t border-gray-100 text-xs"
+                      key={row.type}
+                      className="border-t border-gray-100 py-1.5 text-xs"
                     >
-                      <span className="text-gray-600 leading-tight">
-                        {row.label}
-                        <br />
-                        <span className="text-gray-400">{row.sub}</span>
-                      </span>
-                      <div className="flex items-center gap-1">
-                        {row.extra && (
-                          <button className="px-1.5 py-0.5 border border-gray-300 text-gray-500 hover:bg-gray-50 cursor-pointer text-[10px]">
-                            {row.extra}
-                          </button>
-                        )}
-                        <span className="text-gray-500 w-8 text-right">0</span>
-                        <span className="text-gray-400">{row.unit}</span>
-                        <button className="px-1.5 py-0.5 border border-gray-300 text-gray-500 hover:bg-gray-50 cursor-pointer">
-                          사용
-                        </button>
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-600 leading-tight">
+                          {row.label}
+                          <br />
+                          <span className="text-gray-400">
+                            ({row.balance.toLocaleString()}p 보유)
+                          </span>
+                        </span>
+                        <div className="flex items-center gap-1">
+                          {usedPointType === row.type ? (
+                            <>
+                              <input
+                                type="text"
+                                value={pointInput}
+                                onChange={(e) =>
+                                  handlePointInputChange(
+                                    row.type,
+                                    e.target.value,
+                                  )
+                                }
+                                className="w-16 border border-orange-300 px-1.5 py-0.5 text-right text-xs focus:outline-none"
+                              />
+                              <span className="text-gray-400">P</span>
+                              <button
+                                onClick={handleCancelPoint}
+                                className="px-1.5 py-0.5 border border-gray-300 text-gray-500 hover:bg-gray-50 cursor-pointer text-[10px]"
+                              >
+                                취소
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <span className="text-gray-500 w-8 text-right">
+                                0
+                              </span>
+                              <span className="text-gray-400">P</span>
+                              <button
+                                onClick={() => handleUsePoint(row.type)}
+                                className="px-1.5 py-0.5 border border-gray-300 text-gray-500 hover:bg-gray-50 cursor-pointer"
+                              >
+                                사용
+                              </button>
+                            </>
+                          )}
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -637,13 +757,16 @@ export default function CheckoutPage() {
                   </div>
                   <p className="text-xs text-gray-500 mb-2">총 결제금액</p>
                   <p className="text-2xl font-bold text-orange-500">
-                    {formatPrice(totalPrice + (hasBook ? 3000 : 0))}
+                    {formatPrice(finalAmt)}
                     <span className="text-sm font-normal text-gray-400 ml-0.5">
                       원
                     </span>
                   </p>
                   <p className="text-xs text-gray-400 mt-3">
-                    총 예상 적립혜택 <span className="font-semibold">0p</span>
+                    총 예상 적립혜택{" "}
+                    <span className="font-semibold">
+                      {Math.floor(finalAmt / 100).toLocaleString()}p
+                    </span>
                   </p>
                 </div>
               </div>
@@ -745,10 +868,11 @@ export default function CheckoutPage() {
                 장바구니 가기 &gt;
               </button>
               <button
-                onClick={() => requestPayment()}
-                className="px-12 py-3.5 bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600 transition-colors cursor-pointer"
+                onClick={handlePayment}
+                disabled={paying}
+                className="px-12 py-3.5 bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                결제하기 &gt;
+                {paying ? "처리 중..." : "결제하기 >"}
               </button>
             </div>
           </div>
