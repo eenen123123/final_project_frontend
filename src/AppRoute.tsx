@@ -60,6 +60,10 @@ import CourseListPage from "./pages/course/CourseListPage.tsx";
 import CourseInfoPage from "./pages/course/CourseInfoPage.tsx";
 import HermesVideoViewer from "./components/viewer/HermesVideoViewer.tsx";
 import OrderHistoryDetailPage from "./pages/User/Mypage/OrderHistoryDetailPage.tsx";
+import MyQnaPage from "./pages/User/Mypage/MyQnaPage.tsx";
+import AddressBookPage from "./pages/User/Mypage/AddressBookPage.tsx";
+import RefundPolicyPage from "./pages/Info/RefundPolicyPage.tsx";
+import TaxDeductionPage from "./pages/Info/TaxDeductionPage.tsx";
 import ShippingDetailPage from "./pages/User/Mypage/ShippingDetailPage.tsx";
 import SuneungGradeCutPage from "./pages/Suneung/SuneungGradeCutPage.tsx";
 
@@ -169,6 +173,10 @@ export default function AppRoute() {
         {/* <Route path="/mylecture/book" element={<BookOrderPage />} /> */}
         {/* <Route path="/mylecture/history" element={<LectureHistoryPage />} /> */}
         <Route path="/mycart" element={<CartPage />} />
+        <Route path="/mypage/qna" element={<MyQnaPage />} />
+        <Route path="/mypage/address-book" element={<AddressBookPage />} />
+        <Route path="/info/refund" element={<RefundPolicyPage />} />
+        <Route path="/info/tax-deduction" element={<TaxDeductionPage />} />
         <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/mycart/orderhistory" element={<OrderHistoryPage />} />
         <Route path="/mycart/orderhistory" element={<OrderHistoryPage />} />

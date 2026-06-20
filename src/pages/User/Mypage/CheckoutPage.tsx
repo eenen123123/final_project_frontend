@@ -3,6 +3,8 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { loadTossPayments } from "@tosspayments/tosspayments-sdk";
 import { useKakaoPostcodePopup } from "react-daum-postcode";
 import MyPageSidebar from "./components/MyPageSidebar";
+import DeliveryMsgSelect from "./components/DeliveryMsgSelect";
+import CheckoutNotice from "./components/CheckoutNotice";
 import api, { getApiErrorMessage } from "../../../api/api";
 import { useAuth } from "../../../auth/AuthContext";
 
@@ -22,6 +24,19 @@ interface MemberProfile {
   userName: string;
   userTelno: string | null;
   userEmailAddr: string | null;
+}
+
+interface MemberAddress {
+  addressSn: number;
+  addressNm: string;
+  receiverNm: string;
+  receiverTel: string;
+  zipCd: string;
+  addrRoad: string;
+  addrJibun: string;
+  addrDtl: string;
+  deliveryMsg: string;
+  defaultYn: string;
 }
 
 const EMAIL_DOMAINS = [
@@ -99,6 +114,8 @@ export default function CheckoutPage() {
 
   const openPostcode = useKakaoPostcodePopup();
 
+  const hasBook = items.some((i) => i.prodDivCd === "TEXTBOOK");
+
   const [activeSection, setActiveSection] = useState("장바구니");
   const [profile, setProfile] = useState<MemberProfile | null>(null);
 
@@ -118,6 +135,8 @@ export default function CheckoutPage() {
   const [addrJibun, setAddrJibun] = useState("");
   const [addrDtl, setAddrDtl] = useState("");
   const [deliveryMsg, setDeliveryMsg] = useState("");
+  const [saveAddress, setSaveAddress] = useState(true);
+  const [isAddressFromBook, setIsAddressFromBook] = useState(false);
 
   const handleAddressSearch = () => {
     openPostcode({
@@ -129,6 +148,48 @@ export default function CheckoutPage() {
     });
   };
 
+  // 주소록 팝업
+  const openAddressModal = () => {
+    window.open(
+      "/mypage/address-book",
+      "addressBook",
+      "width=640,height=580,scrollbars=yes,resizable=no"
+    );
+  };
+
+  const applyAddress = (a: MemberAddress, fromBook: boolean) => {
+    setReceiverNm(a.receiverNm);
+    setReceiverTel(a.receiverTel);
+    setZipCd(a.zipCd ?? "");
+    setAddr(a.addrRoad ?? "");
+    setAddrJibun(a.addrJibun ?? "");
+    setAddrDtl(a.addrDtl ?? "");
+    setDeliveryMsg(a.deliveryMsg ?? "");
+    setIsAddressFromBook(fromBook);
+  };
+
+  // 주소록 팝업 → postMessage 수신
+  useEffect(() => {
+    const handler = (e: MessageEvent) => {
+      if (e.data?.type === "ADDRESS_SELECTED") {
+        applyAddress(e.data.address as MemberAddress, true);
+      }
+    };
+    window.addEventListener("message", handler);
+    return () => window.removeEventListener("message", handler);
+  }, []);
+
+  // 교재 포함 시 기본 배송지 자동 입력
+  useEffect(() => {
+    if (!hasBook) return;
+    api.get<MemberAddress[]>("/api/addresses")
+      .then((res) => {
+        const def = res.data.find((a) => a.defaultYn === "Y");
+        if (def) applyAddress(def, true);
+      })
+      .catch(() => {});
+  }, [hasBook]);
+
   // 기타
   const [notifyConsent, setNotifyConsent] = useState(true);
 
@@ -139,7 +200,6 @@ export default function CheckoutPage() {
   const [usedPointAmt, setUsedPointAmt] = useState(0);
   const [pointInput, setPointInput] = useState("");
 
-  const hasBook = items.some((i) => i.prodDivCd === "TEXTBOOK");
   const totalPrice = items.reduce((sum, i) => sum + i.prodPrice * i.itemQty, 0);
   // [포인트 시스템] 배송비 포함 최종 현금 결제액
   const shippingFee = hasBook ? 3000 : 0;
@@ -239,6 +299,7 @@ export default function CheckoutPage() {
               deliveryMsg,
             }
           : undefined,
+        saveToAddressBook: hasBook ? saveAddress : false,
       });
 
       const { ordId, ordNm, totAmt } = res.data;
@@ -284,11 +345,24 @@ export default function CheckoutPage() {
         setProfile(data);
         // 전화번호 파싱: 010-1234-5678
         if (data.userTelno) {
-          const parts = data.userTelno.split("-");
-          if (parts.length === 3) {
-            setPhoneCode(parts[0]);
-            setPhoneMid(parts[1]);
-            setPhoneLast(parts[2]);
+          const tel = data.userTelno;
+          if (tel.includes("-")) {
+            const parts = tel.split("-");
+            if (parts.length === 3) {
+              setPhoneCode(parts[0]);
+              setPhoneMid(parts[1]);
+              setPhoneLast(parts[2]);
+            }
+          } else if (tel.length === 11) {
+            // 01012345678 → 010 / 1234 / 5678
+            setPhoneCode(tel.slice(0, 3));
+            setPhoneMid(tel.slice(3, 7));
+            setPhoneLast(tel.slice(7));
+          } else if (tel.length === 10) {
+            // 0111234567 → 011 / 123 / 4567
+            setPhoneCode(tel.slice(0, 3));
+            setPhoneMid(tel.slice(3, 6));
+            setPhoneLast(tel.slice(6));
           }
         }
         // 이메일 파싱
@@ -316,13 +390,6 @@ export default function CheckoutPage() {
     { key: "complete", label: "결제완료", icon: STEP_ICONS.complete },
   ];
 
-  const PAY_METHODS = [
-    { key: "card", label: "신용카드" },
-    { key: "transfer", label: "무통장입금" },
-    { key: "account", label: "계좌이체" },
-    { key: "toss", label: "toss" },
-    { key: "samsung", label: "SAMSUNG Pay" },
-  ];
 
   return (
     <div className="min-h-screen bg-gray-50/50">
@@ -425,7 +492,7 @@ export default function CheckoutPage() {
               </table>
             </div>
             {/* 학습관리 알림 (강좌 있을 때) */}
-            {items.some((i) => i.prodDivCd === "20") && (
+            {items.some((i) => i.prodDivCd === "COURSE") && (
               <div className="border border-blue-200 bg-blue-50 px-4 py-3 mb-2 flex items-start gap-2">
                 <input
                   type="checkbox"
@@ -447,10 +514,6 @@ export default function CheckoutPage() {
                 </label>
               </div>
             )}
-            <p className="text-xs text-gray-400 mb-8">
-              · 회원님께 특별 제공되는 개별할인을 원치 않으시면 [자동할인 취소]
-              버튼을 클릭해주세요.
-            </p>
             {/* 배송지 (교재 있을 때) */}
             {hasBook && (
               <>
@@ -458,13 +521,10 @@ export default function CheckoutPage() {
                   배송지
                 </h2>
                 <div className="border border-gray-200 mb-8 overflow-hidden">
-                  <div className="bg-gray-50 px-5 py-3 border-b border-gray-200 flex items-center justify-between">
+                  <div className="bg-gray-50 px-5 py-3 border-b border-gray-200">
                     <span className="text-sm text-gray-500">
                       받으실 주소를 입력해 주세요.
                     </span>
-                    <button className="text-xs px-3 py-1.5 border border-gray-300 text-gray-500 hover:bg-white transition-colors cursor-pointer">
-                      주소록 &gt;
-                    </button>
                   </div>
                   <div className="px-6 py-5 space-y-4">
                     <div className="flex items-center gap-4">
@@ -511,6 +571,13 @@ export default function CheckoutPage() {
                           >
                             주소 검색
                           </button>
+                          <button
+                            type="button"
+                            onClick={openAddressModal}
+                            className="px-4 py-2 border border-gray-300 text-gray-600 text-xs hover:bg-gray-50 transition-colors cursor-pointer"
+                          >
+                            주소록 &gt;
+                          </button>
                         </div>
                         <input
                           type="text"
@@ -529,18 +596,30 @@ export default function CheckoutPage() {
                         />
                       </div>
                     </div>
-                    <div className="flex items-center gap-4">
-                      <label className="w-20 text-sm text-gray-500 shrink-0 text-right">
+                    <div className="flex items-start gap-4">
+                      <label className="w-20 text-sm text-gray-500 shrink-0 text-right pt-2">
                         배송 메모
                       </label>
-                      <input
-                        type="text"
+                      <DeliveryMsgSelect
                         value={deliveryMsg}
-                        onChange={(e) => setDeliveryMsg(e.target.value)}
-                        placeholder="예: 문 앞에 놓아주세요"
-                        className="flex-1 border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-100"
+                        onChange={setDeliveryMsg}
+                        inputClassName="focus:ring-1 focus:ring-orange-100"
                       />
                     </div>
+                    {!isAddressFromBook && (
+                      <div className="flex items-center gap-4">
+                        <span className="w-20 shrink-0" />
+                        <label className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={saveAddress}
+                            onChange={(e) => setSaveAddress(e.target.checked)}
+                            className="w-3.5 h-3.5 accent-orange-500 cursor-pointer"
+                          />
+                          이 배송지를 주소록에 저장
+                        </label>
+                      </div>
+                    )}
                   </div>
                 </div>
               </>
@@ -579,7 +658,7 @@ export default function CheckoutPage() {
                           <option key={c}>{c}</option>
                         ))}
                       </select>
-                      <span className="text-gray-300">—</span>
+                      <span className="text-gray-800 text-xs">-</span>
                       <input
                         type="text"
                         maxLength={4}
@@ -589,7 +668,7 @@ export default function CheckoutPage() {
                         }
                         className="w-16 border border-gray-300 px-2 py-1 text-sm text-center focus:outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-100"
                       />
-                      <span className="text-gray-300">—</span>
+                      <span className="text-gray-800 text-xs">-</span>
                       <input
                         type="text"
                         maxLength={4}
@@ -767,94 +846,7 @@ export default function CheckoutPage() {
                 </div>
               </div>
             </div>
-            {/* MARK: 결제 */}
-            {/* <h2 className="text-base font-bold text-gray-900 mb-3">결제</h2> */}
-            <div className="wrapper mb-4"></div>
-            {/* <div className="border border-gray-300 mb-4">
-              <div className="px-5 py-4">
-                <ul className="space-y-1">
-                  {(
-                    {
-                      card: [
-                        "신용카드 결제 시 즉시 수강이 가능합니다.",
-                        "결제 금액이 30만원 이상인 경우 공인인증서가 필요할 수 있습니다.",
-                        "카드사 별로 무이자 할부 개월 등 상세 혜택이 매월 다르므로, 결제 시 확인하시기 바랍니다.",
-                      ],
-                      transfer: [
-                        "계좌이체 결제 시 즉시 수강이 가능합니다.",
-                        "계좌이체는 인터넷 뱅킹이 신청되어 있을 경우에만 결제 가능합니다.",
-                        "서비스 가능 시간과 거래 한도 금액은 은행마다 상이합니다.",
-                      ],
-                      account: [
-                        "무통장 입금은 가상계좌로 입금 완료 후 수강이 가능합니다.",
-                        "주문 후 7일 이내까지 입금 가능합니다.",
-                        "신청 금액과 입금 금액이 다를 경우 오류가 발생하니 정확한 금액을 입금해주세요.",
-                      ],
-                      toss: [
-                        "토스앱에 은행계좌 또는 신용카드를 등록하여 결제하는 서비스입니다.",
-                        "결제 비밀번호로 간편하게 결제할 수 있습니다.",
-                        "등록 가능한 계좌 및 카드는 토스앱에서 확인 가능합니다.",
-                      ],
-                      samsung: [
-                        "삼성페이에 등록한 카드를 지문 또는 비밀번호로 인증하여 결제합니다.",
-                        "본인 명의 휴대폰에서 본인 명의 카드 등록 후 사용 가능합니다.",
-                        "삼성페이에서 제공하는 카드사별 무이자, 할인 혜택을 받을 수 있습니다.",
-                      ],
-                    } as Record<string, string[]>
-                  )[payMethod]?.map((txt, i) => (
-                    <li key={i} className="text-xs text-gray-500">
-                      · {txt}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div> */}
-            {/* 안내사항 */}
-            <div className="border border-gray-300 bg-gray-50 mb-8">
-              <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-gray-200">
-                <span className="text-sm font-bold text-gray-800">
-                  안내사항
-                </span>
-                <div className="flex gap-2">
-                  {[
-                    "환불/취소 안내",
-                    "결제 관련 FAQ",
-                    "도서 소득공제 안내",
-                  ].map((label) => (
-                    <button
-                      key={label}
-                      className="text-xs px-3 py-1.5 border border-gray-400 text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
-                    >
-                      {label} &gt;
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="px-5 py-4 text-xs text-gray-500 leading-relaxed space-y-1.5">
-                {[
-                  "모든 강좌 수강기간에는 교재 배송기간 최대 7일이 포함되어 있습니다.",
-                  "강좌·교재를 함께 구매 후 강좌 취소는 교재가 반송되어야 취소 가능합니다.",
-                  "결제수단별 최소 결제금액이 상이하오니, 확인 후 결제 바랍니다.",
-                  "여러 개의 상품을 함께 주문하셔도 배송비는 전체 주문에 대해 묶음으로 1회만 결제됩니다.",
-                  "미성년자 결제 시 법정대리인이 동의하지 않으면 취소될 수 있습니다.",
-                  "결제 완료 후 구매 확정까지는 배송 조회 및 환불 요청이 가능합니다.",
-                  "교재는 수령 후 7일 이내 반품 신청이 가능하며, 단순 변심은 배송비 부담입니다.",
-                  "이벤트·할인 적용 상품은 환불 시 실 결제금액 기준으로 처리됩니다.",
-                ].map((txt, i) => (
-                  <p key={i}>
-                    {i + 1}. {txt}
-                  </p>
-                ))}
-                <div className="flex justify-end pt-2">
-                  <span className="text-gray-400">
-                    고객센터{" "}
-                    <span className="font-semibold text-gray-600">
-                      1599-6405
-                    </span>
-                  </span>
-                </div>
-              </div>
-            </div>
+            <CheckoutNotice />
             {/* 하단 버튼 */}
             <div className="flex justify-center gap-3">
               <button
@@ -874,6 +866,7 @@ export default function CheckoutPage() {
           </div>
         </div>
       </div>
+
     </div>
   );
 }

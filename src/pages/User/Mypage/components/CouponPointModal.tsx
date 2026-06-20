@@ -79,7 +79,6 @@ const MODAL_CONFIGS: Record<string, ModalConfig> = {
       {
         heading: "확인사항",
         bullets: [
-          <>HM 포인트는 구매 후 <span className="text-blue-600 font-semibold">30일 이후</span> 자동 적립됩니다.</>,
           <>HM 포인트는 현금으로 환불되지 않습니다.</>,
           <>적립일로부터 <span className="text-blue-600 font-semibold">1년간</span> 이용이 유효하며, 1년 후 사용하지 않은 포인트는 자동 소멸됩니다.</>,
         ],

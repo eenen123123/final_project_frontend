@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   GraduationCap,
   Star,
@@ -7,6 +7,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import CouponPointModal, { ExpiryDetailModal } from "./CouponPointModal";
+import DatePickerInput from "./DatePickerInput";
 import api from "../../../../api/api";
 
 interface UserCoupon {
@@ -73,7 +74,7 @@ const SUMMARY_NOTICES: Record<TabType, React.ReactNode[]> = {
     </>,
     "스터디포인트는 적립일로부터 1년간 이용이 유효하며, 1년 후 잔여 포인트는 자동 소멸됩니다.",
   ],
-  "hm-money": ["헤르메스에서 현금처럼 사용하실 수 있는 온라인 재화 입니다"],
+  "hm-money": ["헤르메스에서 현금처럼 사용하실 수 있는 온라인 재화입니다"],
 };
 
 const NOTICE_CONFIGS: Record<
@@ -86,7 +87,7 @@ const NOTICE_CONFIGS: Record<
   "hm-coupon": {
     plus: {
       label: "HM 할인권 발급",
-      desc: "HM 할인권은 이벤트 참여 또는 관리자 발급을 통해 받을 수 있습니다.",
+      desc: "HM 할인권은 이벤트 참여, 관리자 발급 또는 할인권 번호 직접 입력을 통해 받을 수 있습니다.",
     },
     minus: {
       label: "HM 할인권 사용",
@@ -116,7 +117,7 @@ const NOTICE_CONFIGS: Record<
   "hm-money": {
     plus: {
       label: "HM머니 충전",
-      desc: "신용카드, 계좌이체, 무통장입금, 휴대폰결제를 통해 충전할 수 있습니다.",
+      desc: "HM머니 충전 기능은 현재 준비 중입니다.",
     },
     minus: {
       label: "HM머니 사용",
@@ -169,7 +170,10 @@ export default function CouponPointContent() {
   useEffect(() => {
     api
       .get<PageResponse<UserCoupon>>("/api/coupons/my?page=1")
-      .then((res) => { setCoupons(res.data.items); setCouponTotal(res.data.totalCount); })
+      .then((res) => {
+        setCoupons(res.data.items);
+        setCouponTotal(res.data.totalCount);
+      })
       .catch(() => {});
 
     api
@@ -191,7 +195,9 @@ export default function CouponPointContent() {
         setHmMoneyBal(money.data);
         setHmPointExpiring(hmExp.data);
         setStudyExpiring(studyExp.data);
-      } catch {}
+      } catch {
+        // 잔액 조회 실패 시 무시
+      }
     };
     fetchBalance();
   }, []);
@@ -200,11 +206,19 @@ export default function CouponPointContent() {
   useEffect(() => {
     const assetType = TAB_ASSET_MAP[activeTab];
     if (!assetType) return;
-    setHistPage(1);
     api
-      .get<PageResponse<PointHist>>(`/api/points/history?assetType=${assetType}&page=1`)
-      .then((res) => { setPointHistory(res.data.items); setHistTotal(res.data.totalCount); })
-      .catch(() => { setPointHistory([]); setHistTotal(0); });
+      .get<PageResponse<PointHist>>(
+        `/api/points/history?assetType=${assetType}&page=1`,
+      )
+      .then((res) => {
+        setHistPage(1);
+        setPointHistory(res.data.items);
+        setHistTotal(res.data.totalCount);
+      })
+      .catch(() => {
+        setPointHistory([]);
+        setHistTotal(0);
+      });
   }, [activeTab]);
 
   // 탭별 잔액 반환
@@ -232,6 +246,15 @@ export default function CouponPointContent() {
   const [moneySubTab, setMoneySubTab] = useState<"history" | "charge">(
     "history",
   );
+  const [couponSubTab, setCouponSubTab] = useState<"history" | "register">(
+    "history",
+  );
+  const [couponSn, setCouponSn] = useState(["", "", "", ""]);
+  const snRef0 = useRef<HTMLInputElement>(null);
+  const snRef1 = useRef<HTMLInputElement>(null);
+  const snRef2 = useRef<HTMLInputElement>(null);
+  const snRef3 = useRef<HTMLInputElement>(null);
+  const snRefs = [snRef0, snRef1, snRef2, snRef3];
   const [chargeAmount, setChargeAmount] = useState("1000");
   const [selectedPreset, setSelectedPreset] = useState<number | null>(null);
   const [emailAgreed, setEmailAgreed] = useState(false);
@@ -256,8 +279,14 @@ export default function CouponPointContent() {
 
   const fetchCoupons = (page: number) => {
     api
-      .get<PageResponse<UserCoupon>>(`/api/coupons/my?startDate=${startDate}&endDate=${endDate}&page=${page}`)
-      .then((res) => { setCoupons(res.data.items); setCouponTotal(res.data.totalCount); setCouponPage(page); })
+      .get<PageResponse<UserCoupon>>(
+        `/api/coupons/my?startDate=${startDate}&endDate=${endDate}&page=${page}`,
+      )
+      .then((res) => {
+        setCoupons(res.data.items);
+        setCouponTotal(res.data.totalCount);
+        setCouponPage(page);
+      })
       .catch(() => {});
   };
 
@@ -265,9 +294,18 @@ export default function CouponPointContent() {
     const assetType = TAB_ASSET_MAP[activeTab];
     if (!assetType) return;
     api
-      .get<PageResponse<PointHist>>(`/api/points/history?assetType=${assetType}&startDate=${startDate}&endDate=${endDate}&page=${page}`)
-      .then((res) => { setPointHistory(res.data.items); setHistTotal(res.data.totalCount); setHistPage(page); })
-      .catch(() => { setPointHistory([]); setHistTotal(0); });
+      .get<PageResponse<PointHist>>(
+        `/api/points/history?assetType=${assetType}&startDate=${startDate}&endDate=${endDate}&page=${page}`,
+      )
+      .then((res) => {
+        setPointHistory(res.data.items);
+        setHistTotal(res.data.totalCount);
+        setHistPage(page);
+      })
+      .catch(() => {
+        setPointHistory([]);
+        setHistTotal(0);
+      });
   };
 
   const handleSearchSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
@@ -397,6 +435,98 @@ export default function CouponPointContent() {
         </div>
       </div>
 
+      {/* HM 할인권 서브탭 */}
+      {activeTab === "hm-coupon" && (
+        <div className="grid grid-cols-2 border border-gray-300 mb-6">
+          {(["history", "register"] as const).map((sub, i) => (
+            <button
+              key={sub}
+              type="button"
+              onClick={() => setCouponSubTab(sub)}
+              className={`py-3 text-sm font-bold text-center transition-colors cursor-pointer
+                ${i === 0 ? "border-r border-gray-300" : ""}
+                ${couponSubTab === sub ? "bg-gray-100 text-gray-900" : "bg-white text-gray-400 hover:bg-gray-50"}`}
+            >
+              {sub === "history" ? "HM 할인권 사용내역" : "할인권 등록"}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* 할인권 등록 폼 */}
+      {activeTab === "hm-coupon" && couponSubTab === "register" && (
+        <div className="mb-8">
+          <table className="w-full text-xs border-collapse border border-gray-300">
+            <tbody>
+              <tr>
+                <td className="w-28 py-5 px-4 bg-gray-50 font-bold text-gray-700 text-center align-middle border-r border-gray-300 whitespace-nowrap">
+                  할인권 S/N
+                </td>
+                <td className="py-8 px-8">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      {couponSn.map((val, i) => (
+                        <div key={i} className="flex items-center gap-3">
+                          <input
+                            ref={snRefs[i]}
+                            type="text"
+                            maxLength={5}
+                            value={val}
+                            onChange={(e) => {
+                              const v = e.target.value
+                                .replace(/[^a-zA-Z0-9]/g, "")
+                                .toUpperCase();
+                              const next = [...couponSn];
+                              next[i] = v;
+                              setCouponSn(next);
+                              if (v.length === 5 && i < 3)
+                                snRefs[i + 1].current?.focus();
+                            }}
+                            placeholder="5자리"
+                            className="border border-gray-300 px-3 py-1 w-24 text-center text-sm text-gray-700 bg-white focus:outline-none focus:border-gray-500 tracking-widest"
+                          />
+                          {i < 3 && (
+                            <span className="text-gray-400 font-bold">-</span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        const code = couponSn.join("-");
+                        if (couponSn.some((v) => v.length !== 5)) {
+                          alert("할인권 번호를 모두 입력해주세요. (각 5자리)");
+                          return;
+                        }
+                        try {
+                          await api.post("/api/coupons/redeem", {
+                            couponCode: code,
+                          });
+                          alert("할인권이 정상적으로 등록되었습니다.");
+                          setCouponSn(["", "", "", ""]);
+                          snRefs[0].current?.focus();
+                        } catch {
+                          alert(
+                            "유효하지 않은 할인권 번호이거나 이미 사용된 번호입니다.",
+                          );
+                        }
+                      }}
+                      className="px-6 py-2 bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold transition-colors cursor-pointer whitespace-nowrap mr-20"
+                    >
+                      등록하기 &gt;
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <p className="text-[11px] text-gray-400 mt-2 pl-1">
+            * 할인권 번호는 영문 대문자와 소문자를 구분하지 않습니다.
+          </p>
+        </div>
+      )}
+
       {/* HM머니 서브탭 */}
       {activeTab === "hm-money" && (
         <div className="grid grid-cols-2 border border-gray-300 mb-6">
@@ -416,283 +546,297 @@ export default function CouponPointContent() {
       )}
 
       {/* 내역 섹션 */}
-      {(activeTab !== "hm-money" || moneySubTab === "history") && (
-        <>
-          <div className="mb-4 text-base font-bold text-gray-800 pl-0.5">
-            {tabTitle} 적립/사용내역
-          </div>
+      {(activeTab !== "hm-money" || moneySubTab === "history") &&
+        (activeTab !== "hm-coupon" || couponSubTab === "history") && (
+          <>
+            <div className="mb-4 text-base font-bold text-gray-800 pl-0.5">
+              {tabTitle} 적립/사용내역
+            </div>
 
-          <form
-            onSubmit={handleSearchSubmit}
-            className="border border-gray-300 bg-[#FAFAFA] p-4 flex items-center gap-6 text-xs text-gray-700 mb-3"
-          >
-            <div className="flex items-center gap-4">
-              <span className="text-gray-500 font-bold tracking-tight">
-                기간검색
-              </span>
-              <div className="flex rounded-xs border border-gray-300 bg-white overflow-hidden">
-                {[
-                  { label: "1주일", days: 7 },
-                  { label: "1개월", days: 30 },
-                  { label: "3개월", days: 90 },
-                  { label: "6개월", days: 180 },
-                ].map((p) => (
-                  <button
-                    key={p.days}
-                    type="button"
-                    onClick={() => handlePeriodChange(p.days)}
-                    className={`px-3 py-1.5 text-[11px] font-medium border-r last:border-r-0 border-gray-200 transition-colors cursor-pointer ${
-                      selectedPeriod === p.days
-                        ? "bg-gray-700 text-white font-bold"
-                        : "text-gray-600 hover:bg-gray-50 bg-white"
-                    }`}
-                  >
-                    {p.label}
-                  </button>
-                ))}
+            <form
+              onSubmit={handleSearchSubmit}
+              className="border border-gray-300 bg-[#FAFAFA] p-4 flex items-center gap-6 text-xs text-gray-700 mb-3"
+            >
+              <div className="flex items-center gap-4">
+                <span className="text-gray-500 font-bold tracking-tight">
+                  기간검색
+                </span>
+                <div className="flex rounded-xs border border-gray-300 bg-white overflow-hidden">
+                  {[
+                    { label: "1주일", days: 7 },
+                    { label: "1개월", days: 30 },
+                    { label: "3개월", days: 90 },
+                    { label: "6개월", days: 180 },
+                  ].map((p) => (
+                    <button
+                      key={p.days}
+                      type="button"
+                      onClick={() => handlePeriodChange(p.days)}
+                      className={`px-3 py-1.5 text-[11px] font-medium border-r last:border-r-0 border-gray-200 transition-colors cursor-pointer ${
+                        selectedPeriod === p.days
+                          ? "bg-gray-700 text-white font-bold"
+                          : "text-gray-600 hover:bg-gray-50 bg-white"
+                      }`}
+                    >
+                      {p.label}
+                    </button>
+                  ))}
+                </div>
               </div>
+
+              <div className="flex items-center gap-1.5">
+                <DatePickerInput
+                  value={startDate}
+                  onChange={(v) => {
+                    setStartDate(v);
+                    setSelectedPeriod(0);
+                  }}
+                />
+                <span className="text-gray-400 font-normal">~</span>
+                <DatePickerInput
+                  value={endDate}
+                  onChange={(v) => {
+                    setEndDate(v);
+                    setSelectedPeriod(0);
+                  }}
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="px-4 py-1.5 bg-[#757575] hover:bg-gray-800 text-white text-xs font-medium transition-colors cursor-pointer rounded-xs"
+              >
+                검색 &gt;
+              </button>
+            </form>
+
+            <div className="flex justify-end mb-2.5">
+              <select
+                value={sortType}
+                onChange={(e) => setSortType(e.target.value)}
+                className="border border-gray-300 bg-white px-3 py-1.5 text-xs text-gray-600 font-medium focus:outline-none min-w-[100px]"
+              >
+                <option value="">전체내역</option>
+                {activeTab === "hm-coupon" ? (
+                  <>
+                    <option value="Y">미사용</option>
+                    <option value="N">사용/소멸</option>
+                  </>
+                ) : (
+                  <>
+                    <option value="Y">적립내역</option>
+                    <option value="N">사용내역</option>
+                  </>
+                )}
+              </select>
             </div>
 
-            <div className="flex items-center gap-1.5">
-              <input
-                type="text"
-                value={startDate}
-                onChange={(e) => {
-                  setStartDate(e.target.value);
-                  setSelectedPeriod(0);
-                }}
-                className="border border-gray-300 px-2 py-1.5 w-28 text-center text-xs text-gray-700 bg-white focus:outline-none"
-              />
-              <span className="text-gray-400 font-normal">~</span>
-              <input
-                type="text"
-                value={endDate}
-                onChange={(e) => {
-                  setEndDate(e.target.value);
-                  setSelectedPeriod(0);
-                }}
-                className="border border-gray-300 px-2 py-1.5 w-28 text-center text-xs text-gray-700 bg-white focus:outline-none"
-              />
-            </div>
-
-            <button
-              type="submit"
-              className="px-4 py-1.5 bg-[#757575] hover:bg-gray-800 text-white text-xs font-medium transition-colors cursor-pointer rounded-xs"
-            >
-              검색 &gt;
-            </button>
-          </form>
-
-          <div className="flex justify-end mb-2.5">
-            <select
-              value={sortType}
-              onChange={(e) => setSortType(e.target.value)}
-              className="border border-gray-300 bg-white px-3 py-1.5 text-xs text-gray-600 font-medium focus:outline-none min-w-[100px]"
-            >
-              <option value="">전체내역</option>
+            <div className="border-t border-b border-gray-300 mb-5">
               {activeTab === "hm-coupon" ? (
-                <>
-                  <option value="Y">미사용</option>
-                  <option value="N">사용/소멸</option>
-                </>
-              ) : (
-                <>
-                  <option value="Y">적립내역</option>
-                  <option value="N">사용내역</option>
-                </>
-              )}
-            </select>
-          </div>
-
-          <div className="border-t border-b border-gray-300 mb-5">
-            {activeTab === "hm-coupon" ? (
-              <table className="w-full text-xs border-collapse">
-                <colgroup>
-                  <col style={{ width: "18%" }} />
-                  <col style={{ width: "42%" }} />
-                  <col style={{ width: "16%" }} />
-                  <col style={{ width: "24%" }} />
-                </colgroup>
-                <thead>
-                  <tr className="border-b border-gray-200 bg-white">
-                    <th className="py-3 px-2 text-center font-bold text-gray-700">
-                      발급일
-                    </th>
-                    <th className="py-3 px-4 text-center font-bold text-gray-700">
-                      쿠폰명
-                    </th>
-                    <th className="py-3 px-2 text-center font-bold text-gray-700">
-                      상태
-                    </th>
-                    <th className="py-3 px-2 text-center font-bold text-gray-700">
-                      유효기간
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {(() => {
-                    const filtered = coupons.filter((c) => {
-                      if (sortType === "Y") return c.useYn === "N";
-                      if (sortType === "N") return c.useYn !== "N";
-                      return true;
-                    });
-                    if (filtered.length === 0) {
-                      return (
-                        <tr>
-                          <td
-                            colSpan={4}
-                            className="py-14 text-center text-gray-500 font-medium bg-white"
-                          >
-                            보유 쿠폰이 없습니다.
-                          </td>
-                        </tr>
-                      );
-                    }
-                    const useYnLabel: Record<string, string> = {
-                      N: "미사용",
-                      Y: "사용완료",
-                      E: "소멸",
-                    };
-                    const useYnColor: Record<string, string> = {
-                      N: "text-emerald-600",
-                      Y: "text-gray-400",
-                      E: "text-red-400",
-                    };
-                    return filtered.map((c) => (
-                      <tr
-                        key={c.mcpntSn}
-                        className="border-b border-gray-100 last:border-b-0"
-                      >
-                        <td className="py-3 px-2 text-center text-gray-600">
-                          {c.issueDt.slice(0, 10)}
-                        </td>
-                        <td className="py-3 px-4 text-left text-gray-800 font-medium">
-                          {c.couponNm}
-                        </td>
-                        <td
-                          className={`py-3 px-2 text-center font-bold ${useYnColor[c.useYn] ?? "text-gray-500"}`}
-                        >
-                          {useYnLabel[c.useYn] ?? c.useYn}
-                        </td>
-                        <td className="py-3 px-2 text-center text-gray-600">
-                          {c.expiryDt}
-                        </td>
-                      </tr>
-                    ));
-                  })()}
-                </tbody>
-              </table>
-            ) : (
-              <table className="w-full text-xs border-collapse">
-                <colgroup>
-                  <col style={{ width: "16%" }} />
-                  <col style={{ width: "40%" }} />
-                  <col style={{ width: "15%" }} />
-                  <col style={{ width: "15%" }} />
-                  <col style={{ width: "14%" }} />
-                </colgroup>
-                <thead>
-                  <tr className="border-b border-gray-200 bg-white">
-                    <th className="py-3 px-2 text-center font-bold text-gray-700">
-                      날짜
-                    </th>
-                    <th className="py-3 px-4 text-center font-bold text-gray-700">
-                      사용내역
-                    </th>
-                    <th className="py-3 px-2 text-center font-bold text-gray-700">
-                      적립포인트
-                    </th>
-                    <th className="py-3 px-2 text-center font-bold text-gray-700">
-                      사용/소멸 포인트
-                    </th>
-                    <th className="py-3 px-2 text-center font-bold text-gray-700">
-                      유효기간
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {(() => {
-                    const filtered = pointHistory.filter((h) => {
-                      if (sortType === "Y") return h.histType === "EARN";
-                      if (sortType === "N")
-                        return h.histType === "USE" || h.histType === "EXPIRE";
-                      return true;
-                    });
-                    if (filtered.length === 0) {
-                      return (
-                        <tr>
-                          <td
-                            colSpan={5}
-                            className="py-14 text-center text-gray-500 font-medium bg-white"
-                          >
-                            내역이 없습니다.
-                          </td>
-                        </tr>
-                      );
-                    }
-                    return filtered.map((h) => {
-                      const isEarn = h.changeAmt > 0;
-                      return (
+                <table className="w-full text-xs border-collapse">
+                  <colgroup>
+                    <col style={{ width: "18%" }} />
+                    <col style={{ width: "42%" }} />
+                    <col style={{ width: "16%" }} />
+                    <col style={{ width: "24%" }} />
+                  </colgroup>
+                  <thead>
+                    <tr className="border-b border-gray-200 bg-white">
+                      <th className="py-3 px-2 text-center font-bold text-gray-700">
+                        발급일
+                      </th>
+                      <th className="py-3 px-4 text-center font-bold text-gray-700">
+                        쿠폰명
+                      </th>
+                      <th className="py-3 px-2 text-center font-bold text-gray-700">
+                        상태
+                      </th>
+                      <th className="py-3 px-2 text-center font-bold text-gray-700">
+                        유효기간
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(() => {
+                      const filtered = coupons.filter((c) => {
+                        if (sortType === "Y") return c.useYn === "N";
+                        if (sortType === "N") return c.useYn !== "N";
+                        return true;
+                      });
+                      if (filtered.length === 0) {
+                        return (
+                          <tr>
+                            <td
+                              colSpan={4}
+                              className="py-14 text-center text-gray-500 font-medium bg-white"
+                            >
+                              보유 쿠폰이 없습니다.
+                            </td>
+                          </tr>
+                        );
+                      }
+                      const useYnLabel: Record<string, string> = {
+                        N: "미사용",
+                        Y: "사용완료",
+                        E: "소멸",
+                      };
+                      const useYnColor: Record<string, string> = {
+                        N: "text-emerald-600",
+                        Y: "text-gray-400",
+                        E: "text-red-400",
+                      };
+                      return filtered.map((c) => (
                         <tr
-                          key={h.pointHistSn}
+                          key={c.mcpntSn}
                           className="border-b border-gray-100 last:border-b-0"
                         >
                           <td className="py-3 px-2 text-center text-gray-600">
-                            {h.regDt?.slice(0, 10)}
+                            {c.issueDt.slice(0, 10)}
                           </td>
-                          <td className="py-3 px-4 text-left text-gray-800">
-                            {h.memo || "-"}
+                          <td className="py-3 px-4 text-left text-gray-800 font-medium">
+                            {c.couponNm}
                           </td>
-                          <td className="py-3 px-2 text-center text-emerald-600 font-bold">
-                            {isEarn ? `+${h.changeAmt.toLocaleString()}` : ""}
+                          <td
+                            className={`py-3 px-2 text-center font-bold ${useYnColor[c.useYn] ?? "text-gray-500"}`}
+                          >
+                            {useYnLabel[c.useYn] ?? c.useYn}
                           </td>
-                          <td className="py-3 px-2 text-center text-red-400 font-bold">
-                            {!isEarn
-                              ? Math.abs(h.changeAmt).toLocaleString()
-                              : ""}
-                          </td>
-                          <td className="py-3 px-2 text-center text-gray-500">
-                            {h.expiryDt ?? "-"}
+                          <td className="py-3 px-2 text-center text-gray-600">
+                            {c.expiryDt}
                           </td>
                         </tr>
-                      );
-                    });
-                  })()}
-                </tbody>
-              </table>
-            )}
-          </div>
+                      ));
+                    })()}
+                  </tbody>
+                </table>
+              ) : (
+                <table className="w-full text-xs border-collapse">
+                  <colgroup>
+                    <col style={{ width: "16%" }} />
+                    <col style={{ width: "40%" }} />
+                    <col style={{ width: "15%" }} />
+                    <col style={{ width: "15%" }} />
+                    <col style={{ width: "14%" }} />
+                  </colgroup>
+                  <thead>
+                    <tr className="border-b border-gray-200 bg-white">
+                      <th className="py-3 px-2 text-center font-bold text-gray-700">
+                        날짜
+                      </th>
+                      <th className="py-3 px-4 text-center font-bold text-gray-700">
+                        사용내역
+                      </th>
+                      <th className="py-3 px-2 text-center font-bold text-gray-700">
+                        적립포인트
+                      </th>
+                      <th className="py-3 px-2 text-center font-bold text-gray-700">
+                        사용/소멸 포인트
+                      </th>
+                      <th className="py-3 px-2 text-center font-bold text-gray-700">
+                        유효기간
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(() => {
+                      const filtered = pointHistory.filter((h) => {
+                        if (sortType === "Y") return h.histType === "EARN";
+                        if (sortType === "N")
+                          return (
+                            h.histType === "USE" || h.histType === "EXPIRE"
+                          );
+                        return true;
+                      });
+                      if (filtered.length === 0) {
+                        return (
+                          <tr>
+                            <td
+                              colSpan={5}
+                              className="py-14 text-center text-gray-500 font-medium bg-white"
+                            >
+                              내역이 없습니다.
+                            </td>
+                          </tr>
+                        );
+                      }
+                      return filtered.map((h) => {
+                        const isEarn = h.changeAmt > 0;
+                        return (
+                          <tr
+                            key={h.pointHistSn}
+                            className="border-b border-gray-100 last:border-b-0"
+                          >
+                            <td className="py-3 px-2 text-center text-gray-600">
+                              {h.regDt?.slice(0, 10)}
+                            </td>
+                            <td className="py-3 px-4 text-left text-gray-800">
+                              {h.memo || "-"}
+                            </td>
+                            <td className="py-3 px-2 text-center text-emerald-600 font-bold">
+                              {isEarn ? `+${h.changeAmt.toLocaleString()}` : ""}
+                            </td>
+                            <td className="py-3 px-2 text-center text-red-400 font-bold">
+                              {!isEarn
+                                ? Math.abs(h.changeAmt).toLocaleString()
+                                : ""}
+                            </td>
+                            <td className="py-3 px-2 text-center text-gray-500">
+                              {h.expiryDt ?? "-"}
+                            </td>
+                          </tr>
+                        );
+                      });
+                    })()}
+                  </tbody>
+                </table>
+              )}
+            </div>
 
-          {(() => {
-            const page = activeTab === "hm-coupon" ? couponPage : histPage;
-            const total = activeTab === "hm-coupon" ? couponTotal : histTotal;
-            const totalPages = Math.ceil(total / 10) || 1;
-            const goPage = (p: number) => activeTab === "hm-coupon" ? fetchCoupons(p) : fetchHistory(p);
-            const GROUP = 5;
-            const group = Math.ceil(page / GROUP);
-            const start = (group - 1) * GROUP + 1;
-            const end = Math.min(group * GROUP, totalPages);
-            return totalPages <= 1 ? null : (
-              <div className="flex justify-center items-center gap-1.5 text-xs font-medium mb-8">
-                {group > 1 && (
-                  <button onClick={() => goPage((group - 1) * GROUP)}
-                    className="w-7 h-7 border border-gray-300 text-gray-500 hover:bg-gray-50 cursor-pointer">&lt;</button>
-                )}
-                {Array.from({ length: end - start + 1 }, (_, i) => start + i).map(p => (
-                  <button key={p} onClick={() => goPage(p)}
-                    className={`w-7 h-7 border cursor-pointer ${p === page ? "border-gray-700 bg-gray-700 text-white font-bold" : "border-gray-300 text-gray-500 hover:bg-gray-50"}`}>
-                    {p}
-                  </button>
-                ))}
-                {end < totalPages && (
-                  <button onClick={() => goPage(end + 1)}
-                    className="w-7 h-7 border border-gray-300 text-gray-500 hover:bg-gray-50 cursor-pointer">&gt;</button>
-                )}
-              </div>
-            );
-          })()}
-        </>
-      )}
+            {(() => {
+              const page = activeTab === "hm-coupon" ? couponPage : histPage;
+              const total = activeTab === "hm-coupon" ? couponTotal : histTotal;
+              const totalPages = Math.ceil(total / 10) || 1;
+              const goPage = (p: number) =>
+                activeTab === "hm-coupon" ? fetchCoupons(p) : fetchHistory(p);
+              const GROUP = 5;
+              const group = Math.ceil(page / GROUP);
+              const start = (group - 1) * GROUP + 1;
+              const end = Math.min(group * GROUP, totalPages);
+              return totalPages <= 1 ? null : (
+                <div className="flex justify-center items-center gap-1.5 text-xs font-medium mb-8">
+                  {group > 1 && (
+                    <button
+                      onClick={() => goPage((group - 1) * GROUP)}
+                      className="w-7 h-7 border border-gray-300 text-gray-500 hover:bg-gray-50 cursor-pointer"
+                    >
+                      &lt;
+                    </button>
+                  )}
+                  {Array.from(
+                    { length: end - start + 1 },
+                    (_, i) => start + i,
+                  ).map((p) => (
+                    <button
+                      key={p}
+                      onClick={() => goPage(p)}
+                      className={`w-7 h-7 border cursor-pointer ${p === page ? "border-gray-700 bg-gray-700 text-white font-bold" : "border-gray-300 text-gray-500 hover:bg-gray-50"}`}
+                    >
+                      {p}
+                    </button>
+                  ))}
+                  {end < totalPages && (
+                    <button
+                      onClick={() => goPage(end + 1)}
+                      className="w-7 h-7 border border-gray-300 text-gray-500 hover:bg-gray-50 cursor-pointer"
+                    >
+                      &gt;
+                    </button>
+                  )}
+                </div>
+              );
+            })()}
+          </>
+        )}
 
       {/* 충전 섹션 */}
       {activeTab === "hm-money" && moneySubTab === "charge" && (
@@ -820,8 +964,8 @@ export default function CouponPointContent() {
             { sign: "+", item: NOTICE_CONFIGS[activeTab].plus },
             { sign: "-", item: NOTICE_CONFIGS[activeTab].minus },
           ].map(({ sign, item }) => (
-            <div key={sign} className="flex items-start gap-2.5">
-              <div className="w-4 h-4 rounded-full border border-gray-400 flex items-center justify-center text-[10px] text-gray-500 font-bold flex-shrink-0 mt-0.5">
+            <div key={sign} className="flex items-center gap-2.5">
+              <div className="w-4 h-4 rounded-full border border-gray-400 flex items-center justify-center text-[10px] text-gray-500 font-bold flex-shrink-0">
                 {sign}
               </div>
               <p className="leading-tight">
