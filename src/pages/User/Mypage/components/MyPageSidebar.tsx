@@ -36,7 +36,7 @@ const NAV: NavItem[] = [
     label: "나의 정보",
     href: "#info",
     children: [
-      { label: "나의 Q&A", href: "/customer/qna/my" },
+      { label: "나의 Q&A", href: "/mypage/qna" },
       { label: "개인 정보 수정", href: "/mypage/verify" },
     ],
   },
