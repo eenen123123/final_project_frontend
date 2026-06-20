@@ -9,17 +9,17 @@ interface NavItem {
 }
 
 const NAV: NavItem[] = [
-  { label: "수강중 강좌", href: "/mylecture" },
+  // { label: "수강중 강좌", href: "/mylecture" },
   { label: "My 캘린더", href: "/mycalendar" },
-  { label: "주문/배송 조회", href: "/mycart/orderhistory" },
-  { label: "강좌 수강 신청", href: "/courses" },
+  // { label: "주문/배송 조회", href: "/mycart/orderhistory" },
+  // { label: "강좌 수강 신청", href: "/courses" },
   {
     label: "나의 강의실",
     href: "#classroom",
     children: [
       { label: "수강중 강좌", href: "/mylecture" },
       { label: "수강 리포트", href: "/mypage/report" },
-      { label: "성적 관리", href: "/mypage/grades" },
+      // { label: "성적 관리", href: "/mypage/grades" },
     ],
   },
   {
@@ -28,7 +28,7 @@ const NAV: NavItem[] = [
     children: [
       { label: "장바구니", href: "/mycart" },
       { label: "주문/배송 조회", href: "/mycart/orderhistory" },
-      { label: "이용권 관리", href: "#voucher" },
+      // { label: "이용권 관리", href: "#voucher" },
       { label: "쿠폰/포인트", href: "/mypage/couponpoint" },
     ],
   },
