@@ -21,6 +21,11 @@ const CATEGORY_OPTIONS = [
   { value: "instructor", label: "선생님" },
 ];
 
+// 한 페이지당 강좌 수 (백엔드 PaginationInfo 와 동일)
+const PAGE_SIZE = 10;
+// 한 번에 보여줄 페이지 번호 개수
+const BLOCK_SIZE = 5;
+
 interface SearchOption {
   category: string;
   keyword: string;
@@ -335,7 +340,23 @@ export default function CourseListPage() {
     setSearchOption((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSearch = () => fetchCourses(searchOption);
+  const handleSearch = () => {
+    const next = { ...searchOption, page: 1 };
+    setSearchOption(next);
+    fetchCourses(next);
+  };
+
+  const handlePageChange = (page: number) => {
+    const next = { ...searchOption, page };
+    setSearchOption(next);
+    fetchCourses(next);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+  const currentBlock = Math.ceil(searchOption.page / BLOCK_SIZE);
+  const startPage = (currentBlock - 1) * BLOCK_SIZE + 1;
+  const endPage = Math.min(totalPages, currentBlock * BLOCK_SIZE);
 
   return (
     // MARK: 전체 페이지 컨테이너
@@ -419,6 +440,7 @@ export default function CourseListPage() {
                                 ...prev,
                                 category: "subject",
                                 keyword: subj.subjNm,
+                                page: 1,
                               }));
                               fetchCourses({
                                 category: "subject",
@@ -484,6 +506,60 @@ export default function CourseListPage() {
               </div>
             )}
           </div>
+
+          {/* MARK: 페이지네이션 */}
+          {!loading && totalPages > 1 && (
+            <div className="flex items-center justify-center gap-1.5 mt-6">
+              <button
+                onClick={() => handlePageChange(1)}
+                disabled={searchOption.page === 1}
+                className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-400 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-default cursor-pointer text-sm transition-colors"
+                title="첫 페이지"
+              >
+                «
+              </button>
+              <button
+                onClick={() => handlePageChange(searchOption.page - 1)}
+                disabled={searchOption.page === 1}
+                className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-400 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-default cursor-pointer text-sm transition-colors"
+                title="이전 페이지"
+              >
+                ‹
+              </button>
+              {Array.from(
+                { length: endPage - startPage + 1 },
+                (_, i) => startPage + i,
+              ).map((p) => (
+                <button
+                  key={p}
+                  onClick={() => handlePageChange(p)}
+                  className={`w-9 h-9 flex items-center justify-center rounded-lg border text-sm font-semibold transition-colors cursor-pointer ${
+                    searchOption.page === p
+                      ? "bg-linear-to-r from-blue-600 to-indigo-600 border-blue-600 text-white shadow-sm"
+                      : "bg-white border-gray-200 text-gray-600 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600"
+                  }`}
+                >
+                  {p}
+                </button>
+              ))}
+              <button
+                onClick={() => handlePageChange(searchOption.page + 1)}
+                disabled={searchOption.page === totalPages}
+                className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-400 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-default cursor-pointer text-sm transition-colors"
+                title="다음 페이지"
+              >
+                ›
+              </button>
+              <button
+                onClick={() => handlePageChange(totalPages)}
+                disabled={searchOption.page === totalPages}
+                className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-400 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-default cursor-pointer text-sm transition-colors"
+                title="마지막 페이지"
+              >
+                »
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
