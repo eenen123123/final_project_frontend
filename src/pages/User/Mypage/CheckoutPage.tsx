@@ -5,12 +5,14 @@ import { useKakaoPostcodePopup } from "react-daum-postcode";
 import MyPageSidebar from "./components/MyPageSidebar";
 import DeliveryMsgSelect from "./components/DeliveryMsgSelect";
 import CheckoutNotice from "./components/CheckoutNotice";
+import CouponSelectPopup, { type CouponItem } from "./components/CouponSelectPopup";
 import api, { getApiErrorMessage } from "../../../api/api";
 import { useAuth } from "../../../auth/AuthContext";
 
 const TOSS_CLIENT_KEY = "test_ck_ALnQvDd2VJ209bO49mMOVMj7X41m";
 
 type PointType = "HM_POINT" | "STUDY_POINT";
+
 interface CheckoutItem {
   cartSn: number;
   prodDivCd: string;
@@ -190,6 +192,11 @@ export default function CheckoutPage() {
       .catch(() => {});
   }, [hasBook]);
 
+  // 쿠폰
+  const [availableCoupons, setAvailableCoupons] = useState<CouponItem[]>([]);
+  const [itemCoupons, setItemCoupons] = useState<Record<number, CouponItem>>({});
+  const [showCouponPopup, setShowCouponPopup] = useState(false);
+
   // 기타
   const [notifyConsent, setNotifyConsent] = useState(true);
 
@@ -201,9 +208,28 @@ export default function CheckoutPage() {
   const [pointInput, setPointInput] = useState("");
 
   const totalPrice = items.reduce((sum, i) => sum + i.prodPrice * i.itemQty, 0);
-  // [포인트 시스템] 배송비 포함 최종 현금 결제액
   const shippingFee = hasBook ? 3000 : 0;
-  const finalAmt = totalPrice + shippingFee - usedPointAmt;
+
+  // 상품별 쿠폰 할인 합산
+  const couponDiscAmt = Object.entries(itemCoupons).reduce((total, [cartSnStr, coupon]) => {
+    const cartSn = Number(cartSnStr);
+    const item = items.find((i) => i.cartSn === cartSn);
+    if (!item) return total;
+    const baseAmt = item.prodPrice * item.itemQty;
+    const disc = coupon.discType === "FIXED"
+      ? Math.min(coupon.discAmt ?? 0, baseAmt)
+      : Math.floor(baseAmt * (coupon.discRate ?? 0) / 100);
+    return total + disc;
+  }, 0);
+
+  const finalAmt = totalPrice + shippingFee - usedPointAmt - couponDiscAmt;
+
+  // 쿠폰 목록 조회
+  useEffect(() => {
+    api.get<CouponItem[]>("/api/coupons/my/available")
+      .then((res) => setAvailableCoupons(res.data))
+      .catch(() => {});
+  }, []);
 
   // [포인트 시스템] 포인트 잔액 조회
   useEffect(() => {
@@ -300,6 +326,10 @@ export default function CheckoutPage() {
             }
           : undefined,
         saveToAddressBook: hasBook ? saveAddress : false,
+        coupons: Object.entries(itemCoupons).map(([cartSn, coupon]) => {
+          const item = items.find((i) => i.cartSn === Number(cartSn));
+          return { mcpntSn: coupon.mcpntSn, prodDivCd: item?.prodDivCd ?? "" };
+        }).filter((c) => c.prodDivCd !== ""),
       });
 
       const { ordId, ordNm, totAmt } = res.data;
@@ -752,10 +782,50 @@ export default function CheckoutPage() {
                       할인 적용
                     </span>
                     <span className="text-sm font-bold text-orange-500">
-                      {usedPointAmt > 0
-                        ? `-${usedPointAmt.toLocaleString()}원`
+                      {(usedPointAmt + couponDiscAmt) > 0
+                        ? `-${(usedPointAmt + couponDiscAmt).toLocaleString()}원`
                         : "0원"}
                     </span>
+                  </div>
+
+                  {/* HM 할인권 */}
+                  <div className="border-t border-gray-100 py-1.5 text-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-600 leading-tight">
+                        HM 할인권
+                        <br />
+                        <span className="text-gray-400">({availableCoupons.length}장 보유)</span>
+                      </span>
+                      <div className="flex items-center gap-1">
+                        {Object.keys(itemCoupons).length > 0 ? (
+                          <>
+                            <span className="text-orange-500 font-bold text-[11px]">
+                              -{couponDiscAmt.toLocaleString()}원
+                            </span>
+                            <button
+                              onClick={() => setShowCouponPopup(true)}
+                              className="px-1.5 py-0.5 border border-gray-300 text-gray-500 hover:bg-gray-50 cursor-pointer text-[10px]"
+                            >
+                              변경
+                            </button>
+                            <button
+                              onClick={() => setItemCoupons({})}
+                              className="px-1.5 py-0.5 border border-gray-300 text-gray-500 hover:bg-gray-50 cursor-pointer text-[10px]"
+                            >
+                              취소
+                            </button>
+                          </>
+                        ) : (
+                          <button
+                            onClick={() => setShowCouponPopup(true)}
+                            disabled={availableCoupons.length === 0}
+                            className="px-1.5 py-0.5 border border-gray-300 text-gray-500 hover:bg-gray-50 cursor-pointer text-[10px] disabled:opacity-40"
+                          >
+                            선택
+                          </button>
+                        )}
+                      </div>
+                    </div>
                   </div>
 
                   {/* HM 포인트 */}
@@ -867,6 +937,14 @@ export default function CheckoutPage() {
         </div>
       </div>
 
+      <CouponSelectPopup
+        open={showCouponPopup}
+        onClose={() => setShowCouponPopup(false)}
+        onConfirm={(selections) => { setItemCoupons(selections); setShowCouponPopup(false); }}
+        items={items}
+        coupons={availableCoupons}
+        initialSelections={itemCoupons}
+      />
     </div>
   );
 }

@@ -9,21 +9,27 @@ interface OrderItem {
   ordId: string;
   ordNm: string;
   totAmt: number;
+  origAmt?: number;
+  pointAmt?: number;
   ordStatCd: string;
   regDt: string;
   hasTextbook: boolean;
 }
 
-const stat = {
+const stat: Record<string, string> = {
   EXPIRED: "기간만료",
   PAID: "결제완료",
   PENDING: "결제대기",
+  CANCEL_REQUESTED: "취소/환불 처리중",
+  CANCELED: "취소/환불 완료",
 };
 
 const statBadge: Record<string, string> = {
   PAID: "bg-blue-50 text-blue-600",
   PENDING: "bg-orange-50 text-orange-600",
   EXPIRED: "bg-gray-100 text-gray-500",
+  CANCEL_REQUESTED: "bg-orange-50 text-orange-600",
+  CANCELED: "bg-gray-100 text-gray-500",
 };
 
 const GUIDE_LINES = [
@@ -299,26 +305,31 @@ export default function OrderHistoryPage() {
 
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1.5">
-                          <span
-                            className={`px-2 py-0.5 rounded-md text-[11px] font-bold ${
-                              statBadge[item.ordStatCd] ??
-                              "bg-gray-100 text-gray-500"
-                            }`}
-                          >
-                            {item.ordStatCd in stat
-                              ? stat[item.ordStatCd as keyof typeof stat]
-                              : "알 수 없음"}
-                          </span>
-                          <span
-                            className="font-mono text-[11px] text-gray-400 truncate"
-                            title={item.ordId}
-                          >
-                            {item.ordId}
-                          </span>
+                          {item.ordStatCd === "PAID" ? (
+                            <>
+                              <span className="text-[11px] text-gray-400 shrink-0">주문번호</span>
+                              <span className="font-mono text-[11px] text-gray-400 truncate" title={item.ordId}>
+                                {item.ordId}
+                              </span>
+                            </>
+                          ) : (
+                            <>
+                              <span className={`px-2 py-0.5 rounded-md text-[11px] font-bold shrink-0 ${statBadge[item.ordStatCd] ?? "bg-gray-100 text-gray-500"}`}>
+                                {stat[item.ordStatCd as keyof typeof stat] ?? "알 수 없음"}
+                              </span>
+                              <span className="font-mono text-[11px] text-gray-400 truncate" title={item.ordId}>
+                                {item.ordId}
+                              </span>
+                            </>
+                          )}
                         </div>
-                        <h3 className="font-bold text-gray-900 truncate">
+                        <Link
+                          to={`/mycart/orderhistory/${item.ordSn}`}
+                          onClick={() => sessionStorage.setItem("orderHistoryScrollY", String(window.scrollY))}
+                          className="block font-bold text-gray-900 truncate hover:text-blue-600 transition-colors"
+                        >
                           {item.ordNm}
-                        </h3>
+                        </Link>
                         <p className="text-xs text-gray-400 mt-1">
                           {item.regDt?.slice(0, 10)} 결제
                         </p>
@@ -326,37 +337,27 @@ export default function OrderHistoryPage() {
 
                       <div className="shrink-0 text-right">
                         <p className="text-lg font-bold text-gray-900">
-                          {item.totAmt.toLocaleString("ko-KR")}
+                          {(item.origAmt ?? item.totAmt).toLocaleString("ko-KR")}
                           <span className="text-xs font-normal text-gray-400 ml-0.5">
                             원
                           </span>
                         </p>
                         <div className="flex gap-2 mt-2">
+                          <Link
+                            to={`/mycart/orderhistory/${item.ordSn}`}
+                            onClick={() => sessionStorage.setItem("orderHistoryScrollY", String(window.scrollY))}
+                            className="px-3.5 py-1.5 text-xs font-bold text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors"
+                          >
+                            주문 상세
+                          </Link>
                           {item.hasTextbook && (
                             <Link
                               to={`/mycart/orderhistory/${item.ordSn}/shipping`}
-                              className="px-3 py-1.5 text-xs font-bold text-orange-500 border border-orange-200 rounded-lg hover:bg-orange-50 transition-colors"
-                              title="배송 조회"
+                              className="px-3.5 py-1.5 text-xs font-bold text-orange-500 border border-orange-200 rounded-lg hover:bg-orange-50 transition-colors"
                             >
-                              <i className="fa-solid fa-truck" />
+                              배송 현황
                             </Link>
                           )}
-                          <button
-                            type="button"
-                            className="px-3.5 py-1.5 text-xs font-bold text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors cursor-pointer"
-                          >
-                            <Link
-                              to={`/mycart/orderhistory/${item.ordSn}`}
-                              onClick={() =>
-                                sessionStorage.setItem(
-                                  "orderHistoryScrollY",
-                                  String(window.scrollY),
-                                )
-                              }
-                            >
-                              주문상세
-                            </Link>
-                          </button>
                         </div>
                       </div>
                     </div>
