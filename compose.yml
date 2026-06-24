@@ -1,0 +1,12 @@
+# React(Vite) 정적 빌드를 nginx 로 서빙. 80 포트로 공개.
+services:
+  web:
+    build: .
+    image: ddit-frontend:latest
+    ports:
+      - "80:80"
+    extra_hosts:
+      # nginx 가 host.docker.internal 로 호스트(=백엔드 8081)에 접근 가능하게
+      - "host.docker.internal:host-gateway"
+    mem_limit: 256m
+    restart: unless-stopped
