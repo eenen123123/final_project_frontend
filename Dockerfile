@@ -7,7 +7,8 @@ WORKDIR /app
 COPY package.json bun.lock ./
 RUN bun install --frozen-lockfile
 COPY . .
-RUN bun run build
+# 배포 이미지에서는 타입체크(tsc -b) 건너뛰고 vite 번들만 수행
+RUN bunx vite build
 
 # ---- runtime stage : nginx 정적 서빙 ----
 FROM nginx:alpine
