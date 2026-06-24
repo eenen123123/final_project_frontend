@@ -6,7 +6,7 @@ import { useLocation } from "react-router-dom";
 
 function App() {
   const { pathname } = useLocation();
-  const hideHeaderPaths = ["/classroom/", "/viewer"]; // 이 경로들로 시작하는 경우 헤더 숨김
+  const hideHeaderPaths = ["/classroom/", "/viewer", "/mypage/address-book", "/info/"]; // 이 경로들로 시작하는 경우 헤더 숨김
   const hideHeader = hideHeaderPaths.some((path) => pathname.startsWith(path));
 
   return (

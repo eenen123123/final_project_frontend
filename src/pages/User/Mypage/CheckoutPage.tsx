@@ -1,15 +1,18 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { loadTossPayments, type TossPaymentsPayment } from "@tosspayments/tosspayments-sdk";
+import { loadTossPayments } from "@tosspayments/tosspayments-sdk";
+import { useKakaoPostcodePopup } from "react-daum-postcode";
 import MyPageSidebar from "./components/MyPageSidebar";
+import DeliveryMsgSelect from "./components/DeliveryMsgSelect";
+import CheckoutNotice from "./components/CheckoutNotice";
+import CouponSelectPopup, { type CouponItem } from "./components/CouponSelectPopup";
 import api, { getApiErrorMessage } from "../../../api/api";
 import { useAuth } from "../../../auth/AuthContext";
 
 const TOSS_CLIENT_KEY = "test_ck_ALnQvDd2VJ209bO49mMOVMj7X41m";
-const clientKey = "test_ck_ALnQvDd2VJ209bO49mMOVMj7X41m";
-const customerKey = "zWkWyass3Ey1PYSPyJhVr"; // dev
 
 type PointType = "HM_POINT" | "STUDY_POINT";
+
 interface CheckoutItem {
   cartSn: number;
   prodDivCd: string;
@@ -23,6 +26,19 @@ interface MemberProfile {
   userName: string;
   userTelno: string | null;
   userEmailAddr: string | null;
+}
+
+interface MemberAddress {
+  addressSn: number;
+  addressNm: string;
+  receiverNm: string;
+  receiverTel: string;
+  zipCd: string;
+  addrRoad: string;
+  addrJibun: string;
+  addrDtl: string;
+  deliveryMsg: string;
+  defaultYn: string;
 }
 
 const EMAIL_DOMAINS = [
@@ -97,7 +113,10 @@ export default function CheckoutPage() {
   const { getUserId } = useAuth();
   const items: CheckoutItem[] = location.state?.items ?? [];
   const [paying, setPaying] = useState(false);
-  const [payment, setPayment] = useState<TossPaymentsPayment | null>(null);
+
+  const openPostcode = useKakaoPostcodePopup();
+
+  const hasBook = items.some((i) => i.prodDivCd === "TEXTBOOK");
 
   const [activeSection, setActiveSection] = useState("장바구니");
   const [profile, setProfile] = useState<MemberProfile | null>(null);
@@ -115,12 +134,71 @@ export default function CheckoutPage() {
   const [receiverTel, setReceiverTel] = useState("");
   const [zipCd, setZipCd] = useState("");
   const [addr, setAddr] = useState("");
+  const [addrJibun, setAddrJibun] = useState("");
   const [addrDtl, setAddrDtl] = useState("");
   const [deliveryMsg, setDeliveryMsg] = useState("");
+  const [saveAddress, setSaveAddress] = useState(true);
+  const [isAddressFromBook, setIsAddressFromBook] = useState(false);
+
+  const handleAddressSearch = () => {
+    openPostcode({
+      onComplete: (data) => {
+        setZipCd(data.zonecode);
+        setAddr(data.address);
+        setAddrJibun(data.jibunAddress);
+      },
+    });
+  };
+
+  // 주소록 팝업
+  const openAddressModal = () => {
+    window.open(
+      "/mypage/address-book",
+      "addressBook",
+      "width=640,height=580,scrollbars=yes,resizable=no"
+    );
+  };
+
+  const applyAddress = (a: MemberAddress, fromBook: boolean) => {
+    setReceiverNm(a.receiverNm);
+    setReceiverTel(a.receiverTel);
+    setZipCd(a.zipCd ?? "");
+    setAddr(a.addrRoad ?? "");
+    setAddrJibun(a.addrJibun ?? "");
+    setAddrDtl(a.addrDtl ?? "");
+    setDeliveryMsg(a.deliveryMsg ?? "");
+    setIsAddressFromBook(fromBook);
+  };
+
+  // 주소록 팝업 → postMessage 수신
+  useEffect(() => {
+    const handler = (e: MessageEvent) => {
+      if (e.data?.type === "ADDRESS_SELECTED") {
+        applyAddress(e.data.address as MemberAddress, true);
+      }
+    };
+    window.addEventListener("message", handler);
+    return () => window.removeEventListener("message", handler);
+  }, []);
+
+  // 교재 포함 시 기본 배송지 자동 입력
+  useEffect(() => {
+    if (!hasBook) return;
+    api.get<MemberAddress[]>("/api/addresses")
+      .then((res) => {
+        const def = res.data.find((a) => a.defaultYn === "Y");
+        if (def) applyAddress(def, true);
+      })
+      .catch(() => {});
+  }, [hasBook]);
+
+  // 쿠폰
+  const [availableCoupons, setAvailableCoupons] = useState<CouponItem[]>([]);
+  const [itemCoupons, setItemCoupons] = useState<Record<number, CouponItem>>({});
+  const [showCouponPopup, setShowCouponPopup] = useState(false);
 
   // 기타
   const [notifyConsent, setNotifyConsent] = useState(true);
-  const [payMethod, setPayMethod] = useState("card");
 
   // [포인트 시스템] 포인트 잔액 및 사용 상태
   const [hmPointBalance, setHmPointBalance] = useState(0);
@@ -129,11 +207,29 @@ export default function CheckoutPage() {
   const [usedPointAmt, setUsedPointAmt] = useState(0);
   const [pointInput, setPointInput] = useState("");
 
-  const hasBook = items.some((i) => i.prodDivCd === "TEXTBOOK");
   const totalPrice = items.reduce((sum, i) => sum + i.prodPrice * i.itemQty, 0);
-  // [포인트 시스템] 배송비 포함 최종 현금 결제액
   const shippingFee = hasBook ? 3000 : 0;
-  const finalAmt = totalPrice + shippingFee - usedPointAmt;
+
+  // 상품별 쿠폰 할인 합산
+  const couponDiscAmt = Object.entries(itemCoupons).reduce((total, [cartSnStr, coupon]) => {
+    const cartSn = Number(cartSnStr);
+    const item = items.find((i) => i.cartSn === cartSn);
+    if (!item) return total;
+    const baseAmt = item.prodPrice * item.itemQty;
+    const disc = coupon.discType === "FIXED"
+      ? Math.min(coupon.discAmt ?? 0, baseAmt)
+      : Math.floor(baseAmt * (coupon.discRate ?? 0) / 100);
+    return total + disc;
+  }, 0);
+
+  const finalAmt = totalPrice + shippingFee - usedPointAmt - couponDiscAmt;
+
+  // 쿠폰 목록 조회
+  useEffect(() => {
+    api.get<CouponItem[]>("/api/coupons/my/available")
+      .then((res) => setAvailableCoupons(res.data))
+      .catch(() => {});
+  }, []);
 
   // [포인트 시스템] 포인트 잔액 조회
   useEffect(() => {
@@ -172,8 +268,41 @@ export default function CheckoutPage() {
   // 주문 생성 → 서버 검증 → 에러 시 서버 메시지 출력 → 성공 시 토스 결제창 호출
   const handlePayment = async () => {
     if (paying) return;
+
+    // 구매자 전화번호 체크
+    if (!phoneMid || !phoneLast) {
+      alert("구매자 휴대폰 번호를 입력해주세요.");
+      return;
+    }
+
+    // 구매자 이메일 체크
+    if (!emailId) {
+      alert("구매자 이메일을 입력해주세요.");
+      return;
+    }
+    if (emailDomain === "직접입력" && !emailCustom) {
+      alert("이메일 도메인을 입력해주세요.");
+      return;
+    }
+
+    if (hasBook) {
+      if (!receiverNm || !receiverTel || !zipCd || !addr) {
+        alert("배송지 정보(수령인, 연락처, 주소)를 모두 입력해주세요.");
+        return;
+      }
+      if (!/^0\d{1,2}-\d{3,4}-\d{4}$/.test(receiverTel)) {
+        alert("수령인 연락처를 올바른 형식으로 입력해주세요. (예: 010-1234-5678)");
+        return;
+      }
+    }
+
     setPaying(true);
     try {
+      const buyerEmail =
+        emailDomain === "직접입력"
+          ? `${emailId}@${emailCustom}`
+          : `${emailId}@${emailDomain}`;
+
       const res = await api.post("/api/orders", {
         items: items.map((i) => ({
           prodDivCd: i.prodDivCd,
@@ -182,6 +311,25 @@ export default function CheckoutPage() {
         })),
         pointAmt: usedPointAmt,
         pointType: usedPointType ?? undefined,
+        shipping: hasBook
+          ? {
+              buyerNm: profile?.userName ?? "",
+              buyerTel: `${phoneCode}-${phoneMid}-${phoneLast}`,
+              buyerEmail,
+              receiverNm,
+              receiverTel,
+              zipCd,
+              addrRoad: addr,
+              addrJibun,
+              addrDtl,
+              deliveryMsg,
+            }
+          : undefined,
+        saveToAddressBook: hasBook ? saveAddress : false,
+        coupons: Object.entries(itemCoupons).map(([cartSn, coupon]) => {
+          const item = items.find((i) => i.cartSn === Number(cartSn));
+          return { mcpntSn: coupon.mcpntSn, prodDivCd: item?.prodDivCd ?? "" };
+        }).filter((c) => c.prodDivCd !== ""),
       });
 
       const { ordId, ordNm, totAmt } = res.data;
@@ -227,11 +375,24 @@ export default function CheckoutPage() {
         setProfile(data);
         // 전화번호 파싱: 010-1234-5678
         if (data.userTelno) {
-          const parts = data.userTelno.split("-");
-          if (parts.length === 3) {
-            setPhoneCode(parts[0]);
-            setPhoneMid(parts[1]);
-            setPhoneLast(parts[2]);
+          const tel = data.userTelno;
+          if (tel.includes("-")) {
+            const parts = tel.split("-");
+            if (parts.length === 3) {
+              setPhoneCode(parts[0]);
+              setPhoneMid(parts[1]);
+              setPhoneLast(parts[2]);
+            }
+          } else if (tel.length === 11) {
+            // 01012345678 → 010 / 1234 / 5678
+            setPhoneCode(tel.slice(0, 3));
+            setPhoneMid(tel.slice(3, 7));
+            setPhoneLast(tel.slice(7));
+          } else if (tel.length === 10) {
+            // 0111234567 → 011 / 123 / 4567
+            setPhoneCode(tel.slice(0, 3));
+            setPhoneMid(tel.slice(3, 6));
+            setPhoneLast(tel.slice(6));
           }
         }
         // 이메일 파싱
@@ -252,71 +413,6 @@ export default function CheckoutPage() {
     fetchProfile();
   }, []);
 
-  useEffect(() => {
-    async function fetchPayment() {
-      try {
-        const tossPayments = await loadTossPayments(clientKey);
-
-        // 회원 결제
-        // @docs https://docs.tosspayments.com/sdk/v2/js#tosspaymentspayment
-        const payment = tossPayments.payment({
-          customerKey,
-        });
-        // 비회원 결제
-        // const payment = tossPayments.payment({ customerKey: ANONYMOUS });
-
-        setPayment(payment);
-      } catch (error) {
-        console.error("Error fetching payment:", error);
-      }
-    }
-
-    fetchPayment();
-  }, [clientKey, customerKey]);
-
-  async function requestPayment() {
-    if (items.length === 0) {
-      alert("주문할 상품이 없습니다.");
-      return;
-    }
-    try {
-      // 결제 전 서버에 주문 선생성(PENDING). 서버가 ordId를 발급하고 금액을 재계산하므로
-      // 결제 과정에서 악의적으로 금액이 바뀌어도 승인 단계에서 걸러진다.
-      const res = await api.post(
-        "/api/orders",
-        items.map((i) => ({
-          prodDivCd: i.prodDivCd,
-          prodSn: i.prodSn,
-          itemQty: i.itemQty,
-        })),
-      );
-      const { ordId, ordNm, totAmt } = res.data;
-
-      await payment?.requestPayment({
-        method: "CARD", // 카드 및 간편결제
-        amount: { currency: "KRW", value: totAmt },
-        orderId: ordId, // 서버가 발급한 주문번호
-        orderName: ordNm, // 주문명
-        successUrl: window.location.origin + "/success", // 결제 요청이 성공하면 리다이렉트되는 URL
-        failUrl: window.location.origin + "/fail", // 결제 요청이 실패하면 리다이렉트되는 URL
-        customerEmail: profile?.userEmailAddr ?? "",
-        customerName: profile?.userName ?? "",
-        customerMobilePhone: profile?.userTelno ?? "",
-        // 카드 결제에 필요한 정보
-        card: {
-          useEscrow: false,
-          flowMode: "DEFAULT", // 통합결제창 여는 옵션
-          useCardPoint: false,
-          useAppCardOnly: false,
-        },
-      });
-    } catch (error) {
-      // 토스 결제창에서 사용자가 닫거나 실패하면 reject되지만 failUrl로 처리되므로
-      // 여기서는 주로 주문 생성 실패를 처리한다.
-      console.error("주문 생성/결제 요청 실패:", error);
-      alert(getApiErrorMessage(error, "결제 요청에 실패했습니다."));
-    }
-  }
 
   const STEPS = [
     { key: "cart", label: "장바구니", icon: STEP_ICONS.cart },
@@ -324,13 +420,6 @@ export default function CheckoutPage() {
     { key: "complete", label: "결제완료", icon: STEP_ICONS.complete },
   ];
 
-  const PAY_METHODS = [
-    { key: "card", label: "신용카드" },
-    { key: "transfer", label: "무통장입금" },
-    { key: "account", label: "계좌이체" },
-    { key: "toss", label: "toss" },
-    { key: "samsung", label: "SAMSUNG Pay" },
-  ];
 
   return (
     <div className="min-h-screen bg-gray-50/50">
@@ -433,7 +522,7 @@ export default function CheckoutPage() {
               </table>
             </div>
             {/* 학습관리 알림 (강좌 있을 때) */}
-            {items.some((i) => i.prodDivCd === "20") && (
+            {items.some((i) => i.prodDivCd === "COURSE") && (
               <div className="border border-blue-200 bg-blue-50 px-4 py-3 mb-2 flex items-start gap-2">
                 <input
                   type="checkbox"
@@ -455,10 +544,6 @@ export default function CheckoutPage() {
                 </label>
               </div>
             )}
-            <p className="text-xs text-gray-400 mb-8">
-              · 회원님께 특별 제공되는 개별할인을 원치 않으시면 [자동할인 취소]
-              버튼을 클릭해주세요.
-            </p>
             {/* 배송지 (교재 있을 때) */}
             {hasBook && (
               <>
@@ -466,13 +551,10 @@ export default function CheckoutPage() {
                   배송지
                 </h2>
                 <div className="border border-gray-200 mb-8 overflow-hidden">
-                  <div className="bg-gray-50 px-5 py-3 border-b border-gray-200 flex items-center justify-between">
+                  <div className="bg-gray-50 px-5 py-3 border-b border-gray-200">
                     <span className="text-sm text-gray-500">
                       받으실 주소를 입력해 주세요.
                     </span>
-                    <button className="text-xs px-3 py-1.5 border border-gray-300 text-gray-500 hover:bg-white transition-colors cursor-pointer">
-                      주소록 &gt;
-                    </button>
                   </div>
                   <div className="px-6 py-5 space-y-4">
                     <div className="flex items-center gap-4">
@@ -512,8 +594,19 @@ export default function CheckoutPage() {
                             placeholder="우편번호"
                             className="w-32 border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-100"
                           />
-                          <button className="px-4 py-2 bg-gray-700 text-white text-xs hover:bg-gray-900 transition-colors cursor-pointer">
+                          <button
+                            type="button"
+                            onClick={handleAddressSearch}
+                            className="px-4 py-2 bg-gray-700 text-white text-xs hover:bg-gray-900 transition-colors cursor-pointer"
+                          >
                             주소 검색
+                          </button>
+                          <button
+                            type="button"
+                            onClick={openAddressModal}
+                            className="px-4 py-2 border border-gray-300 text-gray-600 text-xs hover:bg-gray-50 transition-colors cursor-pointer"
+                          >
+                            주소록 &gt;
                           </button>
                         </div>
                         <input
@@ -533,18 +626,30 @@ export default function CheckoutPage() {
                         />
                       </div>
                     </div>
-                    <div className="flex items-center gap-4">
-                      <label className="w-20 text-sm text-gray-500 shrink-0 text-right">
+                    <div className="flex items-start gap-4">
+                      <label className="w-20 text-sm text-gray-500 shrink-0 text-right pt-2">
                         배송 메모
                       </label>
-                      <input
-                        type="text"
+                      <DeliveryMsgSelect
                         value={deliveryMsg}
-                        onChange={(e) => setDeliveryMsg(e.target.value)}
-                        placeholder="예: 문 앞에 놓아주세요"
-                        className="flex-1 border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-100"
+                        onChange={setDeliveryMsg}
+                        inputClassName="focus:ring-1 focus:ring-orange-100"
                       />
                     </div>
+                    {!isAddressFromBook && (
+                      <div className="flex items-center gap-4">
+                        <span className="w-20 shrink-0" />
+                        <label className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={saveAddress}
+                            onChange={(e) => setSaveAddress(e.target.checked)}
+                            className="w-3.5 h-3.5 accent-orange-500 cursor-pointer"
+                          />
+                          이 배송지를 주소록에 저장
+                        </label>
+                      </div>
+                    )}
                   </div>
                 </div>
               </>
@@ -583,7 +688,7 @@ export default function CheckoutPage() {
                           <option key={c}>{c}</option>
                         ))}
                       </select>
-                      <span className="text-gray-300">—</span>
+                      <span className="text-gray-800 text-xs">-</span>
                       <input
                         type="text"
                         maxLength={4}
@@ -593,7 +698,7 @@ export default function CheckoutPage() {
                         }
                         className="w-16 border border-gray-300 px-2 py-1 text-sm text-center focus:outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-100"
                       />
-                      <span className="text-gray-300">—</span>
+                      <span className="text-gray-800 text-xs">-</span>
                       <input
                         type="text"
                         maxLength={4}
@@ -677,10 +782,50 @@ export default function CheckoutPage() {
                       할인 적용
                     </span>
                     <span className="text-sm font-bold text-orange-500">
-                      {usedPointAmt > 0
-                        ? `-${usedPointAmt.toLocaleString()}원`
+                      {(usedPointAmt + couponDiscAmt) > 0
+                        ? `-${(usedPointAmt + couponDiscAmt).toLocaleString()}원`
                         : "0원"}
                     </span>
+                  </div>
+
+                  {/* HM 할인권 */}
+                  <div className="border-t border-gray-100 py-1.5 text-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-600 leading-tight">
+                        HM 할인권
+                        <br />
+                        <span className="text-gray-400">({availableCoupons.length}장 보유)</span>
+                      </span>
+                      <div className="flex items-center gap-1">
+                        {Object.keys(itemCoupons).length > 0 ? (
+                          <>
+                            <span className="text-orange-500 font-bold text-[11px]">
+                              -{couponDiscAmt.toLocaleString()}원
+                            </span>
+                            <button
+                              onClick={() => setShowCouponPopup(true)}
+                              className="px-1.5 py-0.5 border border-gray-300 text-gray-500 hover:bg-gray-50 cursor-pointer text-[10px]"
+                            >
+                              변경
+                            </button>
+                            <button
+                              onClick={() => setItemCoupons({})}
+                              className="px-1.5 py-0.5 border border-gray-300 text-gray-500 hover:bg-gray-50 cursor-pointer text-[10px]"
+                            >
+                              취소
+                            </button>
+                          </>
+                        ) : (
+                          <button
+                            onClick={() => setShowCouponPopup(true)}
+                            disabled={availableCoupons.length === 0}
+                            className="px-1.5 py-0.5 border border-gray-300 text-gray-500 hover:bg-gray-50 cursor-pointer text-[10px] disabled:opacity-40"
+                          >
+                            선택
+                          </button>
+                        )}
+                      </div>
+                    </div>
                   </div>
 
                   {/* HM 포인트 */}
@@ -771,94 +916,7 @@ export default function CheckoutPage() {
                 </div>
               </div>
             </div>
-            {/* MARK: 결제 */}
-            {/* <h2 className="text-base font-bold text-gray-900 mb-3">결제</h2> */}
-            <div className="wrapper mb-4"></div>
-            {/* <div className="border border-gray-300 mb-4">
-              <div className="px-5 py-4">
-                <ul className="space-y-1">
-                  {(
-                    {
-                      card: [
-                        "신용카드 결제 시 즉시 수강이 가능합니다.",
-                        "결제 금액이 30만원 이상인 경우 공인인증서가 필요할 수 있습니다.",
-                        "카드사 별로 무이자 할부 개월 등 상세 혜택이 매월 다르므로, 결제 시 확인하시기 바랍니다.",
-                      ],
-                      transfer: [
-                        "계좌이체 결제 시 즉시 수강이 가능합니다.",
-                        "계좌이체는 인터넷 뱅킹이 신청되어 있을 경우에만 결제 가능합니다.",
-                        "서비스 가능 시간과 거래 한도 금액은 은행마다 상이합니다.",
-                      ],
-                      account: [
-                        "무통장 입금은 가상계좌로 입금 완료 후 수강이 가능합니다.",
-                        "주문 후 7일 이내까지 입금 가능합니다.",
-                        "신청 금액과 입금 금액이 다를 경우 오류가 발생하니 정확한 금액을 입금해주세요.",
-                      ],
-                      toss: [
-                        "토스앱에 은행계좌 또는 신용카드를 등록하여 결제하는 서비스입니다.",
-                        "결제 비밀번호로 간편하게 결제할 수 있습니다.",
-                        "등록 가능한 계좌 및 카드는 토스앱에서 확인 가능합니다.",
-                      ],
-                      samsung: [
-                        "삼성페이에 등록한 카드를 지문 또는 비밀번호로 인증하여 결제합니다.",
-                        "본인 명의 휴대폰에서 본인 명의 카드 등록 후 사용 가능합니다.",
-                        "삼성페이에서 제공하는 카드사별 무이자, 할인 혜택을 받을 수 있습니다.",
-                      ],
-                    } as Record<string, string[]>
-                  )[payMethod]?.map((txt, i) => (
-                    <li key={i} className="text-xs text-gray-500">
-                      · {txt}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div> */}
-            {/* 안내사항 */}
-            <div className="border border-gray-300 bg-gray-50 mb-8">
-              <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-gray-200">
-                <span className="text-sm font-bold text-gray-800">
-                  안내사항
-                </span>
-                <div className="flex gap-2">
-                  {[
-                    "환불/취소 안내",
-                    "결제 관련 FAQ",
-                    "도서 소득공제 안내",
-                  ].map((label) => (
-                    <button
-                      key={label}
-                      className="text-xs px-3 py-1.5 border border-gray-400 text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
-                    >
-                      {label} &gt;
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="px-5 py-4 text-xs text-gray-500 leading-relaxed space-y-1.5">
-                {[
-                  "모든 강좌 수강기간에는 교재 배송기간 최대 7일이 포함되어 있습니다.",
-                  "강좌·교재를 함께 구매 후 강좌 취소는 교재가 반송되어야 취소 가능합니다.",
-                  "결제수단별 최소 결제금액이 상이하오니, 확인 후 결제 바랍니다.",
-                  "여러 개의 상품을 함께 주문하셔도 배송비는 전체 주문에 대해 묶음으로 1회만 결제됩니다.",
-                  "미성년자 결제 시 법정대리인이 동의하지 않으면 취소될 수 있습니다.",
-                  "결제 완료 후 구매 확정까지는 배송 조회 및 환불 요청이 가능합니다.",
-                  "교재는 수령 후 7일 이내 반품 신청이 가능하며, 단순 변심은 배송비 부담입니다.",
-                  "이벤트·할인 적용 상품은 환불 시 실 결제금액 기준으로 처리됩니다.",
-                ].map((txt, i) => (
-                  <p key={i}>
-                    {i + 1}. {txt}
-                  </p>
-                ))}
-                <div className="flex justify-end pt-2">
-                  <span className="text-gray-400">
-                    고객센터{" "}
-                    <span className="font-semibold text-gray-600">
-                      1599-6405
-                    </span>
-                  </span>
-                </div>
-              </div>
-            </div>
+            <CheckoutNotice />
             {/* 하단 버튼 */}
             <div className="flex justify-center gap-3">
               <button
@@ -878,6 +936,15 @@ export default function CheckoutPage() {
           </div>
         </div>
       </div>
+
+      <CouponSelectPopup
+        open={showCouponPopup}
+        onClose={() => setShowCouponPopup(false)}
+        onConfirm={(selections) => { setItemCoupons(selections); setShowCouponPopup(false); }}
+        items={items}
+        coupons={availableCoupons}
+        initialSelections={itemCoupons}
+      />
     </div>
   );
 }
