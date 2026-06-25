@@ -26,6 +26,10 @@ import QnaWritePage from "./pages/ServiceCenter/QnA/QnaWritePage";
 import QnaDetailPage from "./pages/ServiceCenter/QnA/QnaDetailPage";
 import QnaEditPage from "./pages/ServiceCenter/QnA/QnaEditPage";
 import DataRoomPage from "./pages/ServiceCenter/DataRoom/DataRoomPage";
+import GuidePrepare from "./pages/ServiceCenter/Guide/GuidePrepare";
+import GuideInfo from "./pages/ServiceCenter/Guide/GuideInfo";
+import GuideStart from "./pages/ServiceCenter/Guide/GuideStart";
+import GuideUse from "./pages/ServiceCenter/Guide/GuideUse";
 import DataRoomDetailPage from "./pages/ServiceCenter/DataRoom/DataRoomDetailPage";
 import VerifyPasswordPage from "./pages/User/VerifyPasswordPage";
 import NotFound from "./pages/NotFound";
@@ -62,6 +66,7 @@ import HermesVideoViewer from "./components/viewer/HermesVideoViewer.tsx";
 import OrderHistoryDetailPage from "./pages/User/Mypage/OrderHistoryDetailPage.tsx";
 import MyQnaPage from "./pages/User/Mypage/MyQnaPage.tsx";
 import AddressBookPage from "./pages/User/Mypage/AddressBookPage.tsx";
+import CouponSelectPopupPage from "./pages/User/Mypage/CouponSelectPopupPage.tsx";
 import RefundPolicyPage from "./pages/Info/RefundPolicyPage.tsx";
 import TaxDeductionPage from "./pages/Info/TaxDeductionPage.tsx";
 import ShippingDetailPage from "./pages/User/Mypage/ShippingDetailPage.tsx";
@@ -135,6 +140,10 @@ export default function AppRoute() {
       {/* 고객센터 라우트 */}
       <Route path="/customer/faq" element={<FAQPage />} />
       <Route path="/customer/faq/:postSn" element={<FaqDetailPage />} />
+      <Route path="/customer/guide/prepare" element={<GuidePrepare />} />
+      <Route path="/customer/guide/info" element={<GuideInfo />} />
+      <Route path="/customer/guide/start" element={<GuideStart />} />
+      <Route path="/customer/guide/use" element={<GuideUse />} />
       <Route path="/customer/notice" element={<NoticePage />} />
       <Route path="/customer/notice/:postSn" element={<NoticeDetailPage />} />
       <Route path="/customer/qna" element={<QnAPage />} />
@@ -175,6 +184,7 @@ export default function AppRoute() {
         <Route path="/mycart" element={<CartPage />} />
         <Route path="/mypage/qna" element={<MyQnaPage />} />
         <Route path="/mypage/address-book" element={<AddressBookPage />} />
+        <Route path="/mypage/coupon-select" element={<CouponSelectPopupPage />} />
         <Route path="/info/refund" element={<RefundPolicyPage />} />
         <Route path="/info/tax-deduction" element={<TaxDeductionPage />} />
         <Route path="/checkout" element={<CheckoutPage />} />

@@ -164,9 +164,33 @@ export default function MyPage() {
     : "bg-gray-100 text-gray-700";
 
   const [activeSection, setActiveSection] = useState("마이룸");
-  const [notifications, setNotifications] =
-    useState<AlertItem[]>(INIT_NOTIFICATIONS);
+  const [notifications, setNotifications] = useState<AlertItem[]>(INIT_NOTIFICATIONS);
   const [messages, setMessages] = useState<AlertItem[]>(INIT_MESSAGES);
+  const [courseStatus, setCourseStatus] = useState<CourseStatus>(COURSE_STATUS);
+
+  useEffect(() => {
+    // 장바구니 수
+    api.get<{ cartSn: number }[]>("/api/cart")
+      .then((res) => setCourseStatus((prev) => ({ ...prev, cart: res.data.length })))
+      .catch(() => {});
+    // 수강중/수강완료 강좌 수 (만료일 기준 분류)
+    api.get<{ enrlSn: number; accsEndDt: string }[]>("/api/mypage/courses")
+      .then((res) => {
+        const now = Date.now();
+        const active = res.data.filter((c) => new Date(c.accsEndDt).getTime() >= now).length;
+        const completed = res.data.filter((c) => new Date(c.accsEndDt).getTime() < now).length;
+        setCourseStatus((prev) => ({ ...prev, active, completed }));
+      })
+      .catch(() => {});
+    // 보유 쿠폰 수
+    api.get<{ mcpntSn: number }[]>("/api/coupons/my/available")
+      .then((res) => setCourseStatus((prev) => ({ ...prev, coupon: res.data.length })))
+      .catch(() => {});
+    // 주문/배송 수
+    api.get<{ totalCount: number }>("/api/orders/my", { params: { page: 1 } })
+      .then((res) => setCourseStatus((prev) => ({ ...prev, order: res.data.totalCount ?? 0 })))
+      .catch(() => {});
+  }, []);
   const [notices, setNotices] = useState<NoticeItem[]>([]);
 
   useEffect(() => {
@@ -244,7 +268,7 @@ export default function MyPage() {
                 </button>
               </div>
             </div>
-            <StudyStatus status={COURSE_STATUS} />
+            <StudyStatus status={courseStatus} />
             <FeaturedCarousel />
             <StudyCalendar />
             <StudyReport subjects={SUBJECTS} teachers={TEACHERS} />

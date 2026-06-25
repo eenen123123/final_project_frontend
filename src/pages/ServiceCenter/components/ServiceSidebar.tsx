@@ -129,7 +129,10 @@ export default function ServiceSidebar() {
 
         {/* 환불/취소 안내 버튼 */}
         <div className="px-4 py-3 border-t border-gray-100 bg-gray-50/50">
-          <button className="w-full py-2 text-xs font-semibold text-gray-600 border border-gray-200 rounded-lg bg-white hover:bg-gray-50 transition-colors shadow-sm cursor-pointer">
+          <button
+            onClick={() => window.open("/info/refund", "refundPolicy", "width=720,height=600,scrollbars=yes,resizable=no")}
+            className="w-full py-2 text-xs font-semibold text-gray-600 border border-gray-200 rounded-lg bg-white hover:bg-gray-50 transition-colors shadow-sm cursor-pointer"
+          >
             환불/취소 안내
           </button>
         </div>

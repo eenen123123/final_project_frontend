@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useKakaoPostcodePopup } from "react-daum-postcode";
 import WithdrawSection from "./components/WithdrawSection";
 import api from "../../../api/api";
 import { useAuth } from "../../../auth/AuthContext";
@@ -67,8 +68,22 @@ export default function ProfileEditPage() {
   const userId = getUserId();
   const initial = userName ? userName.charAt(0).toUpperCase() : "?";
 
+  const openPostcode = useKakaoPostcodePopup();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [activeMenu, setActiveMenu] = useState<ActiveMenu>("profile");
+
+  const handlePostcodeSearch = () => {
+    openPostcode({
+      onComplete: (data) => {
+        setProfileData((prev) => ({
+          ...prev,
+          userZip: data.zonecode,
+          userAddr: data.address,
+        }));
+        setErrors((prev) => ({ ...prev, userZip: "", userAddr: "" }));
+      },
+    });
+  };
 
   const [profileData, setProfileData] = useState<ProfileData>({
     userId: userId ?? "",
@@ -93,7 +108,12 @@ export default function ProfileEditPage() {
 
   const [errors, setErrors] = useState<Partial<Record<string, string>>>({});
   const [isLoading, setIsLoading] = useState(false);
-  const [successMsg, setSuccessMsg] = useState("");
+  const [toast, setToast] = useState("");
+
+  const showToast = (msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(""), 2500);
+  };
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -121,6 +141,14 @@ export default function ProfileEditPage() {
   const handleChange = (field: keyof ProfileData, value: string) => {
     setProfileData((prev) => ({ ...prev, [field]: value }));
     setErrors((prev) => ({ ...prev, [field]: "" }));
+  };
+
+  const handleTelnoChange = (value: string) => {
+    const digits = value.replace(/\D/g, "").slice(0, 11);
+    let formatted = digits;
+    if (digits.length > 7) formatted = `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
+    else if (digits.length > 3) formatted = `${digits.slice(0, 3)}-${digits.slice(3)}`;
+    handleChange("userTelno", formatted);
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -167,7 +195,6 @@ export default function ProfileEditPage() {
   const handleSubmitProfile = async () => {
     if (!validateProfile()) return;
     setIsLoading(true);
-    setSuccessMsg("");
     try {
       const formData = new FormData();
       formData.append("userTelno", profileData.userTelno);
@@ -179,7 +206,7 @@ export default function ProfileEditPage() {
       await api.put("/api/mypage/profile", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      setSuccessMsg("개인정보가 성공적으로 수정되었습니다.");
+      showToast("개인정보가 성공적으로 수정되었습니다.");
       setProfileFile(null);
     } catch (err) {
       const axiosErr = err as { response?: { data?: { message?: string } } };
@@ -192,14 +219,13 @@ export default function ProfileEditPage() {
   const handleSubmitPassword = async () => {
     if (!validatePassword()) return;
     setIsLoading(true);
-    setSuccessMsg("");
     try {
       const formData = new FormData();
       formData.append("newPassword", newPassword);
       await api.put("/api/mypage/profile", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      setSuccessMsg("비밀번호가 성공적으로 변경되었습니다.");
+      showToast("비밀번호가 성공적으로 변경되었습니다.");
       setNewPassword("");
       setConfirmPassword("");
     } catch (err) {
@@ -210,13 +236,31 @@ export default function ProfileEditPage() {
     }
   };
 
-  const handleWithdraw = () => {
-    // TODO: 회원 탈퇴 API 연동
-    alert("회원 탈퇴 API 연동 필요");
+  const handleWithdraw = async () => {
+    try {
+      await api.delete("/api/mypage/withdraw", { data: { reason: "사용자 자발적 탈퇴" } });
+      alert("탈퇴가 완료되었습니다.");
+      navigate("/login");
+    } catch {
+      alert("탈퇴 처리 중 오류가 발생했습니다. 다시 시도해주세요.");
+    }
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* 토스트 알림 */}
+      {toast && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+          <div className="flex flex-col items-center gap-3 bg-white rounded-2xl shadow-xl px-10 py-7 border border-gray-300">
+            <div className="w-14 h-14 rounded-full bg-green-50 border-2 border-green-600 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-7 h-7 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </div>
+            <p className="text-sm font-semibold text-gray-800">{toast}</p>
+          </div>
+        </div>
+      )}
       <div className="max-w-4xl mx-auto px-4 py-8">
         {/* 브레드크럼 */}
         <div className="flex items-center gap-2 mb-6 text-sm text-gray-400">
@@ -302,8 +346,7 @@ export default function ProfileEditPage() {
                     key={item.key}
                     onClick={() => {
                       setActiveMenu(item.key);
-                      setSuccessMsg("");
-                      setErrors({});
+                                        setErrors({});
                     }}
                     className="w-full text-left px-4 py-2.5 text-xs transition-colors"
                     style={{
@@ -322,23 +365,6 @@ export default function ProfileEditPage() {
 
           {/* 콘텐츠 */}
           <div className="flex-1 min-w-0 space-y-3">
-            {successMsg && (
-              <div className="flex items-center gap-2 px-4 py-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="w-4 h-4 flex-shrink-0"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-                {successMsg}
-              </div>
-            )}
             {errors.submit && (
               <div className="flex items-center gap-2 px-4 py-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
                 <svg
@@ -392,7 +418,7 @@ export default function ProfileEditPage() {
                         <input
                           type="tel"
                           value={profileData.userTelno}
-                          onChange={(e) => handleChange("userTelno", e.target.value)}
+                          onChange={(e) => handleTelnoChange(e.target.value)}
                           placeholder="010-0000-0000"
                           className={`w-56 text-sm ${errors.userTelno ? "border-red-300" : ""}`}
                         />
@@ -432,7 +458,7 @@ export default function ProfileEditPage() {
                           className="w-24 text-sm bg-gray-50"
                         />
                         <button
-                          onClick={() => alert("우편번호 검색 API 연동 필요")}
+                          onClick={handlePostcodeSearch}
                           className="px-3 py-1.5 text-xs text-white rounded font-medium"
                           style={{ background: accentColor }}
                         >
