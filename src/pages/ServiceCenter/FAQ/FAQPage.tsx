@@ -24,8 +24,8 @@ export default function FAQPage() {
   const [totalCount,  setTotalCount]  = useState(0);
   const [loading,     setLoading]     = useState(false);
   const [searchType,  setSearchType]  = useState<SearchType>('제목+내용');
-  const [searchInput, setSearchInput] = useState('');
-  const [keyword,     setKeyword]     = useState('');
+  const [searchInput, setSearchInput] = useState(() => searchParams.get('keyword') ?? '');
+  const [keyword,     setKeyword]     = useState(() => searchParams.get('keyword') ?? '');
   const [page,        setPage]        = useState(1);
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);

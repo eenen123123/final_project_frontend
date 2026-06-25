@@ -5,7 +5,7 @@ import { useKakaoPostcodePopup } from "react-daum-postcode";
 import MyPageSidebar from "./components/MyPageSidebar";
 import DeliveryMsgSelect from "./components/DeliveryMsgSelect";
 import CheckoutNotice from "./components/CheckoutNotice";
-import CouponSelectPopup, { type CouponItem } from "./components/CouponSelectPopup";
+import { type CouponItem } from "./components/CouponSelectPopup";
 import api, { getApiErrorMessage } from "../../../api/api";
 import { useAuth } from "../../../auth/AuthContext";
 
@@ -195,7 +195,35 @@ export default function CheckoutPage() {
   // 쿠폰
   const [availableCoupons, setAvailableCoupons] = useState<CouponItem[]>([]);
   const [itemCoupons, setItemCoupons] = useState<Record<number, CouponItem>>({});
-  const [showCouponPopup, setShowCouponPopup] = useState(false);
+
+  const openCouponPopup = () => {
+    localStorage.setItem("couponPopupData", JSON.stringify({
+      items: items.map((i) => ({
+        cartSn: i.cartSn,
+        prodDivCd: i.prodDivCd,
+        prodNm: i.prodNm,
+        prodPrice: i.prodPrice,
+        itemQty: i.itemQty,
+      })),
+      coupons: availableCoupons,
+      initialSelections: itemCoupons,
+    }));
+    const popup = window.open(
+      "/mypage/coupon-select",
+      "couponSelect",
+      "width=420,height=520,scrollbars=yes,resizable=no"
+    );
+    const onMessage = (e: MessageEvent) => {
+      if (e.origin !== window.location.origin) return;
+      if (e.data === "couponSelected") {
+        const raw = localStorage.getItem("couponPopupResult");
+        if (raw) setItemCoupons(JSON.parse(raw));
+        popup?.close();
+        window.removeEventListener("message", onMessage);
+      }
+    };
+    window.addEventListener("message", onMessage);
+  };
 
   // 기타
   const [notifyConsent, setNotifyConsent] = useState(true);
@@ -222,7 +250,7 @@ export default function CheckoutPage() {
     return total + disc;
   }, 0);
 
-  const finalAmt = totalPrice + shippingFee - usedPointAmt - couponDiscAmt;
+  const finalAmt = Math.max(0, totalPrice + shippingFee - usedPointAmt - couponDiscAmt);
 
   // 쿠폰 목록 조회
   useEffect(() => {
@@ -252,7 +280,12 @@ export default function CheckoutPage() {
       return;
     }
     const balance = type === "HM_POINT" ? hmPointBalance : studyBalance;
-    const max = Math.min(balance, totalPrice + shippingFee);
+    const maxPointable = totalPrice - couponDiscAmt; // 배송비 제외한 상품금액만
+    const max = Math.min(balance, maxPointable);
+    if (max <= 0) {
+      alert("쿠폰 할인 후 남은 상품금액이 없어 포인트를 사용할 수 없습니다.");
+      return;
+    }
     setUsedPointType(type);
     setUsedPointAmt(max);
     setPointInput(String(max));
@@ -358,8 +391,12 @@ export default function CheckoutPage() {
   const handlePointInputChange = (type: PointType, value: string) => {
     const num = Number(value.replace(/\D/g, ""));
     const balance = type === "HM_POINT" ? hmPointBalance : studyBalance;
-    const max = Math.min(balance, totalPrice + shippingFee);
+    const maxPointable = totalPrice - couponDiscAmt; // 배송비 제외
+    const max = Math.min(balance, maxPointable);
     const clamped = Math.min(num, max);
+    if (num > max && max > 0) {
+      alert(`${max.toLocaleString()}원 이하만 사용 가능합니다.`);
+    }
     setPointInput(String(clamped));
     setUsedPointAmt(clamped);
     if (clamped === 0) {
@@ -803,7 +840,7 @@ export default function CheckoutPage() {
                               -{couponDiscAmt.toLocaleString()}원
                             </span>
                             <button
-                              onClick={() => setShowCouponPopup(true)}
+                              onClick={() => openCouponPopup()}
                               className="px-1.5 py-0.5 border border-gray-300 text-gray-500 hover:bg-gray-50 cursor-pointer text-[10px]"
                             >
                               변경
@@ -817,7 +854,7 @@ export default function CheckoutPage() {
                           </>
                         ) : (
                           <button
-                            onClick={() => setShowCouponPopup(true)}
+                            onClick={() => openCouponPopup()}
                             disabled={availableCoupons.length === 0}
                             className="px-1.5 py-0.5 border border-gray-300 text-gray-500 hover:bg-gray-50 cursor-pointer text-[10px] disabled:opacity-40"
                           >
@@ -937,14 +974,6 @@ export default function CheckoutPage() {
         </div>
       </div>
 
-      <CouponSelectPopup
-        open={showCouponPopup}
-        onClose={() => setShowCouponPopup(false)}
-        onConfirm={(selections) => { setItemCoupons(selections); setShowCouponPopup(false); }}
-        items={items}
-        coupons={availableCoupons}
-        initialSelections={itemCoupons}
-      />
     </div>
   );
 }

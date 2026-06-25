@@ -1,10 +1,5 @@
 import { useState, useEffect } from "react";
-import {
-  RefreshCw,
-  ExternalLink,
-  Navigation as NavIcon,
-  HelpCircle,
-} from "lucide-react";
+import { RefreshCw } from "lucide-react";
 import api from "../../api/api";
 import BookFilter from "./components/BookFilter";
 import BookCard, { type TextbookDto } from "./components/BookCard";
@@ -159,38 +154,6 @@ export default function BooksPage() {
         </div>
       </main>
 
-      {/* 푸터 */}
-      <footer className="bg-gray-900 text-gray-400 text-xs border-t border-gray-800 mt-16">
-        <div className="border-b border-gray-800">
-          <div className="max-w-6xl mx-auto px-6 h-14 flex justify-between items-center">
-            <div className="flex gap-6 font-medium">
-              <button className="hover:text-white transition-colors cursor-pointer">
-                회사소개
-              </button>
-              <button className="text-blue-400 font-semibold hover:underline cursor-pointer">
-                개인정보처리방침
-              </button>
-              <button className="hover:text-white transition-colors cursor-pointer">
-                이용약관
-              </button>
-            </div>
-            <div className="flex gap-3">
-              <button className="p-2 bg-gray-800 rounded-full text-white hover:bg-gray-700 cursor-pointer">
-                <ExternalLink size={13} />
-              </button>
-              <button className="p-2 bg-gray-800 rounded-full text-white hover:bg-gray-700 cursor-pointer">
-                <NavIcon size={13} />
-              </button>
-              <button className="p-2 bg-gray-800 rounded-full text-white hover:bg-gray-700 cursor-pointer">
-                <HelpCircle size={13} />
-              </button>
-            </div>
-          </div>
-        </div>
-        <div className="max-w-6xl mx-auto px-6 py-4">
-          <p className="text-gray-500">&copy; HERMES All rights reserved.</p>
-        </div>
-      </footer>
     </div>
   );
 }

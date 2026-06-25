@@ -399,7 +399,10 @@ export default function CartPage() {
                           </td>
                           <td className="py-4 px-4 text-center align-middle">
                             <div className="flex flex-col items-center gap-1">
-                              <button className="w-16 py-1 bg-gray-600 text-white text-xs hover:bg-gray-800 transition-colors cursor-pointer">
+                              <button
+                                onClick={() => navigate("/checkout", { state: { items: [item] } })}
+                                className="w-16 py-1 bg-gray-600 text-white text-xs hover:bg-gray-800 transition-colors cursor-pointer"
+                              >
                                 주문 &gt;
                               </button>
                               <button
