@@ -18,7 +18,7 @@ export default function MyClassroomsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <p className="text-slate-500">클래스룸 목록을 불러오는 중...</p>
       </div>
     );
@@ -26,14 +26,14 @@ export default function MyClassroomsPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <p className="text-red-500">클래스룸 목록을 불러오지 못했습니다.</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC]">
+    <div className="min-h-screen bg-white">
       <div className="max-w-4xl mx-auto px-6 py-10">
         <h1 className="text-xl font-bold text-slate-800 mb-6">내 클래스룸</h1>
 
@@ -45,8 +45,7 @@ export default function MyClassroomsPage() {
               <Link
                 key={c.classSn}
                 to={`/classroom/${c.classSn}`}
-                target="_blank"
-                rel="noopener noreferrer"
+
                 className="bg-white rounded-xl border border-slate-200 px-6 py-5 flex items-center justify-between hover:border-blue-400 hover:shadow-sm transition-all"
               >
                 <div>

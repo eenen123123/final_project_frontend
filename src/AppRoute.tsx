@@ -3,6 +3,11 @@ import Home from "./pages/Home";
 import ClassroomPage from "./pages/Classroom/ClassroomPage";
 import MyClassroomsPage from "./pages/Classroom/MyClassroomsPage";
 import ClassroomLayout from "./layouts/ClassroomLayout";
+import ClassroomExamPage from "./pages/Classroom/ClassroomExamPage";
+import ClassroomAssignPage from "./pages/Classroom/ClassroomAssignPage";
+import ClassroomNoticePage from "./pages/Classroom/ClassroomNoticePage";
+import ClassroomQnaPage from "./pages/Classroom/ClassroomQnaPage";
+import ClassroomDataroomPage from "./pages/Classroom/ClassroomDataroomPage";
 import ProtectedRoute from "./auth/ProtectedRoute";
 import MyPage from "./pages/User/Mypage/MyPage";
 import ProtectedRouteAdmin from "./auth/ProtectedRouteAdmin";
@@ -32,7 +37,6 @@ import NotFound from "./pages/NotFound";
 import MyLecturePage from "./pages/User/Mypage/MyLecturePage";
 import ProfileEditPage from "./pages/User/Mypage/ProfileEditPage";
 import DummyPage from "./pages/User/Mypage/dummy";
-import LectureEnrollPage from "./pages/User/Mypage/LectureEnrollPage";
 import StudyReportPage from "./pages/User/Mypage/StudyReportPage";
 import GradesPage from "./pages/User/Mypage/GradesPage";
 import MyCalendarPage from "./pages/User/Mypage/MyCalendarPage";
@@ -46,7 +50,6 @@ import InstructorBoardLayout from "./pages/Instructor/InstructorBoardLayout";
 import CoursesTab from "./pages/Instructor/InstructorBoard/CoursesTab";
 import BoardTab from "./pages/Instructor/InstructorBoard/BoardTab";
 import BoardPostDetailPage from "./pages/Instructor/InstructorBoard/BoardPostDetailPage";
-import CourseDetailPage from "./pages/Instructor/InstructorBoard/CourseDetailPage";
 import PaymentPage from "./pages/Payment/PaymentPage";
 import OrderHistoryPage from "./pages/User/Mypage/OrderHistoryPage";
 import CouponPointPage from "./pages/User/Mypage/CouponPointPage";
@@ -166,6 +169,11 @@ export default function AppRoute() {
         <Route path="/classroom/:classId" element={<ClassroomLayout />}>
           <Route index element={<ClassroomPage />} />
         </Route>
+        <Route path="/classroom/:classId/exams/:examSn" element={<ClassroomExamPage />} />
+        <Route path="/classroom/:classId/assignments/:asgmtSn" element={<ClassroomAssignPage />} />
+        <Route path="/classroom/:classId/notices/:postSn" element={<ClassroomNoticePage />} />
+        <Route path="/classroom/:classId/qna/:postSn" element={<ClassroomQnaPage />} />
+        <Route path="/classroom/:classId/dataroom/:postSn" element={<ClassroomDataroomPage />} />
         <Route path="/customer/qna/write" element={<QnaWritePage />} />
         <Route path="/customer/qna/my" element={<QnAPage myOnly />} />
         <Route path="/customer/qna/:postSn/edit" element={<QnaEditPage />} />

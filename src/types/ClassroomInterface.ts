@@ -10,4 +10,5 @@ export interface ClassroomInfo {
   instrNm: string;
   memberCount: number;
   instrUuid: string;
+  classStatCd?: string;
 }
