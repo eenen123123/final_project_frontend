@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { HelpCircle, Monitor, BookOpen, Wrench, Settings } from "lucide-react";
+import { Settings } from "lucide-react";
 import { useAuth } from "../../../auth/AuthContext";
 import api from "../../../api/api";
 import StudyStatus from "../Mypage/components/StudyStatus";
@@ -29,22 +29,7 @@ const COURSE_STATUS: CourseStatus = {
   point: 0,
 };
 
-const SUBJECTS: StudySubject[] = [
-  { name: "국어", percent: 65, minutes: 127 },
-  { name: "수학", percent: 70, minutes: 56 },
-  { name: "영어", percent: 90, minutes: 28 },
-  { name: "탐구", percent: 70, minutes: 196 },
-  { name: "한국사", percent: 35, minutes: 42 },
-  { name: "제2외/한문", percent: 55, minutes: 74 },
-];
 
-const TEACHERS: TeacherRank[] = [
-  { rank: 1, label: "[사탐] 임정환선생님", hours: "2시간" },
-  { rank: 2, label: "[국어] 박상호선생님", hours: "? 시간" },
-  { rank: 3, label: "[수학] 이수학선생님", hours: "? 시간" },
-  { rank: 4, label: "[영어] 최영어선생님", hours: "? 시간" },
-  { rank: 5, label: "[사탐] 김사회선생님", hours: "? 시간" },
-];
 
 const INIT_NOTIFICATIONS: AlertItem[] = [
   {
@@ -168,6 +153,22 @@ export default function MyPage() {
   const [notifications, setNotifications] = useState<AlertItem[]>(INIT_NOTIFICATIONS);
   const [messages, setMessages] = useState<AlertItem[]>(INIT_MESSAGES);
   const [courseStatus, setCourseStatus] = useState<CourseStatus>(COURSE_STATUS);
+  const [teachers, setTeachers] = useState<TeacherRank[]>([]);
+  const [subjects, setSubjects] = useState<StudySubject[]>([]);
+
+  useEffect(() => {
+    api.get<{ subjectName: string; totalSeconds: number }[]>("/api/mypage/subject-progress")
+      .then((res) => {
+        const data = res.data;
+        const max = Math.max(...data.map((s) => s.totalSeconds), 1);
+        setSubjects(data.map((s) => ({
+          name: s.subjectName,
+          percent: Math.round((s.totalSeconds / max) * 100),
+          minutes: s.totalSeconds > 0 ? Math.floor(s.totalSeconds / 60) : null,
+        })));
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     // 장바구니 수
@@ -191,7 +192,28 @@ export default function MyPage() {
     api.get<{ totalCount: number }>("/api/orders/my", { params: { page: 1 } })
       .then((res) => setCourseStatus((prev) => ({ ...prev, order: res.data.totalCount ?? 0 })))
       .catch(() => {});
+    // HM 포인트 잔액
+    api.get<number>("/api/points/balance", { params: { assetType: "HM_POINT" } })
+      .then((res) => setCourseStatus((prev) => ({ ...prev, point: res.data })))
+      .catch(() => {});
   }, []);
+  useEffect(() => {
+    api.get<{ instructorName: string; profileImage?: string; subjectName: string; totalSeconds: number }[]>("/api/mypage/instructor-ranking")
+      .then((res) => {
+        setTeachers(res.data.map((item, i) => ({
+          rank: i + 1,
+          label: `[${item.subjectName}] ${item.instructorName}선생님`,
+          hours: item.totalSeconds >= 3600
+            ? `${Math.floor(item.totalSeconds / 3600)}시간 ${Math.floor((item.totalSeconds % 3600) / 60)}분`
+            : item.totalSeconds >= 60
+              ? `${Math.floor(item.totalSeconds / 60)}분`
+              : `${item.totalSeconds}초`,
+          profileImage: item.profileImage ?? undefined,
+        })));
+      })
+      .catch(() => {});
+  }, []);
+
   const [notices, setNotices] = useState<NoticeItem[]>([]);
 
   useEffect(() => {
@@ -273,55 +295,8 @@ export default function MyPage() {
             <StudyStatus status={courseStatus} />
             <FeaturedCarousel />
             <StudyCalendar />
-            <StudyReport subjects={SUBJECTS} teachers={TEACHERS} />
+            <StudyReport subjects={subjects} teachers={teachers} />
 
-            {/* 내 학습기기 + 학습지원 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-5">
-              <div className="border border-gray-200 rounded-xl p-6">
-                <h3 className="text-sm font-semibold text-gray-900 mb-4">
-                  내 학습기기
-                </h3>
-                <div className="flex flex-wrap items-center gap-4">
-                  <div className="w-12 h-12 border-2 border-dashed border-gray-200 rounded-lg flex items-center justify-center text-gray-300 text-xl flex-shrink-0">
-                    +
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">
-                      등록된 기기가 없습니다.
-                    </p>
-                    <p className="text-xs text-gray-400">
-                      (한 ID당 1개만 등록 가능)
-                    </p>
-                  </div>
-                  <button className="ml-auto text-xs text-gray-500 border border-gray-200 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors flex-shrink-0">
-                    학습기기 이용안내
-                  </button>
-                </div>
-              </div>
-
-              <div className="border border-gray-200 rounded-xl p-6">
-                <h3 className="text-sm font-semibold text-gray-900 mb-4">
-                  학습지원
-                </h3>
-                <div className="grid grid-cols-2 gap-2">
-                  {[
-                    { Icon: HelpCircle, label: "자주하는 질문(FAQ)", path: "/customer/faq" },
-                    { Icon: Monitor, label: "학습기기 이용안내", path: null },
-                    { Icon: BookOpen, label: "강좌&교재 이용가이드", path: null },
-                    { Icon: Wrench, label: "원격 해결 서비스", path: null },
-                  ].map(({ Icon, label, path }) => (
-                    <button
-                      key={label}
-                      onClick={() => path && navigate(path)}
-                      className="flex items-center gap-2 px-3 py-2.5 border border-gray-200 rounded-lg text-xs text-gray-600 hover:bg-gray-50 transition-colors text-left"
-                    >
-                      <Icon className="w-4 h-4 text-gray-400 shrink-0" />
-                      <span>{label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
 
             {/* 공지사항 + 고객센터 */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-5">
@@ -378,9 +353,13 @@ export default function MyPage() {
                   </div>
                   <div className="border-t border-gray-100 pt-4 flex items-start justify-between">
                     <div>
-                      <p className="text-2xl font-bold text-blue-500">
+                      <button
+                        onClick={() => navigate("/customer/qna/write")}
+                        className="text-2xl font-bold text-blue-500 hover:text-blue-700 transition-colors flex items-center gap-1"
+                      >
                         1:1 게시판 상담
-                      </p>
+                        <span className="text-lg">›</span>
+                      </button>
                     </div>
                     <div className="text-xs text-gray-400 text-right">
                       <p>평일 9시~24시</p>

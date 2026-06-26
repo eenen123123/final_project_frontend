@@ -1,13 +1,14 @@
 export interface StudySubject {
   name: string;
   percent: number;
-  minutes: number;
+  minutes: number | null;
 }
 
 export interface TeacherRank {
   rank: number;
-  label: string;     // e.g. '[영역] A선생님'
-  hours: string;     // e.g. '? 시간'
+  label: string;
+  hours: string;
+  profileImage?: string;
 }
 
 export interface CalendarEvent {
