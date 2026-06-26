@@ -171,9 +171,9 @@ function CourseItem({ course }: { course: Course }) {
   };
 
   return (
-    <li className="group flex items-center gap-5 py-5 px-5 border-b border-gray-100 hover:bg-linear-to-r hover:from-blue-50/40 hover:to-transparent transition-all duration-200">
+    <li className="group flex items-center gap-3 sm:gap-5 py-4 px-4 sm:py-5 sm:px-5 border-b border-gray-100 hover:bg-linear-to-r hover:from-blue-50/40 hover:to-transparent transition-all duration-200">
       {/* 과목 아이콘 */}
-      <div className="shrink-0 w-24 h-auto rounded-xl bg-linear-to-br from-blue-100 to-indigo-100 flex items-center justify-center text-blue-500 group-hover:from-blue-200 group-hover:to-indigo-200 transition-colors">
+      <div className="shrink-0 w-16 sm:w-24 h-auto rounded-xl bg-linear-to-br from-blue-100 to-indigo-100 flex items-center justify-center text-blue-500 group-hover:from-blue-200 group-hover:to-indigo-200 transition-colors">
         {/* <BookIcon /> */}
         {course.thumbnailImg ? (
           <img
@@ -194,7 +194,7 @@ function CourseItem({ course }: { course: Course }) {
             {course.courseName}
           </p>
         </Link>
-        <div className="flex items-center gap-1.5 text-xs text-gray-500 mb-1.5">
+        <div className="flex flex-wrap items-center gap-1.5 text-xs text-gray-500 mb-1.5">
           <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 rounded-full text-gray-600 font-medium">
             {course.subjectName}
           </span>
@@ -374,9 +374,9 @@ export default function CourseListPage() {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 md:px-6 py-8 flex gap-7 items-start">
+      <div className="max-w-6xl mx-auto px-4 md:px-6 py-8 flex flex-col lg:flex-row gap-7 lg:items-start">
         {/* MARK: 사이드바 */}
-        <aside className="w-56 shrink-0 sticky top-6">
+        <aside className="w-full lg:w-56 shrink-0 lg:sticky lg:top-6">
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
             <h2 className="text-sm font-bold text-gray-700 mb-4 flex items-center gap-2">
               <SearchIcon />
@@ -420,7 +420,7 @@ export default function CourseListPage() {
             </div>
 
             {/* MARK: 과목 분류 */}
-            <div className="mt-5 pt-4 border-t border-gray-100">
+            <div className="mt-5 pt-4 border-t border-gray-100 hidden lg:block">
               <div className="flex flex-col gap-4">
                 {subjects.map((classification) => (
                   <div key={classification.subjClId}>

@@ -2,7 +2,11 @@ import { useState, useEffect } from "react";
 import api from "../../api/api";
 import { useParams, Link } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
-import type { InstructorDetail, FeaturedCourse, Post } from "./InstructorDetail/types";
+import type {
+  InstructorDetail,
+  FeaturedCourse,
+  Post,
+} from "./InstructorDetail/types";
 import { formatPostDate, isNewPost } from "./InstructorDetail/utils";
 import CareerBookModal from "./InstructorDetail/CareerBookModal";
 import CurriculumSection from "./InstructorDetail/CurriculumSection";
@@ -10,10 +14,26 @@ import CurriculumSection from "./InstructorDetail/CurriculumSection";
 type ModalType = "careerBook" | null;
 
 const NAV_LINKS = [
-  { id: "courses", label: "강좌목록", path: (uuid: string) => `/instructor/${uuid}/courses` },
-  { id: "notice", label: "공지사항", path: (uuid: string) => `/instructor/${uuid}/notice` },
-  { id: "qna", label: "선생님 Q&A", path: (uuid: string) => `/instructor/${uuid}/qna` },
-  { id: "dataroom", label: "학습자료실", path: (uuid: string) => `/instructor/${uuid}/dataroom` },
+  {
+    id: "courses",
+    label: "강좌목록",
+    path: (uuid: string) => `/instructor/${uuid}/courses`,
+  },
+  {
+    id: "notice",
+    label: "공지사항",
+    path: (uuid: string) => `/instructor/${uuid}/notice`,
+  },
+  {
+    id: "qna",
+    label: "선생님 Q&A",
+    path: (uuid: string) => `/instructor/${uuid}/qna`,
+  },
+  {
+    id: "dataroom",
+    label: "학습자료실",
+    path: (uuid: string) => `/instructor/${uuid}/dataroom`,
+  },
 ];
 
 const BOARD_TYPE_LABEL: Record<string, { label: string; className: string }> = {
@@ -31,7 +51,7 @@ const CARD_COLORS = [
 
 export default function InstructorDetailPage() {
   const { instrUuid } = useParams<{ instrUuid: string }>();
-const [modal, setModal] = useState<ModalType>(null);
+  const [modal, setModal] = useState<ModalType>(null);
   const [instructor, setInstructor] = useState<InstructorDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [featuredCourses, setFeaturedCourses] = useState<FeaturedCourse[]>([]);
@@ -49,7 +69,8 @@ const [modal, setModal] = useState<ModalType>(null);
       .then(([instrRes, featuredRes, postsRes]) => {
         if (instrRes.status === "fulfilled") setInstructor(instrRes.value.data);
         else console.error("강사 정보 조회 실패", instrRes.reason);
-        if (featuredRes.status === "fulfilled") setFeaturedCourses(featuredRes.value.data);
+        if (featuredRes.status === "fulfilled")
+          setFeaturedCourses(featuredRes.value.data);
         else console.error("추천 강좌 조회 실패", featuredRes.reason);
         if (postsRes.status === "fulfilled") setPosts(postsRes.value.data);
         else console.error("최신 소식 조회 실패", postsRes.reason);
@@ -89,9 +110,9 @@ const [modal, setModal] = useState<ModalType>(null);
 
       {/* ── 히어로: 어두운 배경 ── */}
       <div className="w-full bg-gray-700">
-        <div className="max-w-6xl mx-auto flex min-h-screen">
+        <div className="max-w-6xl mx-auto flex flex-col lg:flex-row lg:min-h-screen">
           {/* ── 좌측 네비 ── */}
-          <div className="w-52 shrink-0 flex flex-col pt-12 px-6 pb-10">
+          <div className="w-full lg:w-52 shrink-0 flex flex-col pt-8 lg:pt-12 px-6 pb-10 order-2 lg:order-1">
             <p className="text-xs text-gray-400 mb-1 tracking-wide">
               {instructor.subject}영역
             </p>
@@ -135,7 +156,7 @@ const [modal, setModal] = useState<ModalType>(null);
           </div>
 
           {/* ── 중앙 사진 ── */}
-          <div className="flex-1 relative overflow-hidden">
+          <div className="order-1 lg:order-2 lg:flex-1 relative overflow-hidden h-80 sm:h-96 lg:h-auto">
             {instructor.instrProfileImg ? (
               <img
                 src={instructor.instrProfileImg}
@@ -166,7 +187,7 @@ const [modal, setModal] = useState<ModalType>(null);
           </div>
 
           {/* ── 우측: 시리즈 카드 + 최신소식 ── */}
-          <div className="w-72 shrink-0 flex flex-col pt-12 px-5 pb-10 gap-6">
+          <div className="w-full lg:w-72 shrink-0 flex flex-col pt-8 lg:pt-12 px-5 pb-10 gap-6 order-3">
             {featuredCourses.length > 0 && (
               <div className="grid grid-cols-2 gap-2">
                 {featuredCourses.map((course, idx) => (
@@ -196,10 +217,14 @@ const [modal, setModal] = useState<ModalType>(null);
                       to={`/instructor/${uuid}/${post.boardType}/${post.postSn}`}
                       className="flex items-start gap-2 group"
                     >
-                      <span className="text-gray-500 text-xs mt-0.5 shrink-0">·</span>
+                      <span className="text-gray-500 text-xs mt-0.5 shrink-0">
+                        ·
+                      </span>
                       <div className="flex-1 min-w-0">
                         <p className="text-xs text-gray-300 group-hover:text-white transition-colors leading-snug line-clamp-2">
-                          <span className={`font-bold mr-1 ${BOARD_TYPE_LABEL[post.boardType]?.className}`}>
+                          <span
+                            className={`font-bold mr-1 ${BOARD_TYPE_LABEL[post.boardType]?.className}`}
+                          >
                             [{BOARD_TYPE_LABEL[post.boardType]?.label}]
                           </span>
                           {post.title}
@@ -222,7 +247,8 @@ const [modal, setModal] = useState<ModalType>(null);
         </div>
       </div>
 
-      <CurriculumSection />
+      {/* 커리큘럼 목 데이터 임시 비활성화 */}
+      {/* <CurriculumSection /> */}
     </div>
   );
 }

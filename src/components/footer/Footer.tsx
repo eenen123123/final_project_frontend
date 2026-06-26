@@ -46,7 +46,7 @@ export default function Footer() {
   return (
     <footer className="bg-white border-t border-gray-200 mt-16">
       <div className="max-w-6xl mx-auto px-6 py-10">
-        <div className="flex gap-12 items-start">
+        <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 lg:items-start">
           {/* 왼쪽 콘텐츠 */}
           <div className="flex-1 min-w-0">
             {/* 로고 */}
@@ -123,7 +123,7 @@ export default function Footer() {
           </div>
 
           {/* 오른쪽: SNS + 인증 */}
-          <div className="flex-shrink-0 flex flex-col items-end gap-6">
+          <div className="flex-shrink-0 flex flex-col items-start lg:items-end gap-6">
             {/* SNS 아이콘 */}
             <div className="flex gap-2">
               {[FacebookIcon, InstagramIcon, YoutubeIcon].map((Icon, i) => (
@@ -143,7 +143,7 @@ export default function Footer() {
             </div>
 
             {/* 인증 배지 */}
-            <div className="flex gap-4 items-center">
+            <div className="flex flex-wrap gap-4 items-center">
               <div className="text-center">
                 <div className="text-xs text-gray-400 mb-1">
                   ● toss payments
