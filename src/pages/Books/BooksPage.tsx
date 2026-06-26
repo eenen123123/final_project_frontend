@@ -74,7 +74,7 @@ export default function BooksPage() {
             className="text-5xl md:text-6xl text-zinc-900"
             style={{ fontFamily: "var(--font-display)" }}
           >
-            전체 교재
+            강의 교재
           </h1>
           <p className="mt-3 text-sm text-zinc-500">
             과목별 최신 입고 완료 교재들을 한눈에 확인하고 구매하실 수 있습니다.
