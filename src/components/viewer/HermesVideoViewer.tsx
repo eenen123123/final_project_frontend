@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import api from "../../api/api";
 import { useAuth } from "../../auth/AuthContext";
 
@@ -91,16 +91,18 @@ function LectureList({
                     {formatDuration(l.lectureDuration)}
                   </p>
                 )}
-                {l.lectureDuration && l.secondsWatched && l.secondsWatched > 0 && (
-                  <div className="h-1 bg-slate-200 rounded-full mt-1.5 overflow-hidden">
-                    <div
-                      className={`h-full rounded-full ${status === "completed" ? "bg-green-500" : "bg-blue-500"}`}
-                      style={{
-                        width: `${Math.min(100, Math.round((l.secondsWatched / l.lectureDuration) * 100))}%`,
-                      }}
-                    />
-                  </div>
-                )}
+                {l.lectureDuration &&
+                  l.secondsWatched &&
+                  l.secondsWatched > 0 && (
+                    <div className="h-1 bg-slate-200 rounded-full mt-1.5 overflow-hidden">
+                      <div
+                        className={`h-full rounded-full ${status === "completed" ? "bg-green-500" : "bg-blue-500"}`}
+                        style={{
+                          width: `${Math.min(100, Math.round((l.secondsWatched / l.lectureDuration) * 100))}%`,
+                        }}
+                      />
+                    </div>
+                  )}
               </div>
             </button>
           </li>
@@ -133,7 +135,9 @@ export default function HermesVideoViewer() {
   const completeRef = useRef(false);
   const prevLectureSnRef = useRef<number | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [resumePopup, setResumePopup] = useState<{ seconds: number } | null>(null);
+  const [resumePopup, setResumePopup] = useState<{ seconds: number } | null>(
+    null,
+  );
   const [playbackRate, setPlaybackRate] = useState(1);
 
   const handlePlaybackRate = (rate: number) => {
@@ -273,20 +277,38 @@ export default function HermesVideoViewer() {
     if (
       lecture?.secondsWatched &&
       lecture.secondsWatched > 0 &&
-      (!lecture.lectureDuration || lecture.secondsWatched < lecture.lectureDuration)
+      (!lecture.lectureDuration ||
+        lecture.secondsWatched < lecture.lectureDuration)
     ) {
       setResumePopup({ seconds: lecture.secondsWatched });
     }
   };
 
-  const totalDuration = lectures.reduce((s, l) => s + (l.lectureDuration ?? 0), 0);
-  const totalWatched = lectures.reduce((s, l) => s + (l.secondsWatched ?? 0), 0);
-  const overallProgress = totalDuration > 0 ? Math.min(100, Math.round((totalWatched / totalDuration) * 100)) : 0;
+  const totalDuration = lectures.reduce(
+    (s, l) => s + (l.lectureDuration ?? 0),
+    0,
+  );
+  const totalWatched = lectures.reduce(
+    (s, l) => s + (l.secondsWatched ?? 0),
+    0,
+  );
+  const overallProgress =
+    totalDuration > 0
+      ? Math.min(100, Math.round((totalWatched / totalDuration) * 100))
+      : 0;
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
       {/* 브레드크럼 */}
       <div className="px-4 md:px-6 py-3 border-b border-slate-200 bg-white text-xs text-slate-400 flex items-center gap-1">
+        <Link
+          to="/"
+          className="hidden md:inline text-blue-500 hover:text-blue-600 transition-colors bg-white "
+        >
+          Home
+        </Link>
+        <span className="hidden md:inline">/</span>
+
         <span>강의실</span>
         {course && (
           <>
@@ -305,7 +327,14 @@ export default function HermesVideoViewer() {
       </div>
 
       {/* 모바일 목록 버튼 */}
-      <div className="md:hidden flex justify-end px-4 pt-3">
+      <div className="md:hidden flex justify-between px-4 pt-3">
+        <Link
+          to="/"
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 rounded-lg border border-blue-200 mr-2"
+        >
+          ← 홈
+        </Link>
+
         <button
           onClick={() => setDrawerOpen(true)}
           className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 rounded-lg border border-blue-200"
@@ -344,9 +373,11 @@ export default function HermesVideoViewer() {
                     key={rate}
                     onClick={() => handlePlaybackRate(rate)}
                     className={`px-2 py-0.5 text-[11px] font-semibold rounded transition-colors
-                      ${playbackRate === rate
-                        ? "bg-blue-600 text-white"
-                        : "bg-black/50 text-white/80 hover:bg-black/70"}`}
+                      ${
+                        playbackRate === rate
+                          ? "bg-blue-600 text-white"
+                          : "bg-black/50 text-white/80 hover:bg-black/70"
+                      }`}
                   >
                     {rate}x
                   </button>
@@ -360,7 +391,10 @@ export default function HermesVideoViewer() {
                     이어서 시청할까요?
                   </p>
                   <p className="text-sm text-slate-500 mb-6">
-                    <span className="text-blue-600 font-semibold">{formatDuration(resumePopup.seconds)}</span> 부터 이어보기
+                    <span className="text-blue-600 font-semibold">
+                      {formatDuration(resumePopup.seconds)}
+                    </span>{" "}
+                    부터 이어보기
                   </p>
                   <div className="flex gap-3">
                     <button
