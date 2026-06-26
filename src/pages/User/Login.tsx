@@ -153,6 +153,14 @@ export default function Login() {
             </div>
           </form>
         </div>
+        {!import.meta.env.DEV && (
+          <div className="text-center text-sm text-gray-500 mt-6">
+            <span className="text-gray-400">
+              테스트 계정 Id: testuser104, 비밀번호: java
+            </span>
+          </div>
+        )}
+
         {import.meta.env.DEV && (
           <>
             <div>
