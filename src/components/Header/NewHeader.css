@@ -75,4 +75,35 @@
   .btn-ghost {
     @apply cursor-pointer px-3 py-1.5 bg-gray-50 hover:bg-red-50 border border-gray-200 hover:border-red-200 rounded-lg text-xs font-bold text-gray-600 hover:text-red-600 transition-all;
   }
+
+  /* ── 모바일 사이드바 드로어 ── */
+  /* 배경 오버레이 (열렸을 때만 클릭 가능) */
+  .mobile-drawer-backdrop {
+    @apply fixed inset-0 z-[60] bg-black/40 opacity-0 pointer-events-none transition-opacity duration-300;
+  }
+
+  .mobile-drawer-backdrop.is-open {
+    @apply opacity-100 pointer-events-auto;
+  }
+
+  /* 사이드바 본체 (왼쪽에서 스르륵) */
+  .mobile-drawer {
+    @apply fixed top-0 left-0 z-[70] h-full w-72 max-w-[80vw] bg-white shadow-xl -translate-x-full transition-transform duration-300 ease-out flex flex-col;
+  }
+
+  .mobile-drawer.is-open {
+    @apply translate-x-0;
+  }
+
+  .mobile-drawer-header {
+    @apply flex items-center justify-between px-5 h-14 border-b border-gray-100;
+  }
+
+  .mobile-drawer-nav {
+    @apply flex flex-col p-3 gap-1;
+  }
+
+  .mobile-drawer-link {
+    @apply px-3 py-3 rounded-lg text-sm font-bold text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors;
+  }
 }
