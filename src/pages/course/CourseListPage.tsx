@@ -428,7 +428,7 @@ export default function CourseListPage() {
                 />
                 <button
                   onClick={handleSearch}
-                  className="bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-sm font-bold px-4 py-2.5 rounded-lg transition-all duration-150 cursor-pointer w-full lg:w-40 flex items-center justify-center gap-2 shadow-sm"
+                  className="bg-slate-800 hover:bg-slate-700 text-white text-sm font-bold px-4 py-2.5 rounded-lg transition-all duration-150 cursor-pointer w-full lg:w-40 flex items-center justify-center gap-2 shadow-sm"
                 >
                   <SearchIcon />
                   검색

@@ -19,7 +19,7 @@ const FilterChip = ({
     onClick={onClick}
     className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors cursor-pointer ${
       active
-        ? "bg-blue-500 text-white"
+        ? "bg-slate-800 text-white"
         : "bg-gray-100 text-gray-700 hover:bg-gray-200"
     }`}
   >
