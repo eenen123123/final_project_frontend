@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { HelpCircle, Monitor, BookOpen, Wrench, Settings } from "lucide-react";
 import { useAuth } from "../../../auth/AuthContext";
 import api from "../../../api/api";
 import StudyStatus from "../Mypage/components/StudyStatus";
@@ -213,7 +214,7 @@ export default function MyPage() {
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-6xl mx-auto px-6 py-8">
         {/* 본문: 사이드바 + 메인 */}
-        <div className="flex gap-5 items-start">
+        <div className="flex flex-col lg:flex-row gap-5 lg:items-start">
           <MyPageSidebar
             activeSection={activeSection}
             onSectionChange={setActiveSection}
@@ -221,7 +222,7 @@ export default function MyPage() {
 
           <div className="flex-1 min-w-0">
             {/* 유저 정보 상단 바 */}
-            <div className="bg-white border border-gray-200 rounded-xl px-8 py-6 flex items-center gap-5 mb-5 shadow-sm">
+            <div className="bg-white border border-gray-200 rounded-xl px-5 sm:px-8 py-5 sm:py-6 flex flex-wrap items-center gap-x-5 gap-y-3 mb-5 shadow-sm">
               <span
                 className={`inline-flex items-center justify-center px-3 py-1.5 rounded-md text-sm font-bold flex-shrink-0 ${badgeClass}`}
               >
@@ -262,9 +263,10 @@ export default function MyPage() {
                     }
                     navigate("/mypage/verify");
                   }}
-                  className="text-xs text-gray-400 hover:text-gray-700 transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-gray-700 transition-colors cursor-pointer"
                 >
-                  개인 정보 수정 ⚙
+                  개인 정보 수정
+                  <Settings className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
@@ -274,12 +276,12 @@ export default function MyPage() {
             <StudyReport subjects={SUBJECTS} teachers={TEACHERS} />
 
             {/* 내 학습기기 + 학습지원 */}
-            <div className="grid grid-cols-2 gap-5 mt-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-5">
               <div className="border border-gray-200 rounded-xl p-6">
                 <h3 className="text-sm font-semibold text-gray-900 mb-4">
                   내 학습기기
                 </h3>
-                <div className="flex items-center gap-4">
+                <div className="flex flex-wrap items-center gap-4">
                   <div className="w-12 h-12 border-2 border-dashed border-gray-200 rounded-lg flex items-center justify-center text-gray-300 text-xl flex-shrink-0">
                     +
                   </div>
@@ -303,17 +305,17 @@ export default function MyPage() {
                 </h3>
                 <div className="grid grid-cols-2 gap-2">
                   {[
-                    { icon: "💬", label: "자주하는 질문(FAQ)", path: "/customer/faq" },
-                    { icon: "🖥", label: "학습기기 이용안내", path: null },
-                    { icon: "📖", label: "강좌&교재 이용가이드", path: null },
-                    { icon: "🔧", label: "원격 해결 서비스", path: null },
-                  ].map(({ icon, label, path }) => (
+                    { Icon: HelpCircle, label: "자주하는 질문(FAQ)", path: "/customer/faq" },
+                    { Icon: Monitor, label: "학습기기 이용안내", path: null },
+                    { Icon: BookOpen, label: "강좌&교재 이용가이드", path: null },
+                    { Icon: Wrench, label: "원격 해결 서비스", path: null },
+                  ].map(({ Icon, label, path }) => (
                     <button
                       key={label}
                       onClick={() => path && navigate(path)}
                       className="flex items-center gap-2 px-3 py-2.5 border border-gray-200 rounded-lg text-xs text-gray-600 hover:bg-gray-50 transition-colors text-left"
                     >
-                      <span>{icon}</span>
+                      <Icon className="w-4 h-4 text-gray-400 shrink-0" />
                       <span>{label}</span>
                     </button>
                   ))}
@@ -322,7 +324,7 @@ export default function MyPage() {
             </div>
 
             {/* 공지사항 + 고객센터 */}
-            <div className="grid grid-cols-2 gap-5 mt-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-5">
               <div className="border border-gray-200 rounded-xl p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-sm font-semibold text-gray-900">

@@ -51,7 +51,7 @@ export default function MyQnaPage() {
   return (
     <div className="min-h-screen bg-gray-50/50">
       <div className="max-w-6xl mx-auto px-6 py-10">
-        <div className="flex gap-8 items-start">
+        <div className="flex flex-col lg:flex-row gap-8 lg:items-start">
           <MyPageSidebar activeSection="나의 Q&A" onSectionChange={() => {}} />
 
           <div className="flex-1 min-w-0">

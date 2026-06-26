@@ -15,9 +15,15 @@ interface FeaturedItem {
   instrUuid: string | null;
 }
 
-const VISIBLE = 5;
 const GAP = 12;
 const AUTO_MS = 4000;
+
+// 화면 폭에 따라 한 번에 보여줄 카드 수
+function visibleForWidth(w: number) {
+  if (w < 480) return 2;
+  if (w < 768) return 3;
+  return 5;
+}
 
 export default function FeaturedCarousel() {
   const navigate = useNavigate();
@@ -27,6 +33,7 @@ export default function FeaturedCarousel() {
   const [items, setItems] = useState<FeaturedItem[]>([]);
   const [index, setIndex] = useState(0);
   const [itemWidth, setItemWidth] = useState(0);
+  const [visible, setVisible] = useState(5);
 
   useEffect(() => {
     api.get<FeaturedItem[]>("/api/featured").then((res) => setItems(res.data));
@@ -36,7 +43,10 @@ export default function FeaturedCarousel() {
     const update = () => {
       if (containerRef.current) {
         const w = containerRef.current.clientWidth;
-        setItemWidth(Math.round((w - (VISIBLE - 1) * GAP) / VISIBLE));
+        const v = visibleForWidth(w);
+        setVisible(v);
+        setItemWidth(Math.round((w - (v - 1) * GAP) / v));
+        setIndex((i) => Math.min(i, Math.max(0, items.length - v)));
       }
     };
     update();
@@ -45,21 +55,21 @@ export default function FeaturedCarousel() {
   }, [items.length]);
 
   useEffect(() => {
-    if (items.length <= VISIBLE) return;
+    if (items.length <= visible) return;
     const id = setInterval(() => {
       if (!hoverRef.current) {
         setIndex((i) => {
-          const max = items.length - VISIBLE;
+          const max = items.length - visible;
           return i >= max ? 0 : i + 1;
         });
       }
     }, AUTO_MS);
     return () => clearInterval(id);
-  }, [items.length]);
+  }, [items.length, visible]);
 
   if (items.length === 0) return null;
 
-  const maxIndex = Math.max(0, items.length - VISIBLE);
+  const maxIndex = Math.max(0, items.length - visible);
 
   const handleClick = (item: FeaturedItem) => {
     if (item.prodType === "COURSE" && item.instrUuid) {
@@ -170,7 +180,7 @@ export default function FeaturedCarousel() {
       </div>
 
       {/* 인디케이터 */}
-      {items.length > VISIBLE && (
+      {items.length > visible && (
         <div className="flex items-center justify-center gap-1.5 mt-4">
           {Array.from({ length: maxIndex + 1 }).map((_, i) => (
             <button

@@ -165,9 +165,9 @@ export default function StudyCalendar() {
     <div className="border border-gray-200 rounded-xl p-6 mb-5">
       <h3 className="text-sm font-semibold text-gray-900 mb-4">My 캘린더</h3>
 
-      <div className="flex gap-0">
+      <div className="flex flex-col lg:flex-row gap-0">
         {/* 달력 */}
-        <div className="flex-1 pr-6">
+        <div className="flex-1 lg:pr-6">
           <div className="relative flex items-center justify-center gap-4 mb-4">
             <button
               onClick={goPrev}
@@ -249,10 +249,10 @@ export default function StudyCalendar() {
         </div>
 
         {/* 구분선 */}
-        <div className="border-l border-gray-200" />
+        <div className="border-t lg:border-t-0 lg:border-l border-gray-200 my-4 lg:my-0" />
 
         {/* 오른쪽 패널 */}
-        <div className="w-[420px] pl-6">
+        <div className="w-full lg:w-[420px] pt-2 lg:pt-0 lg:pl-6">
           <div className="flex items-center justify-between mb-4">
             <span className="text-sm font-semibold text-gray-900">
               {formatSelectedDate()}
