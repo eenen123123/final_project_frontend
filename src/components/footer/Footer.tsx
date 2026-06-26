@@ -55,6 +55,9 @@ export default function Footer() {
                 HERMES
               </span>
               <span className="text-2xl font-black text-blue-600">.</span>
+              <span className="ml-2 text-xs font-semibold text-gray-400 align-middle">
+                (포트폴리오 데모 사이트)
+              </span>
             </div>
 
             {/* 네비게이션 링크 */}
@@ -69,23 +72,22 @@ export default function Footer() {
               ))}
             </div>
 
-            {/* 회사 정보 */}
+            {/* 회사 정보 (전부 가상의 데모 데이터) */}
             <div className="space-y-5 text-xs text-gray-500 leading-relaxed">
               <div>
-                <p className="font-bold text-gray-700 mb-1">주식회사 HERMES</p>
-                <p>
-                  주소 : 서울시 서초구 방배로 181 (방배동, 단우빌딩 6,7,8층)
-                  (주)HERMES | 대표이사 : 홍길동
+                <p className="font-bold text-gray-700 mb-1">
+                  주식회사 HERMES (가상)
                 </p>
+                <p>주소 : 서울특별시 ○○구 ○○로 000, 0층 | 대표이사 : 홍길동</p>
                 <p>
-                  사업자 등록번호 : 114-81-96124 | 통신판매업 신고증 : 2011-서울
-                  서초-0170호{" "}
+                  사업자 등록번호 : 000-00-00000 | 통신판매업 신고 :
+                  0000-서울○○-0000호{" "}
                   <button className="border border-gray-300 text-gray-500 text-xs px-1.5 py-0.5 rounded hover:bg-gray-50 cursor-pointer">
                     정보조회
                   </button>
                 </p>
                 <p>
-                  학원설립·운영등록번호 : 제10281호 HERMES원격학원{" "}
+                  학원설립·운영등록번호 : 제0000호 HERMES원격학원{" "}
                   <button className="border border-gray-300 text-gray-500 text-xs px-1.5 py-0.5 rounded hover:bg-gray-50 cursor-pointer">
                     정보조회
                   </button>
@@ -94,31 +96,29 @@ export default function Footer() {
                   호스팅서비스 사업자 : (주)HERMES | 개인정보보호 책임자 :
                   홍길동
                 </p>
-                <p>
-                  (주)HERMES 고객센터 : 02-5252-110 | 이메일 : help@hermes.com
-                </p>
+                <p>고객센터 : 00-0000-0000 | 이메일 : help@hermes.example</p>
               </div>
 
               <div>
-                <p className="font-bold text-gray-700 mb-1">HERMES 교재</p>
-                <p>
-                  주소 : 서울특별시 서초구 방배로 181, 3층 (방배동 단우빌딩) |
-                  대표이사 : 홍길동
+                <p className="font-bold text-gray-700 mb-1">
+                  HERMES 교재 (가상)
                 </p>
+                <p>주소 : 서울특별시 ○○구 ○○로 000, 0층 | 대표이사 : 홍길동</p>
                 <p>
-                  사업자 등록번호 : 874-85-03104 | 통신판매업 신고증 :
-                  2026-서울서초-1302호{" "}
+                  사업자 등록번호 : 000-00-00000 | 통신판매업 신고 :
+                  0000-서울○○-0000호{" "}
                   <button className="border border-gray-300 text-gray-500 text-xs px-1.5 py-0.5 rounded hover:bg-gray-50 cursor-pointer">
                     정보조회
                   </button>
                 </p>
-                <p>고객센터 : 02-5252-110 | 이메일 : help@hermes.com</p>
+                <p>고객센터 : 00-0000-0000 | 이메일 : help@hermes.example</p>
               </div>
             </div>
 
             {/* 저작권 */}
             <p className="text-xs text-gray-400 mt-6">
-              copyright since2026 (주)HERMES All rights reserved.
+              © 2026 HERMES (포트폴리오 데모). 실제 서비스가 아닌 학습용 데모
+              사이트입니다.
             </p>
           </div>
 
@@ -142,20 +142,20 @@ export default function Footer() {
               </button>
             </div>
 
-            {/* 인증 배지 */}
+            {/* 배지 (데모용 표시) */}
             <div className="flex flex-wrap gap-4 items-center">
               <div className="text-center">
                 <div className="text-xs text-gray-400 mb-1">
                   ● toss payments
                 </div>
                 <div className="text-xs text-gray-500 font-medium">
-                  매매보호(에스크로)서비스
+                  결제 연동 (데모)
                 </div>
               </div>
               <div className="border border-gray-300 rounded px-3 py-2 text-center">
-                <div className="text-xs font-bold text-gray-600">ISMS</div>
-                <div className="text-xs text-gray-400">정보보호관리체계</div>
-                <div className="text-xs text-gray-400">ISMS 인증 획득</div>
+                <div className="text-xs font-bold text-gray-600">DEMO</div>
+                <div className="text-xs text-gray-400">학습용 포트폴리오</div>
+                <div className="text-xs text-gray-400">데모 사이트</div>
               </div>
             </div>
           </div>
