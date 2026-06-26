@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   GraduationCap,
   Star,
@@ -143,7 +144,10 @@ const getDefaultDates = () => {
 };
 
 export default function CouponPointContent() {
-  const [activeTab, setActiveTab] = useState<TabType>("hm-coupon");
+  const [searchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState<TabType>(
+    (searchParams.get("tab") as TabType | null) ?? "hm-coupon"
+  );
   const [coupons, setCoupons] = useState<UserCoupon[]>([]);
   const [showModal, setShowModal] = useState(false);
 
