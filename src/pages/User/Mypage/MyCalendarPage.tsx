@@ -412,7 +412,7 @@ export default function MyCalendarPage() {
   return (
     <div className="min-h-screen bg-gray-50/50">
       <div className="max-w-6xl mx-auto px-6 py-10">
-        <div className="flex gap-8 items-start">
+        <div className="flex flex-col lg:flex-row gap-8 lg:items-start">
           <MyPageSidebar
             activeSection={activeSection}
             onSectionChange={setActiveSection}
@@ -428,9 +428,9 @@ export default function MyCalendarPage() {
               </p>
             </div>
 
-            <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-6 text-xs font-sans">
+            <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-4 sm:p-6 text-xs font-sans">
               {/* 상단 컨트롤 */}
-              <div className="flex items-center justify-between mb-5 px-1">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5 px-1">
                 <div className="flex items-center gap-2">
                   <button
                     onClick={handlePrev}
@@ -475,20 +475,20 @@ export default function MyCalendarPage() {
                 </div>
 
                 {/* 범례 */}
-                <div className="flex items-center gap-4 text-[11px] font-medium text-gray-500">
-                  <span className="flex items-center gap-1.5">
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px] font-medium text-gray-500">
+                  <span className="flex items-center gap-1.5 shrink-0 whitespace-nowrap">
                     <span className="w-2 h-2 rounded-full bg-red-400" />
                     공휴일
                   </span>
-                  <span className="flex items-center gap-1.5">
+                  <span className="flex items-center gap-1.5 shrink-0 whitespace-nowrap">
                     <span className="w-2 h-2 rounded-full bg-orange-400" />
                     혜택/이벤트
                   </span>
-                  <span className="flex items-center gap-1.5">
+                  <span className="flex items-center gap-1.5 shrink-0 whitespace-nowrap">
                     <span className="w-2 h-2 rounded-full bg-blue-400" />
                     학사 일정
                   </span>
-                  <span className="flex items-center gap-1.5">
+                  <span className="flex items-center gap-1.5 shrink-0 whitespace-nowrap">
                     <span className="w-2 h-2 rounded-full bg-teal-500" />
                     나의 일정
                   </span>

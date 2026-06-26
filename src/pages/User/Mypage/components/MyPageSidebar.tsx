@@ -53,8 +53,11 @@ export default function MyPageSidebar({
 }: MyPageSidebarProps) {
   const navigate = useNavigate();
   const { getRole } = useAuth();
-  const [openMenus, setOpenMenus] = useState<string[]>(
-    NAV.filter((item) => item.children).map((item) => item.label),
+  // 데스크탑(lg↑)은 기본 펼침, 모바일은 기본 접힘
+  const [openMenus, setOpenMenus] = useState<string[]>(() =>
+    typeof window !== "undefined" && window.innerWidth >= 1024
+      ? NAV.filter((item) => item.children).map((item) => item.label)
+      : [],
   );
 
   const toggleMenu = (label: string) => {
@@ -96,7 +99,7 @@ export default function MyPageSidebar({
   };
 
   return (
-    <aside className="w-48 flex-shrink-0">
+    <aside className="w-full lg:w-48 shrink-0">
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
         <div
           className="px-5 py-4 border-b border-gray-100 cursor-pointer hover:bg-blue-50 transition-colors"

@@ -19,7 +19,7 @@ const FilterChip = ({
     onClick={onClick}
     className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors cursor-pointer ${
       active
-        ? "bg-blue-500 text-white"
+        ? "bg-slate-800 text-white"
         : "bg-gray-100 text-gray-700 hover:bg-gray-200"
     }`}
   >
@@ -72,20 +72,31 @@ export default function SuneungGradeCutPage() {
 
   return (
     <div className="min-h-screen bg-gray-50/50">
-      <main className="max-w-6xl mx-auto px-6 py-10 space-y-5">
-        {/* 상단 타이틀 */}
-        <div className="mb-6">
-          <h3 className="text-2xl font-bold text-gray-900 tracking-tight">
+      <div className="max-w-6xl mx-auto px-4 md:px-6 py-12">
+        {/* 헤더 */}
+        <header className="mb-5">
+          <p
+            className="text-xs tracking-widest uppercase mb-2 transition-colors duration-300"
+            style={{
+              fontFamily: "var(--font-mono-editorial)",
+            }}
+          >
+            HERMES · GRADE
+          </p>
+          <h1
+            className="text-5xl md:text-6xl text-zinc-900"
+            style={{ fontFamily: "var(--font-display)" }}
+          >
             역대 등급컷
-          </h3>
-          <p className="text-sm text-gray-500 mt-1">
+          </h1>
+          <p className="mt-3 text-sm text-zinc-500">
             연도와 과목을 선택하면 등급 구분 점수와 인원 분포를 확인하실 수
             있습니다. (상대평가 영역은 표준점수, 절대평가 영역은 원점수 기준)
           </p>
-        </div>
+        </header>
 
         {/* 필터 */}
-        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm mb-10">
           <table className="w-full border-collapse text-left">
             <tbody>
               <FilterRow label="연도">
@@ -212,7 +223,7 @@ export default function SuneungGradeCutPage() {
             </table>
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

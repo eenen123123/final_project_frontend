@@ -58,17 +58,28 @@ export default function BooksPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50/50">
-      <main className="max-w-6xl mx-auto px-6 py-10 space-y-5">
-        {/* 상단 타이틀 */}
-        <div className="mb-6">
-          <h3 className="text-2xl font-bold text-gray-900 tracking-tight">
-            HERMES 강의 교재
-          </h3>
-          <p className="text-sm text-gray-500 mt-1">
+    <div className="min-h-screen bg-zinc-50">
+      <div className="max-w-6xl mx-auto px-4 md:px-6 py-12">
+        {/* 헤더 */}
+        <header className="mb-5">
+          <p
+            className="text-xs tracking-widest uppercase mb-2 transition-colors duration-300"
+            style={{
+              fontFamily: "var(--font-mono-editorial)",
+            }}
+          >
+            HERMES · BOOKS
+          </p>
+          <h1
+            className="text-5xl md:text-6xl text-zinc-900"
+            style={{ fontFamily: "var(--font-display)" }}
+          >
+            강의 교재
+          </h1>
+          <p className="mt-3 text-sm text-zinc-500">
             과목별 최신 입고 완료 교재들을 한눈에 확인하고 구매하실 수 있습니다.
           </p>
-        </div>
+        </header>
 
         {/* 필터 */}
         <BookFilter
@@ -79,8 +90,8 @@ export default function BooksPage() {
         />
 
         {/* 교재 목록 */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between px-1">
+        <div className="space-y-4 mt-5">
+          <div className="flex items-center justify-between px-1 py-3">
             <span className="text-sm text-gray-600">
               총 <b className="text-gray-900 font-semibold">{totalCount}</b>권의
               교재
@@ -152,8 +163,7 @@ export default function BooksPage() {
             </div>
           )}
         </div>
-      </main>
-
+      </div>
     </div>
   );
 }

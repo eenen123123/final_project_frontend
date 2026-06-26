@@ -100,6 +100,7 @@ const GUIDE_ITEMS = [
 ];
 
 function formatPrice(price: number) {
+  if (isNaN(price) || price === null || price === undefined) return "0";
   return price.toLocaleString("ko-KR");
 }
 
@@ -116,9 +117,16 @@ export default function CartPage() {
       setLoading(true);
       try {
         const res = await api.get("/api/cart");
-        const loaded = res.data.map((d: Omit<CartItem, "checked">) => ({ ...d, checked: true }));
+        const loaded = res.data.map((d: Omit<CartItem, "checked">) => ({
+          ...d,
+          checked: true,
+        }));
         setItems(loaded);
-        setQtyInputs(Object.fromEntries(loaded.map((i: CartItem) => [i.cartSn, String(i.itemQty)])));
+        setQtyInputs(
+          Object.fromEntries(
+            loaded.map((i: CartItem) => [i.cartSn, String(i.itemQty)]),
+          ),
+        );
       } catch {
         // 401이면 api.ts 인터셉터가 /login으로 리다이렉트
       } finally {
@@ -144,7 +152,8 @@ export default function CartPage() {
       await api.delete(`/api/cart/${cartSn}`);
       setItems((prev) => prev.filter((item) => item.cartSn !== cartSn));
     } catch (err) {
-      if (axios.isAxiosError(err)) alert(err.response?.data?.message ?? "삭제 중 오류가 발생했습니다.");
+      if (axios.isAxiosError(err))
+        alert(err.response?.data?.message ?? "삭제 중 오류가 발생했습니다.");
     }
   };
 
@@ -153,10 +162,13 @@ export default function CartPage() {
     if (!window.confirm("선택된 상품을 삭제하시겠습니까?")) return;
     try {
       const targets = items.filter((i) => i.checked);
-      await Promise.all(targets.map((i) => api.delete(`/api/cart/${i.cartSn}`)));
+      await Promise.all(
+        targets.map((i) => api.delete(`/api/cart/${i.cartSn}`)),
+      );
       setItems((prev) => prev.filter((item) => !item.checked));
     } catch (err) {
-      if (axios.isAxiosError(err)) alert(err.response?.data?.message ?? "삭제 중 오류가 발생했습니다.");
+      if (axios.isAxiosError(err))
+        alert(err.response?.data?.message ?? "삭제 중 오류가 발생했습니다.");
     }
   };
 
@@ -166,7 +178,8 @@ export default function CartPage() {
       alert("최대 구입수량은 50 개 입니다.");
       setItems((prev) => {
         const current = prev.find((i) => i.cartSn === cartSn);
-        if (current) setQtyInputs((q) => ({ ...q, [cartSn]: String(current.itemQty) }));
+        if (current)
+          setQtyInputs((q) => ({ ...q, [cartSn]: String(current.itemQty) }));
         return prev;
       });
       return;
@@ -183,10 +196,14 @@ export default function CartPage() {
       // 실패 시 입력값을 현재 수량으로 되돌림
       setItems((prev) => {
         const current = prev.find((i) => i.cartSn === cartSn);
-        if (current) setQtyInputs((q) => ({ ...q, [cartSn]: String(current.itemQty) }));
+        if (current)
+          setQtyInputs((q) => ({ ...q, [cartSn]: String(current.itemQty) }));
         return prev;
       });
-      if (axios.isAxiosError(err)) alert(err.response?.data?.message ?? "수량 변경 중 오류가 발생했습니다.");
+      if (axios.isAxiosError(err))
+        alert(
+          err.response?.data?.message ?? "수량 변경 중 오류가 발생했습니다.",
+        );
     }
   };
 
@@ -197,7 +214,8 @@ export default function CartPage() {
       await api.delete("/api/cart");
       setItems([]);
     } catch (err) {
-      if (axios.isAxiosError(err)) alert(err.response?.data?.message ?? "삭제 중 오류가 발생했습니다.");
+      if (axios.isAxiosError(err))
+        alert(err.response?.data?.message ?? "삭제 중 오류가 발생했습니다.");
     }
   };
 
@@ -211,7 +229,7 @@ export default function CartPage() {
   return (
     <div className="min-h-screen bg-gray-50/50">
       <div className="max-w-6xl mx-auto px-6 py-10">
-        <div className="flex gap-8 items-start">
+        <div className="flex flex-col lg:flex-row gap-8 lg:items-start">
           <MyPageSidebar
             activeSection={activeSection}
             onSectionChange={setActiveSection}
@@ -358,31 +376,51 @@ export default function CartPage() {
                                   inputMode="numeric"
                                   value={qtyInputs[item.cartSn] ?? item.itemQty}
                                   onChange={(e) => {
-                                    const val = e.target.value.replace(/\D/g, "");
-                                    setQtyInputs((prev) => ({ ...prev, [item.cartSn]: val }));
+                                    const val = e.target.value.replace(
+                                      /\D/g,
+                                      "",
+                                    );
+                                    setQtyInputs((prev) => ({
+                                      ...prev,
+                                      [item.cartSn]: val,
+                                    }));
                                   }}
                                   onBlur={() => {
-                                    const val = parseInt(qtyInputs[item.cartSn] ?? "");
-                                    if (!isNaN(val) && val >= 1 && val !== item.itemQty) {
+                                    const val = parseInt(
+                                      qtyInputs[item.cartSn] ?? "",
+                                    );
+                                    if (
+                                      !isNaN(val) &&
+                                      val >= 1 &&
+                                      val !== item.itemQty
+                                    ) {
                                       updateQty(item.cartSn, val);
                                     } else {
-                                      setQtyInputs((prev) => ({ ...prev, [item.cartSn]: String(item.itemQty) }));
+                                      setQtyInputs((prev) => ({
+                                        ...prev,
+                                        [item.cartSn]: String(item.itemQty),
+                                      }));
                                     }
                                   }}
                                   onKeyDown={(e) => {
-                                    if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+                                    if (e.key === "Enter")
+                                      (e.target as HTMLInputElement).blur();
                                   }}
                                   className="w-12 h-7 border border-gray-300 text-center text-sm focus:outline-none focus:border-gray-500"
                                 />
                                 <div className="flex flex-col h-7 border border-l-0 border-gray-300">
                                   <button
-                                    onClick={() => updateQty(item.cartSn, item.itemQty + 1)}
+                                    onClick={() =>
+                                      updateQty(item.cartSn, item.itemQty + 1)
+                                    }
                                     className="flex-1 px-1.5 text-gray-500 hover:bg-gray-100 cursor-pointer leading-none text-[10px]"
                                   >
                                     ▲
                                   </button>
                                   <button
-                                    onClick={() => updateQty(item.cartSn, item.itemQty - 1)}
+                                    onClick={() =>
+                                      updateQty(item.cartSn, item.itemQty - 1)
+                                    }
                                     disabled={item.itemQty <= 1}
                                     className="flex-1 px-1.5 text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer leading-none text-[10px] border-t border-gray-300"
                                   >
@@ -400,7 +438,11 @@ export default function CartPage() {
                           <td className="py-4 px-4 text-center align-middle">
                             <div className="flex flex-col items-center gap-1">
                               <button
-                                onClick={() => navigate("/checkout", { state: { items: [item] } })}
+                                onClick={() =>
+                                  navigate("/checkout", {
+                                    state: { items: [item] },
+                                  })
+                                }
                                 className="w-16 py-1 bg-gray-600 text-white text-xs hover:bg-gray-800 transition-colors cursor-pointer"
                               >
                                 주문 &gt;
@@ -434,7 +476,6 @@ export default function CartPage() {
                     전체상품 삭제 &gt;
                   </button>
                 </div>
-
               </>
             )}
 
@@ -445,7 +486,9 @@ export default function CartPage() {
                   <p className="text-xs text-gray-500 mb-2">총 주문금액</p>
                   <p className="text-xl font-bold text-gray-800">
                     {formatPrice(totalPrice)}
-                    <span className="text-sm font-normal text-gray-500 ml-0.5">원</span>
+                    <span className="text-sm font-normal text-gray-500 ml-0.5">
+                      원
+                    </span>
                   </p>
                 </div>
                 <div className="py-6 text-center relative">
@@ -455,7 +498,9 @@ export default function CartPage() {
                   <p className="text-xs text-gray-500 mb-2">총 할인금액</p>
                   <p className="text-xl font-bold text-gray-800">
                     0
-                    <span className="text-sm font-normal text-gray-500 ml-0.5">원</span>
+                    <span className="text-sm font-normal text-gray-500 ml-0.5">
+                      원
+                    </span>
                   </p>
                 </div>
                 <div className="py-6 text-center relative">
@@ -465,7 +510,9 @@ export default function CartPage() {
                   <p className="text-xs text-gray-500 mb-2">총 결제예상금액</p>
                   <p className="text-xl font-bold text-orange-500">
                     {formatPrice(totalPrice)}
-                    <span className="text-sm font-normal text-gray-400 ml-0.5">원</span>
+                    <span className="text-sm font-normal text-gray-400 ml-0.5">
+                      원
+                    </span>
                   </p>
                 </div>
               </div>
