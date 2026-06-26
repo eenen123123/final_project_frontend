@@ -52,7 +52,7 @@ function InstructorCard({
           <img
             src={instr.instrProfileImg}
             alt={instr.userName}
-            className="w-full h-full object-cover"
+            className="w-auto h-full mx-auto object-cover backdrop-blur-2xl transition-transform duration-300 group-hover:scale-105"
           />
         ) : (
           <div
@@ -243,7 +243,7 @@ export default function Instructors() {
             해당 과목의 강사가 없습니다.
           </p>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-4">
             {visibleInstructors.map((instr) => (
               <InstructorCard
                 key={instr.instrUuid}
