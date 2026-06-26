@@ -79,7 +79,7 @@ export default function DataRoomDetailPage() {
               {item.postCn ? (
                 <div
                   className="text-sm text-gray-700 leading-relaxed prose max-w-none"
-                  dangerouslySetInnerHTML={{ __html: item.postCn }}
+                  dangerouslySetInnerHTML={{ __html: item.postCn.replace(/src="\/admin\//g, 'src="http://localhost:8080/admin/') }}
                 />
               ) : (
                 <p className="text-sm text-gray-400">내용이 없습니다.</p>

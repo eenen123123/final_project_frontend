@@ -26,10 +26,12 @@ export default function QnaDetailPage() {
       try {
         const res = await api.get<QnaItem>(`/api/qna/${postSn}`);
         const data = res.data;
-        if (typeof data.postCn === "string")
-          data.postCn = JSON.parse(data.postCn);
-        if (typeof data.answCn === "string")
-          data.answCn = JSON.parse(data.answCn);
+        if (typeof data.postCn === "string") {
+          try { data.postCn = JSON.parse(data.postCn); } catch { /* plain HTML */ }
+        }
+        if (typeof data.answCn === "string") {
+          try { data.answCn = JSON.parse(data.answCn); } catch { /* plain HTML */ }
+        }
         setQna(data);
       } catch (err) {
         if (axios.isAxiosError(err) && err.response?.status === 403) {
@@ -171,7 +173,9 @@ export default function QnaDetailPage() {
                 </h2>
               </div>
               <div className="px-4 py-5 min-h-24">
-                <TipTapEditor initialContent={qna.postCn} editable={false} />
+                {typeof qna.postCn === "string"
+                  ? <div className="text-base text-gray-800 leading-relaxed prose max-w-none" dangerouslySetInnerHTML={{ __html: qna.postCn }} />
+                  : <TipTapEditor initialContent={qna.postCn} editable={false} />}
               </div>
             </div>
 
@@ -190,10 +194,9 @@ export default function QnaDetailPage() {
                 </div>
                 <div className="px-4 py-5">
                   <div className="text-sm text-gray-700 leading-relaxed">
-                    <TipTapEditor
-                      initialContent={qna.answCn}
-                      editable={false}
-                    />
+                    {typeof qna.answCn === "string"
+                      ? <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: qna.answCn }} />
+                      : <TipTapEditor initialContent={qna.answCn} editable={false} />}
                   </div>
                 </div>
               </div>
