@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronDown, ChevronUp } from "lucide-react";
 import api from "../../api/api";
 
 interface InstructorListResponse {
@@ -11,26 +10,114 @@ interface InstructorListResponse {
   instrProfileImg: string | null;
 }
 
-export default function Instructors() {
-  const navigate = useNavigate();
+const SUBJECT_ACCENT: Record<string, string> = {
+  국어: "#4F46E5",
+  수학: "#059669",
+  영어: "#E11D48",
+  사회탐구: "#D97706",
+  과학탐구: "#0891B2",
+};
 
+const SUBJECT_LABEL: Record<string, string> = {
+  국어: "KOREAN",
+  수학: "MATH",
+  영어: "ENGLISH",
+  사회탐구: "SOCIAL",
+  과학탐구: "SCIENCE",
+};
+
+const ACCENT_FALLBACK = "#3F3F46";
+
+function getAccent(subjectName: string): string {
+  return SUBJECT_ACCENT[subjectName] ?? ACCENT_FALLBACK;
+}
+
+function InstructorCard({
+  instr,
+  accent,
+}: {
+  instr: InstructorListResponse;
+  accent: string;
+}) {
+  const navigate = useNavigate();
+  const initial = instr.userName.charAt(0);
+
+  return (
+    <button
+      onClick={() => navigate(`/instructor/${instr.instrUuid}`)}
+      className="group text-left w-full bg-white border border-zinc-100 rounded-2xl overflow-hidden hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2"
+    >
+      <div className="aspect-4/3 w-full overflow-hidden">
+        {instr.instrProfileImg ? (
+          <img
+            src={instr.instrProfileImg}
+            alt={instr.userName}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div
+            className="w-full h-full flex items-center justify-center"
+            style={{ backgroundColor: accent }}
+          >
+            <span className="text-white font-black text-6xl select-none">
+              {initial}
+            </span>
+          </div>
+        )}
+      </div>
+      <div className="p-4">
+        <p
+          className="font-black text-zinc-900 text-xl tracking-tight group-hover:underline"
+          style={{ textDecorationColor: accent }}
+        >
+          {instr.userName}
+        </p>
+        {SUBJECT_LABEL[instr.subjectClNm] && (
+          <p
+            className="mt-1 text-xs tracking-widest"
+            style={{
+              fontFamily: "var(--font-mono-editorial)",
+              color: accent,
+            }}
+          >
+            {SUBJECT_LABEL[instr.subjectClNm]}
+          </p>
+        )}
+      </div>
+    </button>
+  );
+}
+
+function SkeletonCard() {
+  return (
+    <div className="bg-white border border-zinc-100 rounded-2xl overflow-hidden animate-pulse">
+      <div className="aspect-4/3 bg-zinc-100" />
+      <div className="p-4 space-y-2">
+        <div className="h-5 w-2/3 bg-zinc-100 rounded" />
+        <div className="h-3 w-1/3 bg-zinc-100 rounded" />
+      </div>
+    </div>
+  );
+}
+
+export default function Instructors() {
+  const [allInstructors, setAllInstructors] = useState<InstructorListResponse[]>([]);
   const [subjects, setSubjects] = useState<
     { subjectClId: number; subjectClNm: string }[]
   >([]);
   const [selectedSubject, setSelectedSubject] = useState<number | null>(null);
-  const [instructors, setInstructors] = useState<InstructorListResponse[]>([]);
-  const [loadingSubjects, setLoadingSubjects] = useState(true);
-  const [loadingInstructors, setLoadingInstructors] = useState(false);
-  const [subjectError, setSubjectError] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
-  // 최초 마운트: 전체 강사 목록으로 과목 탭 구성
   useEffect(() => {
     api
       .get<InstructorListResponse[]>("/api/instructors")
       .then((res) => {
+        const data = res.data;
+        setAllInstructors(data);
         const unique = Array.from(
           new Map(
-            res.data.map((i) => [
+            data.map((i) => [
               i.subjectClId,
               { subjectClId: i.subjectClId, subjectClNm: i.subjectClNm },
             ]),
@@ -39,52 +126,24 @@ export default function Instructors() {
         setSubjects(unique);
         if (unique.length > 0) setSelectedSubject(unique[0].subjectClId);
       })
-      .catch(() => setSubjectError(true))
-      .finally(() => setLoadingSubjects(false));
+      .catch(() => setError(true))
+      .finally(() => setLoading(false));
   }, []);
 
-  // 과목 선택 시 해당 강사 목록 조회
-  useEffect(() => {
-    if (selectedSubject === null) return;
-    const controller = new AbortController();
-
-    const loadInstructors = async () => {
-      setLoadingInstructors(true);
-      try {
-        const res = await api.get<InstructorListResponse[]>(
-          "/api/instructors",
-          {
-            params: { subjClId: selectedSubject },
-            signal: controller.signal,
-          },
-        );
-        setInstructors(res.data);
-      } catch (e) {
-        if (!controller.signal.aborted) throw e;
-      } finally {
-        if (!controller.signal.aborted) setLoadingInstructors(false);
-      }
-    };
-    loadInstructors();
-    return () => controller.abort();
-  }, [selectedSubject]);
-
-  const selectedName = subjects.find(
+  const selectedSubjectObj = subjects.find(
     (s) => s.subjectClId === selectedSubject,
-  )?.subjectClNm;
+  );
+  const accent = selectedSubjectObj
+    ? getAccent(selectedSubjectObj.subjectClNm)
+    : ACCENT_FALLBACK;
+  const visibleInstructors = allInstructors.filter(
+    (i) => i.subjectClId === selectedSubject,
+  );
 
-  if (loadingSubjects) {
+  if (error) {
     return (
-      <div className="w-full min-h-screen bg-white flex items-center justify-center">
-        <p className="text-sm text-gray-400 font-bold">불러오는 중...</p>
-      </div>
-    );
-  }
-
-  if (subjectError) {
-    return (
-      <div className="w-full min-h-screen bg-white flex items-center justify-center">
-        <p className="text-sm text-gray-400 font-bold">
+      <div className="w-full min-h-screen flex items-center justify-center">
+        <p className="text-sm text-zinc-500 font-bold">
           강사 목록을 불러오지 못했습니다.
         </p>
       </div>
@@ -92,140 +151,105 @@ export default function Instructors() {
   }
 
   return (
-    <div className="w-full min-h-screen bg-white text-gray-800">
-      <main className="max-w-7xl mx-auto px-6 py-8 grid grid-cols-12 gap-6">
-        {/* 좌측 과목 네비게이션 */}
-        <aside className="col-span-12 md:col-span-3 bg-white border border-gray-200 rounded-lg h-fit overflow-hidden">
-          <div className="px-4 py-3 border-b border-gray-200">
-            <h2 className="font-black text-xs text-gray-900 text-center tracking-widest uppercase">
-              HERMES 강사
-            </h2>
-          </div>
-          <nav className="divide-y divide-gray-200">
-            {subjects.map((subject) => {
-              const isSelected = selectedSubject === subject.subjectClId;
-              return (
-                <div key={subject.subjectClId}>
-                  <button
-                    onClick={() => setSelectedSubject(subject.subjectClId)}
-                    className={`w-full text-left px-4 py-2.5 text-sm font-bold flex justify-between items-center transition-colors cursor-pointer ${
-                      isSelected
-                        ? "text-blue-600 bg-blue-50"
-                        : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
-                    }`}
-                  >
-                    <span className="tracking-tight">
-                      {subject.subjectClNm}
-                    </span>
-                    {isSelected ? (
-                      <ChevronUp size={14} />
-                    ) : (
-                      <ChevronDown size={14} />
-                    )}
-                  </button>
+    <div className="w-full min-h-screen bg-zinc-50">
+      <div className="max-w-6xl mx-auto px-4 md:px-6 py-12">
+        {/* 헤더 */}
+        <header className="mb-10">
+          <p
+            className="text-xs tracking-widest uppercase mb-2 transition-colors duration-300"
+            style={{
+              fontFamily: "var(--font-mono-editorial)",
+              color: accent,
+            }}
+          >
+            HERMES · LINEUP
+          </p>
+          <h1
+            className="text-5xl md:text-6xl text-zinc-900"
+            style={{ fontFamily: "var(--font-display)" }}
+          >
+            강사진
+          </h1>
+          <p className="mt-3 text-sm text-zinc-500">
+            대표 강사진을 확인하고 강좌를 수강하세요.
+          </p>
+        </header>
 
-                  {isSelected && (
-                    <div className="px-4 pb-3 pt-2 bg-white text-xs border-t border-gray-200">
-                      {loadingInstructors ? (
-                        <p className="text-gray-400 font-bold">
-                          불러오는 중...
-                        </p>
-                      ) : (
-                        <div className="flex flex-col gap-1.5 text-gray-600 font-bold">
-                          {instructors.map((instr) => (
-                            <span
-                              key={instr.instrUuid}
-                              onClick={() =>
-                                navigate(`/instructor/${instr.instrUuid}`)
-                              }
-                              className="hover:text-blue-600 cursor-pointer transition-colors tracking-tight"
-                            >
-                              {instr.userName}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </nav>
-        </aside>
-
-        {/* 우측 콘텐츠 영역 */}
-        <section className="col-span-12 md:col-span-9 space-y-5">
-          {/* 상단 과목 탭 바 */}
-          <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-            <div className="flex overflow-x-auto scrollbar-none px-2 py-2 gap-0.5">
-              {subjects.map((subject) => {
-                const isSelected = selectedSubject === subject.subjectClId;
+        {/* 탭 필터 */}
+        <div className="flex overflow-x-auto scrollbar-none border-b border-zinc-200 mb-8 gap-1">
+          {loading
+            ? Array.from({ length: 4 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="h-4 w-16 bg-zinc-200 rounded animate-pulse mb-4 shrink-0"
+                />
+              ))
+            : subjects.map((s) => {
+                const isActive = s.subjectClId === selectedSubject;
                 return (
                   <button
-                    key={subject.subjectClId}
-                    onClick={() => setSelectedSubject(subject.subjectClId)}
-                    className={`flex-1 min-w-[72px] text-center px-3.5 py-1.5 rounded-md text-sm font-bold whitespace-nowrap cursor-pointer transition-colors ${
-                      isSelected
-                        ? "bg-gray-900 text-white"
-                        : "text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+                    key={s.subjectClId}
+                    onClick={() => setSelectedSubject(s.subjectClId)}
+                    className={`relative pb-3 px-3 text-sm font-bold whitespace-nowrap transition-colors shrink-0 ${
+                      isActive ? "" : "text-zinc-400 hover:text-zinc-900"
                     }`}
+                    style={isActive ? { color: accent } : undefined}
                   >
-                    {subject.subjectClNm}
+                    {s.subjectClNm}
+                    {isActive && (
+                      <span
+                        className="absolute bottom-0 left-0 w-full h-0.5 rounded-full transition-colors duration-300"
+                        style={{ backgroundColor: accent }}
+                      />
+                    )}
                   </button>
                 );
               })}
-            </div>
-          </div>
+        </div>
 
-          {/* 강사 라인업 */}
-          <div className="space-y-4">
-            <div>
-              <h3 className="text-lg font-black text-gray-900 tracking-tight">
-                {selectedName} 라인업
-              </h3>
-              <p className="text-xs text-gray-500 mt-0.5 font-bold">
-                대표 강사진을 확인하고 강좌를 수강하세요.
-              </p>
-            </div>
-
-            {loadingInstructors ? (
-              <p className="text-sm text-gray-400 font-bold">불러오는 중...</p>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                {instructors.map((instr) => (
-                  <div
-                    key={instr.instrUuid}
-                    onClick={() => navigate(`/instructor/${instr.instrUuid}`)}
-                    className="bg-white rounded-lg overflow-hidden border border-gray-200 hover:border-gray-300 transition-colors group cursor-pointer"
-                  >
-                    <div className="p-4 flex items-center gap-3">
-                      {instr.instrProfileImg ? (
-                        <img
-                          src={instr.instrProfileImg}
-                          alt={instr.userName}
-                          className="w-10 h-10 rounded-lg object-cover shrink-0"
-                        />
-                      ) : (
-                        <div className="w-10 h-10 bg-gray-900 rounded-lg flex items-center justify-center font-black text-white text-xs shrink-0">
-                          T
-                        </div>
-                      )}
-                      <div className="min-w-0 flex-1">
-                        <h4 className="font-black text-gray-900 text-sm group-hover:text-blue-600 transition-colors truncate tracking-tight">
-                          {instr.userName}
-                        </h4>
-                        <p className="text-[11px] text-gray-400 mt-0.5 font-bold tracking-tight">
-                          {selectedName} 강사
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+        {/* 섹션 헤더 */}
+        {!loading && selectedSubjectObj && (
+          <div className="flex items-center gap-4 mb-6">
+            <div
+              className="h-px flex-1"
+              style={{ backgroundColor: accent, opacity: 0.25 }}
+            />
+            <h2
+              className="text-2xl text-zinc-900 shrink-0"
+              style={{ fontFamily: "var(--font-display)" }}
+            >
+              {selectedSubjectObj.subjectClNm} 라인업
+            </h2>
+            <div
+              className="h-px flex-1"
+              style={{ backgroundColor: accent, opacity: 0.25 }}
+            />
           </div>
-        </section>
-      </main>
+        )}
+
+        {/* 카드 그리드 */}
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <SkeletonCard key={i} />
+            ))}
+          </div>
+        ) : visibleInstructors.length === 0 ? (
+          <p className="text-sm text-zinc-400 text-center py-16">
+            해당 과목의 강사가 없습니다.
+          </p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {visibleInstructors.map((instr) => (
+              <InstructorCard
+                key={instr.instrUuid}
+                instr={instr}
+                accent={accent}
+              />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
