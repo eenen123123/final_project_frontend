@@ -32,7 +32,7 @@ export default function NewHeader() {
     { to: "/courses", label: "전체 강좌" },
     { to: "/header/books", label: "강의교재" },
     { to: "/gradeCut", label: "등급컷 조회" },
-    { to: "/header/Ainavigator", label: "AI 입시정보" },
+    // { to: "/header/Ainavigator", label: "AI 입시정보" },
     // { to: "/header/books", label: "HERMES 패스" },
     {
       to: "/viewer?courseId=81&lectureId=23",
