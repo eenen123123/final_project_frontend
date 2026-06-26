@@ -1,25 +1,30 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../../api/api";
+import RichContent from "../../components/RichContent";
+import { useAuth } from "../../auth/AuthContext";
 
 interface QnaDetail {
-  boardSn?: number;
-  postSn?: number;
-  boardSj?: string;
-  postSj?: string;
-  boardCn?: string;
-  postCn?: string;
+  boardSn?: number; postSn?: number;
+  boardSj?: string; postSj?: string;
+  boardCn?: string; postCn?: string;
   wrtrUserId?: string;
   memberDto?: { userName: string };
   regDt: string | null;
+  inqCnt?: number | null;
   answYn: string;
   answCn?: string | null;
   answDt?: string | null;
+  answrUserNm?: string | null;
+  answrUserId?: string | null;
 }
 
 export default function ClassroomQnaPage() {
   const { classId, postSn } = useParams();
   const navigate = useNavigate();
+  const { getUserName } = useAuth();
+  const myName = getUserName();
+
   const [qna, setQna] = useState<QnaDetail | null>(null);
   const [status, setStatus] = useState<"loading" | "error" | "ready">("loading");
 
@@ -30,11 +35,9 @@ export default function ClassroomQnaPage() {
       .catch(() => setStatus("error"));
   }, [classId, postSn]);
 
-  if (status === "loading") return (
-    <div className="min-h-screen bg-white flex items-center justify-center text-slate-400 text-sm">불러오는 중...</div>
-  );
+  if (status === "loading") return <div className="flex-1 flex items-center justify-center text-slate-400 text-sm">불러오는 중...</div>;
   if (status === "error") return (
-    <div className="min-h-screen bg-white flex flex-col items-center justify-center gap-4">
+    <div className="flex-1 flex flex-col items-center justify-center gap-4">
       <i className="fa-solid fa-triangle-exclamation text-4xl text-red-200" />
       <p className="text-base font-bold text-slate-700">Q&A를 불러오지 못했습니다.</p>
       <button onClick={() => navigate(-1)} className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold rounded-xl transition-colors">돌아가기</button>
@@ -45,40 +48,52 @@ export default function ClassroomQnaPage() {
   const title = qna.boardSj ?? qna.postSj ?? "";
   const content = qna.boardCn ?? qna.postCn ?? "";
   const author = qna.memberDto?.userName ?? qna.wrtrUserId ?? "-";
+  const sn = qna.postSn ?? qna.boardSn;
+  const isMyPost = myName && qna.memberDto?.userName === myName;
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans antialiased">
-      <header className="sticky top-0 z-50 bg-white border-b border-slate-100 px-10 h-16 flex items-center gap-4">
-        <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-slate-400 hover:text-slate-600 transition-colors text-sm font-medium">
-          <i className="fa-solid fa-arrow-left" /> Q&A
+    <div className="flex-1">
+      <div className="max-w-5xl mx-auto px-10 py-8 flex flex-col gap-5">
+        <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-slate-400 hover:text-slate-600 transition-colors text-sm font-medium w-fit">
+          <i className="fa-solid fa-arrow-left" /> Q&A 목록으로
         </button>
-        <span className="text-slate-200">/</span>
-        <span className="text-base font-bold text-slate-800 truncate">{title}</span>
-      </header>
 
-      <main className="max-w-3xl mx-auto px-6 py-10 flex flex-col gap-5">
-        {/* 질문 */}
         <div className="bg-white border border-slate-100 rounded-2xl overflow-hidden">
-          <div className="px-7 py-5 border-b border-slate-100 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="w-7 h-7 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-400 text-xs flex-shrink-0">
-                <i className="fa-solid fa-question" />
-              </span>
+          <div className="px-7 py-5 border-b border-slate-100 flex items-start justify-between gap-4">
+            <div className="min-w-0 flex-1">
               <h1 className="text-base font-bold text-slate-800">{title}</h1>
+              <div className="flex items-center gap-3 mt-2 text-sm text-slate-400">
+                <span>{author}</span>
+                <span className="w-px h-3 bg-slate-200" />
+                <span>{qna.regDt ? qna.regDt.slice(0, 16).replace("T", " ") : "-"}</span>
+                {qna.inqCnt != null && (
+                  <>
+                    <span className="w-px h-3 bg-slate-200" />
+                    <span>조회 {qna.inqCnt}</span>
+                  </>
+                )}
+              </div>
             </div>
-            {qna.answYn === "Y"
-              ? <span className="text-xs font-semibold px-2.5 py-1 rounded-lg border border-emerald-100 bg-emerald-50 text-emerald-600 shrink-0">답변완료</span>
-              : <span className="text-xs font-semibold px-2.5 py-1 rounded-lg border border-amber-100 bg-amber-50 text-amber-500 shrink-0">미답변</span>
-            }
+            <div className="flex items-center gap-2 shrink-0">
+              {qna.answYn === "Y"
+                ? <span className="text-xs font-semibold px-2.5 py-1 rounded-lg border border-emerald-100 bg-emerald-50 text-emerald-600">답변완료</span>
+                : <span className="text-xs font-semibold px-2.5 py-1 rounded-lg border border-amber-100 bg-amber-50 text-amber-500">미답변</span>
+              }
+              {isMyPost && sn && (
+                <button
+                  onClick={() => navigate(`/classroom/${classId}/qna/${sn}/edit`)}
+                  className="text-sm font-semibold px-3 py-1.5 border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 transition-colors">
+                  수정
+                </button>
+              )}
+            </div>
           </div>
-          <div className="px-7 py-3 border-b border-slate-50 flex items-center gap-4 text-xs text-slate-400">
-            <span>{author}</span>
-            <span>{qna.regDt ? qna.regDt.slice(0, 10) : "-"}</span>
+
+          <div className="px-7 py-6 text-sm text-slate-700 leading-relaxed min-h-[120px] whitespace-pre-wrap">
+            {content}
           </div>
-          <div className="px-7 py-6 text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">{content}</div>
         </div>
 
-        {/* 답변 */}
         {qna.answYn === "Y" && (
           <div className="bg-white border border-slate-100 rounded-2xl overflow-hidden">
             <div className="px-7 py-5 border-b border-slate-100 flex items-center gap-3">
@@ -86,14 +101,18 @@ export default function ClassroomQnaPage() {
                 <i className="fa-solid fa-check" />
               </span>
               <h2 className="text-sm font-bold text-slate-800">강사 답변</h2>
-              {qna.answDt && <span className="text-xs text-slate-400 ml-auto">{qna.answDt.slice(0, 10)}</span>}
+              {(qna.answrUserNm ?? qna.answrUserId) && (
+                <span className="text-sm text-slate-400">{qna.answrUserNm ?? qna.answrUserId}</span>
+              )}
+              {qna.answDt && <span className="text-sm text-slate-400 ml-auto">{qna.answDt.slice(0, 16).replace("T", " ")}</span>}
             </div>
-            <div className="px-7 py-6 text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
-              {qna.answCn ?? "답변 내용이 없습니다."}
-            </div>
+            <RichContent
+              html={qna.answCn ?? ""}
+              className="px-7 py-6 text-sm text-slate-700 leading-relaxed prose prose-sm max-w-none"
+            />
           </div>
         )}
-      </main>
+      </div>
     </div>
   );
 }
