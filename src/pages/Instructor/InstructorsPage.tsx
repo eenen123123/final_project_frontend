@@ -189,6 +189,8 @@ export default function Instructors() {
                 return (
                   <button
                     key={s.subjectClId}
+                    role="tab"
+                    aria-selected={isActive}
                     onClick={() => setSelectedSubject(s.subjectClId)}
                     className={`relative pb-3 px-3 text-sm font-bold whitespace-nowrap transition-colors shrink-0 ${
                       isActive ? "" : "text-zinc-400 hover:text-zinc-900"

@@ -20,3 +20,10 @@ body {
 button {
   @apply cursor-pointer;
 }
+
+.scrollbar-none {
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
