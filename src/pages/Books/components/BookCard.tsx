@@ -62,18 +62,18 @@ export default function BookCard({ book }: { book: TextbookDto }) {
 
   return (
     <div onClick={goDetail} className="bg-white rounded-2xl overflow-hidden shadow-sm transition-all border border-gray-100 hover:shadow-md hover:border-gray-200 cursor-pointer">
-      <div className="flex gap-6 p-5 items-start">
+      <div className="p-4 sm:p-5 sm:flex sm:gap-6 sm:items-start">
 
-        {/* 북 커버 */}
-        <div className="flex-shrink-0">
+        {/* 북 커버 (모바일: float로 띄워 본문이 아래까지 감싸도록) */}
+        <div className="float-left mr-4 mb-2 sm:float-none sm:mr-0 sm:mb-0 sm:shrink-0">
           {book.thmbImg ? (
             <img
               src={book.thmbImg}
               alt={book.textbookNm}
-              className="w-36 h-48 object-cover rounded-r-xl shadow-md"
+              className="w-24 h-32 sm:w-36 sm:h-48 object-cover rounded-r-xl shadow-md"
             />
           ) : (
-            <div className="w-36 h-48 bg-blue-900 rounded-r-xl shadow-md p-3 flex flex-col justify-between text-white border-l-4 border-black/20">
+            <div className="w-24 h-32 sm:w-36 sm:h-48 bg-blue-900 rounded-r-xl shadow-md p-3 flex flex-col justify-between text-white border-l-4 border-black/20">
               <div className="space-y-1">
                 <span className="text-[9px] bg-white/20 px-1.5 py-0.5 rounded font-bold tracking-widest uppercase">
                   HERMES
@@ -90,7 +90,7 @@ export default function BookCard({ book }: { book: TextbookDto }) {
         </div>
 
         {/* 본문 */}
-        <div className="flex-1 min-w-0 flex flex-col gap-2">
+        <div className="sm:flex-1 sm:min-w-0 sm:flex sm:flex-col sm:gap-2">
           <div className="space-y-1">
             {/* 과목 배지 + 재고 상태 */}
             <div className="flex items-center gap-2 flex-wrap">
@@ -119,7 +119,7 @@ export default function BookCard({ book }: { book: TextbookDto }) {
             </div>
 
             {/* 교재명 */}
-            <h3 className="text-2xl font-bold text-gray-900 leading-snug">
+            <h3 className="text-base sm:text-2xl font-bold text-gray-900 leading-snug">
               {book.textbookNm}
             </h3>
 
@@ -127,7 +127,7 @@ export default function BookCard({ book }: { book: TextbookDto }) {
             {book.bookSmry && (
               <ul className="space-y-0.5 pt-0.5">
                 {book.bookSmry.split("\n").filter(l => l.trim()).slice(0, 2).map((line, i) => (
-                  <li key={i} className="flex items-start gap-1 text-sm text-gray-500 leading-relaxed">
+                  <li key={i} className="flex items-start gap-1 text-xs sm:text-sm text-gray-500 leading-relaxed">
                     <span className="text-gray-400 flex-shrink-0">·</span>
                     {line.trim()}
                   </li>
@@ -138,7 +138,7 @@ export default function BookCard({ book }: { book: TextbookDto }) {
           </div>
 
           {/* 하단 메타 + 버튼 */}
-          <div className="flex items-end justify-between gap-3 pt-1">
+          <div className="clear-left sm:clear-none flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 pt-2 sm:pt-1">
             <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
               {book.courseNm && (
                 <span>
@@ -156,8 +156,8 @@ export default function BookCard({ book }: { book: TextbookDto }) {
                 </span>
               )}
             </div>
-            <div className="flex flex-col items-end gap-1.5 shrink-0">
-              <span className="text-xl font-black text-gray-900">
+            <div className="flex items-center justify-between sm:flex-col sm:items-end gap-1.5 shrink-0">
+              <span className="text-lg sm:text-xl font-black text-gray-900">
                 {book.salePrcAmt.toLocaleString()}원
               </span>
               <div className="flex gap-2">
