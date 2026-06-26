@@ -67,6 +67,7 @@ export default function Login() {
   };
 
   useEffect(() => {
+    if (!import.meta.env.DEV) return;
     const fetchAccounts = async () => {
       try {
         const response = await api.get("/api/temp/accounts");
@@ -152,51 +153,55 @@ export default function Login() {
             </div>
           </form>
         </div>
-        <div>
-          <button
-            onClick={handleHidden}
-            className="w-full py-2.5 mt-4 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors cursor-pointer"
-          >
-            {hidden ? "열기" : "접기 (클릭해서 아이디 입력)"}
-          </button>
-        </div>
-        <div
-          className={`text-center text-sm text-gray-500 mt-6 ${hidden ? "hidden" : ""}`}
-        >
-          <table className="z-10 w-[700px] border-collapse mx-auto mt-4 text-center absolute left-1/2 -translate-x-1/2 font-bold">
-            <thead className="bg-gray-100">
-              <tr className="border">
-                <th className="px-4 py-2 border">아이디</th>
-                <th className="px-4 py-2 border">이름</th>
-                <th className="px-4 py-2 border">Role</th>
-                <th className="px-4 py-2 border">부서</th>
-                <th className="px-4 py-2 border">직급</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white">
-              {accounts.map((account) => (
-                <tr
-                  key={account.userId}
-                  className={`border ${bgColor[account.department] || "bg-gray-50"} cursor-pointer hover:bg-white transition-colors`}
-                  onClick={() => {
-                    setFormData((prev) => ({
-                      ...prev,
-                      userId: account.userId,
-                    }));
-                  }}
-                >
-                  <td className="border px-4 py-2">{account.userId}</td>
-                  <td className="border px-4 py-2">{account.userName}</td>
-                  <td className="border px-4 py-2 text-[12px]">
-                    {account.userRole}
-                  </td>
-                  <td className="border px-4 py-2">{account.department}</td>
-                  <td className="border px-4 py-2">{account.jobGrade}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        {import.meta.env.DEV && (
+          <>
+            <div>
+              <button
+                onClick={handleHidden}
+                className="w-full py-2.5 mt-4 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors cursor-pointer"
+              >
+                {hidden ? "열기" : "접기 (클릭해서 아이디 입력)"}
+              </button>
+            </div>
+            <div
+              className={`text-center text-sm text-gray-500 mt-6 ${hidden ? "hidden" : ""}`}
+            >
+              <table className="z-10 w-[700px] border-collapse mx-auto mt-4 text-center absolute left-1/2 -translate-x-1/2 font-bold">
+                <thead className="bg-gray-100">
+                  <tr className="border">
+                    <th className="px-4 py-2 border">아이디</th>
+                    <th className="px-4 py-2 border">이름</th>
+                    <th className="px-4 py-2 border">Role</th>
+                    <th className="px-4 py-2 border">부서</th>
+                    <th className="px-4 py-2 border">직급</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white">
+                  {accounts.map((account) => (
+                    <tr
+                      key={account.userId}
+                      className={`border ${bgColor[account.department] || "bg-gray-50"} cursor-pointer hover:bg-white transition-colors`}
+                      onClick={() => {
+                        setFormData((prev) => ({
+                          ...prev,
+                          userId: account.userId,
+                        }));
+                      }}
+                    >
+                      <td className="border px-4 py-2">{account.userId}</td>
+                      <td className="border px-4 py-2">{account.userName}</td>
+                      <td className="border px-4 py-2 text-[12px]">
+                        {account.userRole}
+                      </td>
+                      <td className="border px-4 py-2">{account.department}</td>
+                      <td className="border px-4 py-2">{account.jobGrade}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
