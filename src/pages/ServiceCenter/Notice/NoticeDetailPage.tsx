@@ -93,7 +93,7 @@ export default function NoticeDetailPage() {
             {/* 본문 */}
             <div className="min-h-48 py-6 border-t border-b border-gray-200 mb-6">
               {notice.postCn ? (
-                <div className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">{notice.postCn}</div>
+                <div className="text-sm text-gray-700 leading-relaxed prose max-w-none" dangerouslySetInnerHTML={{ __html: notice.postCn.replace(/src="\/admin\//g, 'src="http://localhost:8080/admin/') }} />
               ) : (
                 <p className="text-sm text-gray-400">내용이 없습니다.</p>
               )}
