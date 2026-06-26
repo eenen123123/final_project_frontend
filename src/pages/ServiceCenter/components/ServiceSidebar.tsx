@@ -39,10 +39,10 @@ const NAV: NavItem[] = [
     label: "공지사항",
     to: "/customer/notice",
   },
-  {
-    label: "자료실",
-    to: "/customer/resource",
-  },
+  // {
+  //   label: "자료실",
+  //   to: "/customer/resource",
+  // },
 ];
 
 export default function ServiceSidebar() {
@@ -55,7 +55,9 @@ export default function ServiceSidebar() {
       navigate(to);
       return;
     }
-    const confirmed = window.confirm("로그인이 필요한 서비스입니다.\n로그인하시겠습니까?");
+    const confirmed = window.confirm(
+      "로그인이 필요한 서비스입니다.\n로그인하시겠습니까?",
+    );
     if (confirmed) navigate("/login", { state: { from: { pathname: to } } });
   };
 
@@ -87,7 +89,9 @@ export default function ServiceSidebar() {
                 </Link>
               ) : (
                 <div>
-                  <p className="px-5 py-2.5 text-sm font-semibold text-gray-700">{item.label}</p>
+                  <p className="px-5 py-2.5 text-sm font-semibold text-gray-700">
+                    {item.label}
+                  </p>
                 </div>
               )}
 
@@ -130,7 +134,13 @@ export default function ServiceSidebar() {
         {/* 환불/취소 안내 버튼 */}
         <div className="px-4 py-3 border-t border-gray-100 bg-gray-50/50">
           <button
-            onClick={() => window.open("/info/refund", "refundPolicy", "width=720,height=600,scrollbars=yes,resizable=no")}
+            onClick={() =>
+              window.open(
+                "/info/refund",
+                "refundPolicy",
+                "width=720,height=600,scrollbars=yes,resizable=no",
+              )
+            }
             className="w-full py-2 text-xs font-semibold text-gray-600 border border-gray-200 rounded-lg bg-white hover:bg-gray-50 transition-colors shadow-sm cursor-pointer"
           >
             환불/취소 안내
