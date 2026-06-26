@@ -30,9 +30,11 @@ export default function ClassroomQnaPage() {
 
   useEffect(() => {
     if (!classId || !postSn) return;
-    api.get(`/api/classroom/${classId}/qna/${postSn}`)
+    const controller = new AbortController();
+    api.get(`/api/classroom/${classId}/qna/${postSn}`, { signal: controller.signal })
       .then((r) => { setQna(r.data); setStatus("ready"); })
-      .catch(() => setStatus("error"));
+      .catch(() => { if (!controller.signal.aborted) setStatus("error"); });
+    return () => controller.abort();
   }, [classId, postSn]);
 
   if (status === "loading") return <div className="flex-1 flex items-center justify-center text-slate-400 text-sm">불러오는 중...</div>;
@@ -54,7 +56,7 @@ export default function ClassroomQnaPage() {
   return (
     <div className="flex-1">
       <div className="max-w-5xl mx-auto px-10 py-8 flex flex-col gap-5">
-        <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-slate-400 hover:text-slate-600 transition-colors text-sm font-medium w-fit">
+        <button onClick={() => navigate(`/classroom/${classId}?tab=qna`)} className="flex items-center gap-2 text-slate-400 hover:text-slate-600 transition-colors text-sm font-medium w-fit">
           <i className="fa-solid fa-arrow-left" /> Q&A 목록으로
         </button>
 
@@ -89,9 +91,7 @@ export default function ClassroomQnaPage() {
             </div>
           </div>
 
-          <div className="px-7 py-6 text-sm text-slate-700 leading-relaxed min-h-[120px] whitespace-pre-wrap">
-            {content}
-          </div>
+          <RichContent html={content} className="px-7 py-6 text-sm text-slate-700 leading-relaxed min-h-[120px] prose prose-sm max-w-none whitespace-pre-wrap" />
         </div>
 
         {qna.answYn === "Y" && (

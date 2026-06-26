@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import api from "../../api/api";
+import api, { downloadFile } from "../../api/api";
 import RichContent from "../../components/RichContent";
 
 interface AttachedFile {
@@ -29,9 +29,11 @@ export default function ClassroomNoticePage() {
 
   useEffect(() => {
     if (!classId || !postSn) return;
-    api.get(`/api/classroom/${classId}/notices/${postSn}`)
+    const controller = new AbortController();
+    api.get(`/api/classroom/${classId}/notices/${postSn}`, { signal: controller.signal })
       .then((r) => { setNotice(r.data); setStatus("ready"); })
-      .catch(() => setStatus("error"));
+      .catch(() => { if (!controller.signal.aborted) setStatus("error"); });
+    return () => controller.abort();
   }, [classId, postSn]);
 
   if (status === "loading") return <div className="flex-1 flex items-center justify-center text-slate-400 text-sm">불러오는 중...</div>;
@@ -52,7 +54,7 @@ export default function ClassroomNoticePage() {
   return (
     <div className="flex-1">
       <div className="max-w-5xl mx-auto px-10 py-8">
-        <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-slate-400 hover:text-slate-600 transition-colors text-sm font-medium mb-6">
+        <button onClick={() => navigate(`/classroom/${classId}?tab=notice`)} className="flex items-center gap-2 text-slate-400 hover:text-slate-600 transition-colors text-sm font-medium mb-6">
           <i className="fa-solid fa-arrow-left" /> 공지사항 목록으로
         </button>
         <div className="bg-white border border-slate-100 rounded-2xl overflow-hidden">
@@ -87,10 +89,10 @@ export default function ClassroomNoticePage() {
                   <i className="fa-solid fa-paperclip text-slate-300" />
                   <span className="flex-1 truncate">{f.orgnFileNm}</span>
                   <span className="text-slate-400 text-xs whitespace-nowrap">{(f.fileSizeCnt / 1024).toFixed(1)} KB</span>
-                  <a href={`/api/files/${f.fileServerId}/download`}
+                  <button onClick={() => downloadFile(f.fileServerId, f.orgnFileNm)}
                     className="text-blue-500 hover:text-blue-700 transition-colors">
                     <i className="fa-solid fa-download" />
-                  </a>
+                  </button>
                 </div>
               ))}
             </div>
@@ -98,10 +100,10 @@ export default function ClassroomNoticePage() {
 
           {files.length === 0 && notice.atchFileId && (
             <div className="px-7 py-5 border-t border-slate-100">
-              <a href={`/api/files/${notice.atchFileId}/download`}
+              <button onClick={() => downloadFile(notice.atchFileId!, "첨부파일")}
                 className="inline-flex items-center gap-2 text-sm font-semibold text-blue-600 hover:underline">
                 <i className="fa-solid fa-paperclip" /> 첨부파일 다운로드
-              </a>
+              </button>
             </div>
           )}
         </div>

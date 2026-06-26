@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import RichContent from "../../components/RichContent";
 import api from "../../api/api";
 
 type QuestionType = "MULTIPLE_CHOICE" | "SHORT_ANSWER" | "ESSAY";
@@ -81,21 +82,21 @@ export default function ClassroomExamPage() {
       <i className="fa-solid fa-lock text-4xl text-slate-200" />
       <p className="text-base font-bold text-slate-700">시험에 접근할 수 없습니다.</p>
       <p className="text-sm text-slate-400">시험 시간이 아니거나 수강 권한이 없습니다.</p>
-      <button onClick={() => navigate(-1)} className="mt-2 px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold rounded-xl transition-colors">돌아가기</button>
+      <button onClick={() => navigate(`/classroom/${classId}?tab=exam`)} className="mt-2 px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold rounded-xl transition-colors">돌아가기</button>
     </div>
   );
   if (status === "already") return (
     <div className="flex-1 flex flex-col items-center justify-center gap-4">
       <i className="fa-solid fa-circle-check text-4xl text-emerald-300" />
       <p className="text-base font-bold text-slate-700">이미 제출한 시험입니다.</p>
-      <button onClick={() => navigate(-1)} className="mt-2 px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold rounded-xl transition-colors">돌아가기</button>
+      <button onClick={() => navigate(`/classroom/${classId}?tab=exam`)} className="mt-2 px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold rounded-xl transition-colors">돌아가기</button>
     </div>
   );
   if (status === "error") return (
     <div className="flex-1 flex flex-col items-center justify-center gap-4">
       <i className="fa-solid fa-triangle-exclamation text-4xl text-red-200" />
       <p className="text-base font-bold text-slate-700">시험 정보를 불러오지 못했습니다.</p>
-      <button onClick={() => navigate(-1)} className="mt-2 px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold rounded-xl transition-colors">돌아가기</button>
+      <button onClick={() => navigate(`/classroom/${classId}?tab=exam`)} className="mt-2 px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold rounded-xl transition-colors">돌아가기</button>
     </div>
   );
   if (status === "done") return (
@@ -103,7 +104,7 @@ export default function ClassroomExamPage() {
       <i className="fa-solid fa-circle-check text-5xl text-emerald-400" />
       <p className="text-xl font-black text-slate-800">제출 완료!</p>
       <p className="text-sm text-slate-400">답안이 성공적으로 제출되었습니다.</p>
-      <button onClick={() => navigate(-1)} className="mt-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition-colors">시험 목록으로</button>
+      <button onClick={() => navigate(`/classroom/${classId}?tab=exam`)} className="mt-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition-colors">시험 목록으로</button>
     </div>
   );
   if (!exam) return null;
@@ -141,7 +142,7 @@ export default function ClassroomExamPage() {
             <div className="px-8 py-5 border-b border-slate-100 flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <span className="w-8 h-8 rounded-full bg-blue-600 text-white text-sm font-black flex items-center justify-center flex-shrink-0">{q.qstnNo}</span>
-                <p className="text-sm font-semibold text-slate-800 leading-relaxed">{q.qstnCn}</p>
+                <RichContent html={q.qstnCn} className="text-sm font-semibold text-slate-800 leading-relaxed prose prose-sm max-w-none" />
               </div>
               <span className="text-xs font-bold text-blue-500 bg-blue-50 border border-blue-100 px-2.5 py-1 rounded-lg shrink-0">{q.score}점</span>
             </div>

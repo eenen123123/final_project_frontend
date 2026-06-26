@@ -113,4 +113,14 @@ api.interceptors.response.use(
   },
 );
 
+export async function downloadFile(fileServerId: number, fileName: string) {
+  const res = await api.get(`/api/files/${fileServerId}/download`, { responseType: "blob" });
+  const url = URL.createObjectURL(res.data as Blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = fileName;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export default api;

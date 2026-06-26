@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../../../api/api";
+import RichContent from "../../../components/RichContent";
 
 type TabType = "home" | "notice" | "lecture" | "assign" | "qna" | "dataroom" | "exam";
 
@@ -134,7 +135,7 @@ export function HomeTab({ classSn, onTabChange }: { classSn: number | null; onTa
         {[
           { label: "과제 제출률", value: summary ? `${summary.assignSubmitRate}%` : "-", sub: "제출 / 전체" },
           { label: "평균 점수", value: summary?.avgScore != null ? `${summary.avgScore}점` : "-", sub: "채점 완료 기준" },
-          { label: "예정/진행 시험", value: summary ? `${summary.upcomingExamCount}` : "0", sub: `예정 ${summary?.upcomingExamCount ?? 0}개` },
+          { label: "예정/진행 시험", value: summary ? `${summary.upcomingExamCount}` : "-", sub: "예정 + 진행 중 합계" },
         ].map((card) => (
           <div key={card.label} className="bg-white border border-slate-100 rounded-xl px-6 py-5">
             <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">{card.label}</p>
@@ -175,7 +176,7 @@ export function HomeTab({ classSn, onTabChange }: { classSn: number | null; onTa
               <p className="text-sm font-medium text-slate-400">미제출 과제가 없습니다.</p>
             </div>
           ) : (
-            <ul className="divide-y divide-slate-50">
+            <ul className="divide-y divide-slate-50 max-h-64 overflow-y-auto">
               {unsubmitted.map((a) => {
                 const badge = dDayBadge(a.dueDt);
                 return (
@@ -186,7 +187,7 @@ export function HomeTab({ classSn, onTabChange }: { classSn: number | null; onTa
                       <span className={`text-xs font-black px-2 py-1 rounded-lg border flex-shrink-0 ${badge.cls}`}>{badge.label}</span>
                     )}
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-slate-800 truncate">{a.asgmtNm}</p>
+                      <RichContent html={a.asgmtNm} className="text-sm font-semibold text-slate-800 prose prose-sm max-w-none" />
                       <p className="text-xs text-slate-400 mt-0.5">{a.dueDt ? a.dueDt.slice(0, 10) + " 마감" : "마감일 없음"}</p>
                     </div>
                   </li>
@@ -218,7 +219,7 @@ export function HomeTab({ classSn, onTabChange }: { classSn: number | null; onTa
                   <li key={sn}
                     onClick={() => sn && navigate(`/classroom/${classId}/notices/${sn}`)}
                     className="px-6 py-3 flex items-center justify-between gap-3 hover:bg-slate-50 transition-colors cursor-pointer">
-                    <p className="text-sm font-medium text-slate-800 truncate">{n.boardSj ?? n.postSj ?? "-"}</p>
+                    <RichContent html={n.boardSj ?? n.postSj ?? "-"} className="text-sm font-medium text-slate-800 prose prose-sm max-w-none" />
                     <span className="text-xs text-slate-400 shrink-0">{n.regDt ? n.regDt.slice(0, 10) : ""}</span>
                   </li>
                 );
@@ -246,7 +247,7 @@ export function HomeTab({ classSn, onTabChange }: { classSn: number | null; onTa
                   <li key={sn}
                     onClick={() => sn && navigate(`/classroom/${classId}/dataroom/${sn}`)}
                     className="px-6 py-3 flex items-center justify-between gap-3 hover:bg-slate-50 transition-colors cursor-pointer">
-                    <p className="text-sm font-medium text-slate-800 truncate">{d.boardSj ?? d.postSj ?? "-"}</p>
+                    <RichContent html={d.boardSj ?? d.postSj ?? "-"} className="text-sm font-medium text-slate-800 prose prose-sm max-w-none" />
                     <span className="text-xs text-slate-400 shrink-0">{d.regDt ? d.regDt.slice(0, 10) : ""}</span>
                   </li>
                 );
@@ -274,7 +275,7 @@ export function HomeTab({ classSn, onTabChange }: { classSn: number | null; onTa
                   <li key={sn}
                     onClick={() => sn && navigate(`/classroom/${classId}/qna/${sn}`)}
                     className="px-6 py-3 flex items-center justify-between gap-3 hover:bg-slate-50 transition-colors cursor-pointer">
-                    <p className="text-sm font-medium text-slate-800 truncate">{q.boardSj ?? q.postSj ?? "-"}</p>
+                    <RichContent html={q.boardSj ?? q.postSj ?? "-"} className="text-sm font-medium text-slate-800 prose prose-sm max-w-none" />
                     <span className="text-xs text-slate-400 shrink-0">{q.answDt ? q.answDt.slice(0, 10) : ""}</span>
                   </li>
                 );
@@ -343,7 +344,7 @@ export function NoticeTab({ classSn }: { classSn: number | null }) {
                     {totalCount - (currentPage - 1) * PAGE_SIZE - idx}
                   </td>
                   <td className="py-4 px-7">
-                    <span className="font-semibold text-slate-800 text-sm hover:text-blue-600 transition-colors">{n.boardSj ?? n.postSj}</span>
+                    <RichContent html={n.boardSj ?? n.postSj ?? ""} className="font-semibold text-slate-800 text-sm hover:text-blue-600 transition-colors prose prose-sm max-w-none" />
                   </td>
                   <td className="py-4 px-7 text-sm text-slate-500 whitespace-nowrap">
                     {n.memberDto?.userName ?? n.wrtrUserId ?? "-"}
@@ -527,7 +528,7 @@ export function AssignTab({ classSn }: { classSn: number | null }) {
                     {totalCount - (currentPage - 1) * PAGE_SIZE - idx}
                   </td>
                   <td className="py-4 px-7">
-                    <span className="font-semibold text-slate-800 text-sm hover:text-blue-600 transition-colors">{a.asgmtNm}</span>
+                    <RichContent html={a.asgmtNm} className="font-semibold text-slate-800 text-sm hover:text-blue-600 transition-colors prose prose-sm max-w-none" />
                   </td>
                   <td className="py-4 px-7 text-center whitespace-nowrap">
                     {a.submitted
@@ -539,7 +540,7 @@ export function AssignTab({ classSn }: { classSn: number | null }) {
                     {a.score != null ? `${a.score}점` : "-"}
                   </td>
                   <td className={`py-4 px-7 text-sm font-mono whitespace-nowrap ${isPast(a.dueDt) ? "text-slate-300" : "text-slate-400"}`}>
-                    {a.dueDt ?? "-"}
+                    {a.dueDt ? a.dueDt.slice(0, 16).replace("T", " ") : "-"}
                   </td>
                 </tr>
               ))}
@@ -619,7 +620,7 @@ export function QnaTab({ classSn }: { classSn: number | null }) {
                       {totalCount - (currentPage - 1) * PAGE_SIZE - idx}
                     </td>
                     <td className="py-4 px-7">
-                      <span className="font-semibold text-slate-800 text-sm hover:text-blue-600 transition-colors">{q.boardSj ?? q.postSj}</span>
+                      <RichContent html={q.boardSj ?? q.postSj ?? ""} className="font-semibold text-slate-800 text-sm hover:text-blue-600 transition-colors prose prose-sm max-w-none" />
                     </td>
                     <td className="py-4 px-7 text-sm text-slate-500 whitespace-nowrap">
                       {q.memberDto?.userName ?? q.wrtrUserId ?? "-"}
@@ -696,7 +697,6 @@ export function DataroomTab({ classSn }: { classSn: number | null }) {
               <tr className="border-b border-slate-100 text-sm text-slate-400">
                 <th className="py-4 px-7 w-14 font-medium whitespace-nowrap">번호</th>
                 <th className="py-4 px-7 font-medium">제목</th>
-                <th className="py-4 px-7 w-20 text-center font-medium whitespace-nowrap">파일</th>
                 <th className="py-4 px-7 w-32 font-medium whitespace-nowrap">작성자</th>
                 <th className="py-4 px-7 w-16 text-center font-medium whitespace-nowrap">조회</th>
                 <th className="py-4 px-7 w-32 font-medium whitespace-nowrap">등록일</th>
@@ -709,18 +709,7 @@ export function DataroomTab({ classSn }: { classSn: number | null }) {
                     {totalCount - (currentPage - 1) * PAGE_SIZE - idx}
                   </td>
                   <td className="py-4 px-7">
-                    <span className="font-semibold text-slate-800 text-sm hover:text-blue-600 transition-colors">{d.boardSj ?? d.postSj}</span>
-                  </td>
-                  <td className="py-4 px-7 text-center">
-                    {d.atchFileId && (
-                      <a
-                        href={`/api/files/${d.atchFileId}/download`}
-                        onClick={(e) => e.stopPropagation()}
-                        className="inline-flex items-center gap-1 text-xs font-semibold text-blue-500 bg-blue-50 border border-blue-100 px-2 py-1 rounded-lg whitespace-nowrap hover:bg-blue-100 transition-colors"
-                      >
-                        <i className="fa-solid fa-download text-xs" /> 다운로드
-                      </a>
-                    )}
+                    <RichContent html={d.boardSj ?? d.postSj ?? ""} className="font-semibold text-slate-800 text-sm hover:text-blue-600 transition-colors prose prose-sm max-w-none" />
                   </td>
                   <td className="py-4 px-7 text-sm text-slate-500 whitespace-nowrap">
                     {d.memberDto?.userName ?? d.wrtrUserId ?? "-"}
@@ -803,13 +792,15 @@ export function ExamTab({ classSn }: { classSn: number | null }) {
                   <tr key={e.examSn} className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
                     <td className="py-4 px-7 text-sm text-slate-300 font-mono whitespace-nowrap">{items.length - idx}</td>
                     <td className="py-4 px-7">
-                      <span className="font-semibold text-slate-800 text-sm">{e.examNm}</span>
+                      <RichContent html={e.examNm} className="font-semibold text-slate-800 text-sm prose prose-sm max-w-none" />
                     </td>
                     <td className="py-4 px-7 text-center whitespace-nowrap">
                       <span className={`text-xs font-semibold px-2.5 py-1 rounded-lg border ${st.cls}`}>{st.label}</span>
                     </td>
                     <td className="py-4 px-7 text-sm font-mono text-slate-400 whitespace-nowrap">
-                      {e.examStrtDt && e.examEndDt ? `${e.examStrtDt} ~ ${e.examEndDt}` : "-"}
+                      {e.examStrtDt && e.examEndDt
+                        ? `${e.examStrtDt.slice(0, 16).replace("T", " ")} ~ ${e.examEndDt.slice(0, 16).replace("T", " ")}`
+                        : "-"}
                     </td>
                     <td className="py-4 px-7 text-center whitespace-nowrap">
                       {e.attempted
