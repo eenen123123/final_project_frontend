@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { Bell, Mail } from 'lucide-react';
 
 export interface AlertItem {
   id: string;
@@ -17,14 +18,14 @@ interface AlertDropdownProps {
 
 const CONFIG = {
   notification: {
-    icon: '🔔',
+    icon: Bell,
     label: '알림',
     allReadText: '모두 읽음',
     footerText: '전체 알림 보기',
     footerHref: '#',
   },
   message: {
-    icon: '✉️',
+    icon: Mail,
     label: '쪽지',
     allReadText: '모두 읽음',
     footerText: '쪽지함 전체 보기',
@@ -36,6 +37,7 @@ export default function AlertDropdown({ type, items, onChange }: AlertDropdownPr
   const [show, setShow] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const config = CONFIG[type];
+  const Icon = config.icon;
 
   const unreadCount = items.filter((i) => !i.read).length;
   const hasImportant = items.some((i) => !i.read && i.important);
@@ -67,7 +69,7 @@ export default function AlertDropdown({ type, items, onChange }: AlertDropdownPr
         onClick={() => setShow((v) => !v)}
         className="relative hover:text-gray-900 transition-colors"
       >
-        <span className="text-lg">{config.icon}</span>
+        <Icon className="w-5 h-5" />
         {unreadCount > 0 && (
           <span className={`absolute -top-0.5 -right-0.5 w-3 h-3 text-white text-[8px] font-bold rounded-full flex items-center justify-center ${badgeColor}`}>
             !
@@ -77,7 +79,7 @@ export default function AlertDropdown({ type, items, onChange }: AlertDropdownPr
 
       {/* 드롭다운 */}
       {show && (
-        <div className="absolute right-0 top-8 w-80 bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden">
+        <div className="absolute right-0 top-8 w-80 max-w-[calc(100vw-2rem)] bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden">
           {/* 헤더 */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
             <span className="text-sm font-semibold text-gray-900">

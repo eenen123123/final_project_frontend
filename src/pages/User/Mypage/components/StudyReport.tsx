@@ -74,7 +74,7 @@ export default function StudyReport({ subjects, teachers }: StudyReportProps) {
         <span className="text-xs text-gray-400">조회 기준: 전일 ~ 30일 이전</span>
       </div>
 
-      <div className="grid grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* 영역별 학습 시간 밸런스 */}
         <div>
           <p className="text-xs font-medium text-gray-500 text-center mb-4">영역별 학습 시간 밸런스</p>

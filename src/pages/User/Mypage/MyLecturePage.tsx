@@ -155,7 +155,7 @@ export default function MyLecturePage() {
           </div>
         </div>
 
-        <div className="flex gap-8 items-start">
+        <div className="flex flex-col lg:flex-row gap-8 lg:items-start">
           <MyPageSidebar activeSection={activeSection} onSectionChange={(section) => setActiveSection(section)} />
 
           <div className="flex-1 min-w-0">
