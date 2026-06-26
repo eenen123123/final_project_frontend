@@ -45,7 +45,7 @@ function InstructorCard({
   return (
     <button
       onClick={() => navigate(`/instructor/${instr.instrUuid}`)}
-      className="group text-left w-full bg-white border border-zinc-100 rounded-2xl overflow-hidden hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2"
+      className="group text-left w-full bg-white border border-zinc-100 rounded-2xl overflow-hidden hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2 shadow-md"
     >
       <div className="aspect-4/3 w-full overflow-hidden">
         {instr.instrProfileImg ? (
