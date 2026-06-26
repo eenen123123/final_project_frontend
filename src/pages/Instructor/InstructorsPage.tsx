@@ -101,7 +101,9 @@ function SkeletonCard() {
 }
 
 export default function Instructors() {
-  const [allInstructors, setAllInstructors] = useState<InstructorListResponse[]>([]);
+  const [allInstructors, setAllInstructors] = useState<
+    InstructorListResponse[]
+  >([]);
   const [subjects, setSubjects] = useState<
     { subjectClId: number; subjectClNm: string }[]
   >([]);

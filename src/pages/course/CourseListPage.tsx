@@ -360,9 +360,10 @@ export default function CourseListPage() {
 
   return (
     // MARK: 전체 페이지 컨테이너
-    <div className="min-h-screen bg-gray-50">
-      {/* 상단 히어로 배너 */}
-      <div className="bg-linear-to-r from-blue-400 via-blue-500 to-indigo-600 text-white">
+    <div className="w-full min-h-screen bg-zinc-50">
+      <div className="max-w-6xl mx-auto px-4 md:px-6 py-12">
+        {/* 상단 히어로 배너 */}
+        {/* <div className="bg-linear-to-r from-blue-400 via-blue-500 to-indigo-600 text-white">
         <div className="max-w-6xl mx-auto px-4 md:px-6 py-10">
           <p className="text-blue-200 text-sm font-medium mb-1">온라인 강좌</p>
           <h1 className="text-2xl md:text-3xl font-extrabold mb-2 tracking-tight">
@@ -372,194 +373,217 @@ export default function CourseListPage() {
             원하는 강좌를 검색하고 지금 바로 시작해보세요.
           </p>
         </div>
-      </div>
+      </div> */}
 
-      <div className="max-w-6xl mx-auto px-4 md:px-6 py-8 flex flex-col lg:flex-row gap-7 lg:items-start">
-        {/* MARK: 사이드바 */}
-        <aside className="w-full lg:w-56 shrink-0 lg:sticky lg:top-6">
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-            <h2 className="text-sm font-bold text-gray-700 mb-4 flex items-center gap-2">
-              <SearchIcon />
-              강좌 검색
-            </h2>
-            <div className="flex flex-col gap-2.5">
-              <select
-                name="category"
-                className="border border-gray-200 rounded-lg text-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 w-full bg-gray-50 text-gray-700 cursor-pointer"
-                value={searchOption.category}
-                onChange={handleInputChange}
-              >
-                {CATEGORY_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-              <input
-                type="text"
-                name="keyword"
-                className="border border-gray-200 rounded-lg text-sm px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 bg-gray-50 text-gray-700 placeholder-gray-400"
-                placeholder="검색어를 입력하세요"
-                value={searchOption.keyword}
-                onChange={handleInputChange}
-                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-              />
-              <button
-                onClick={handleSearch}
-                className="bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-sm font-bold px-4 py-2.5 rounded-lg transition-all duration-150 cursor-pointer w-full flex items-center justify-center gap-2 shadow-sm"
-              >
+        {/* 헤더 */}
+        <header className="mb-5">
+          <p
+            className="text-xs tracking-widest uppercase mb-2 transition-colors duration-300"
+            style={{
+              fontFamily: "var(--font-mono-editorial)",
+            }}
+          >
+            HERMES · COURSES
+          </p>
+          <h1
+            className="text-5xl md:text-6xl text-zinc-900"
+            style={{ fontFamily: "var(--font-display)" }}
+          >
+            전체 강좌
+          </h1>
+          <p className="mt-3 text-sm text-zinc-500">
+            원하는 강좌를 검색하고 지금 바로 시작해보세요.
+          </p>
+        </header>
+
+        <div className="max-w-6xl mx-auto px-4 md:px-6 py-8 flex flex-col gap-7 ">
+          {/* MARK: 사이드바 */}
+          <aside className="w-full shrink-0 ">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+              <h2 className="text-sm font-bold text-gray-700 mb-4 flex items-center gap-2">
                 <SearchIcon />
-                검색
-              </button>
-              <button
-                onClick={handleReset}
-                className="bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm font-bold px-4 py-2.5 rounded-lg transition-all duration-150 cursor-pointer w-full flex items-center justify-center gap-2 shadow-sm"
-              >
-                초기화
-              </button>
-            </div>
+                강좌 검색
+              </h2>
+              <div className="flex flex-col gap-2.5 lg:flex-row">
+                <select
+                  name="category"
+                  className="border border-gray-200 rounded-lg text-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 w-full lg:w-40 bg-gray-50 text-gray-700 cursor-pointer"
+                  value={searchOption.category}
+                  onChange={handleInputChange}
+                >
+                  {CATEGORY_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  type="text"
+                  name="keyword"
+                  className="border border-gray-200 rounded-lg text-sm px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 bg-gray-50 text-gray-700 placeholder-gray-400"
+                  placeholder="검색어를 입력하세요"
+                  value={searchOption.keyword}
+                  onChange={handleInputChange}
+                  onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                />
+                <button
+                  onClick={handleSearch}
+                  className="bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-sm font-bold px-4 py-2.5 rounded-lg transition-all duration-150 cursor-pointer w-full lg:w-40 flex items-center justify-center gap-2 shadow-sm"
+                >
+                  <SearchIcon />
+                  검색
+                </button>
+                <button
+                  onClick={handleReset}
+                  className="bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm font-bold px-4 py-2.5 rounded-lg transition-all duration-150 cursor-pointer w-full lg:w-40 flex items-center justify-center gap-2 shadow-sm"
+                >
+                  초기화
+                </button>
+              </div>
 
-            {/* MARK: 과목 분류 */}
-            <div className="mt-5 pt-4 border-t border-gray-100 hidden lg:block">
-              <div className="flex flex-col gap-4">
-                {subjects.map((classification) => (
-                  <div key={classification.subjClId}>
-                    <p className="text-[12px] uppercase tracking-wider text-gray-400 font-bold mb-2">
-                      {classification.subjClNm}
-                    </p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {classification.subjects.map((subj) => {
-                        const isActive =
-                          searchOption.category === "subject" &&
-                          searchOption.keyword === subj.subjNm;
-                        return (
-                          <button
-                            key={subj.subjId}
-                            onClick={() => {
-                              setSearchOption((prev) => ({
-                                ...prev,
-                                category: "subject",
-                                keyword: subj.subjNm,
-                                page: 1,
-                              }));
-                              fetchCourses({
-                                category: "subject",
-                                keyword: subj.subjNm,
-                                page: 1,
-                              });
-                            }}
-                            className={`text-xs font-medium px-2.5 py-1 rounded-full border transition-all duration-150 cursor-pointer ${
-                              isActive
-                                ? "bg-blue-600 border-blue-600 text-white shadow-sm"
-                                : "bg-gray-50 border-gray-200 text-gray-600 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600"
-                            }`}
-                          >
-                            {subj.subjNm}
-                          </button>
-                        );
-                      })}
+              {/* MARK: 과목 분류 */}
+              {/* 일단 임시 비활성화 */}
+              <div className="mt-5 pt-4 border-t border-gray-100 hidden">
+                <div className="flex flex-col gap-4">
+                  {subjects.map((classification) => (
+                    <div key={classification.subjClId}>
+                      <p className="text-[12px] uppercase tracking-wider text-gray-400 font-bold mb-2">
+                        {classification.subjClNm}
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {classification.subjects.map((subj) => {
+                          const isActive =
+                            searchOption.category === "subject" &&
+                            searchOption.keyword === subj.subjNm;
+                          return (
+                            <button
+                              key={subj.subjId}
+                              onClick={() => {
+                                setSearchOption((prev) => ({
+                                  ...prev,
+                                  category: "subject",
+                                  keyword: subj.subjNm,
+                                  page: 1,
+                                }));
+                                fetchCourses({
+                                  category: "subject",
+                                  keyword: subj.subjNm,
+                                  page: 1,
+                                });
+                              }}
+                              className={`text-xs font-medium px-2.5 py-1 rounded-full border transition-all duration-150 cursor-pointer ${
+                                isActive
+                                  ? "bg-blue-600 border-blue-600 text-white shadow-sm"
+                                  : "bg-gray-50 border-gray-200 text-gray-600 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600"
+                              }`}
+                            >
+                              {subj.subjNm}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
-        </aside>
+          </aside>
 
-        {/* MARK: 메인 콘텐츠 */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <h2 className="text-lg font-bold text-gray-800">강좌 목록</h2>
-              {!loading && (
-                <span className="text-xs px-2.5 py-1 bg-blue-100 text-blue-700 rounded-full font-bold">
-                  {totalCount > 0 ? `${totalCount}개` : `${courses.length}개`}
-                </span>
+          {/* MARK: 메인 콘텐츠 */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg font-bold text-gray-800">강좌 목록</h2>
+                {!loading && (
+                  <span className="text-xs px-2.5 py-1 bg-blue-100 text-blue-700 rounded-full font-bold">
+                    {totalCount > 0 ? `${totalCount}개` : `${courses.length}개`}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+              {loading ? (
+                <ul>
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <SkeletonItem key={i} />
+                  ))}
+                </ul>
+              ) : courses.length > 0 ? (
+                <ul>
+                  {courses.map((course) => (
+                    <CourseItem key={course.courseSn} course={course} />
+                  ))}
+                </ul>
+              ) : (
+                <div className="py-24 flex flex-col items-center gap-3 text-center">
+                  <div className="w-14 h-14 rounded-2xl bg-gray-100 flex items-center justify-center text-gray-300">
+                    <BookIcon />
+                  </div>
+                  <p className="text-sm font-semibold text-gray-500">
+                    강좌가 없습니다
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    다른 검색어로 시도해 보세요.
+                  </p>
+                </div>
               )}
             </div>
-          </div>
 
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            {loading ? (
-              <ul>
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <SkeletonItem key={i} />
+            {/* MARK: 페이지네이션 */}
+            {!loading && totalPages > 1 && (
+              <div className="flex items-center justify-center gap-1.5 mt-6">
+                <button
+                  onClick={() => handlePageChange(1)}
+                  disabled={searchOption.page === 1}
+                  className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-400 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-default cursor-pointer text-sm transition-colors"
+                  title="첫 페이지"
+                >
+                  «
+                </button>
+                <button
+                  onClick={() => handlePageChange(searchOption.page - 1)}
+                  disabled={searchOption.page === 1}
+                  className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-400 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-default cursor-pointer text-sm transition-colors"
+                  title="이전 페이지"
+                >
+                  ‹
+                </button>
+                {Array.from(
+                  { length: endPage - startPage + 1 },
+                  (_, i) => startPage + i,
+                ).map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => handlePageChange(p)}
+                    className={`w-9 h-9 flex items-center justify-center rounded-lg border text-sm font-semibold transition-colors cursor-pointer ${
+                      searchOption.page === p
+                        ? "bg-linear-to-r from-blue-600 to-indigo-600 border-blue-600 text-white shadow-sm"
+                        : "bg-white border-gray-200 text-gray-600 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600"
+                    }`}
+                  >
+                    {p}
+                  </button>
                 ))}
-              </ul>
-            ) : courses.length > 0 ? (
-              <ul>
-                {courses.map((course) => (
-                  <CourseItem key={course.courseSn} course={course} />
-                ))}
-              </ul>
-            ) : (
-              <div className="py-24 flex flex-col items-center gap-3 text-center">
-                <div className="w-14 h-14 rounded-2xl bg-gray-100 flex items-center justify-center text-gray-300">
-                  <BookIcon />
-                </div>
-                <p className="text-sm font-semibold text-gray-500">
-                  강좌가 없습니다
-                </p>
-                <p className="text-xs text-gray-400">
-                  다른 검색어로 시도해 보세요.
-                </p>
+                <button
+                  onClick={() => handlePageChange(searchOption.page + 1)}
+                  disabled={searchOption.page === totalPages}
+                  className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-400 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-default cursor-pointer text-sm transition-colors"
+                  title="다음 페이지"
+                >
+                  ›
+                </button>
+                <button
+                  onClick={() => handlePageChange(totalPages)}
+                  disabled={searchOption.page === totalPages}
+                  className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-400 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-default cursor-pointer text-sm transition-colors"
+                  title="마지막 페이지"
+                >
+                  »
+                </button>
               </div>
             )}
           </div>
-
-          {/* MARK: 페이지네이션 */}
-          {!loading && totalPages > 1 && (
-            <div className="flex items-center justify-center gap-1.5 mt-6">
-              <button
-                onClick={() => handlePageChange(1)}
-                disabled={searchOption.page === 1}
-                className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-400 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-default cursor-pointer text-sm transition-colors"
-                title="첫 페이지"
-              >
-                «
-              </button>
-              <button
-                onClick={() => handlePageChange(searchOption.page - 1)}
-                disabled={searchOption.page === 1}
-                className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-400 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-default cursor-pointer text-sm transition-colors"
-                title="이전 페이지"
-              >
-                ‹
-              </button>
-              {Array.from(
-                { length: endPage - startPage + 1 },
-                (_, i) => startPage + i,
-              ).map((p) => (
-                <button
-                  key={p}
-                  onClick={() => handlePageChange(p)}
-                  className={`w-9 h-9 flex items-center justify-center rounded-lg border text-sm font-semibold transition-colors cursor-pointer ${
-                    searchOption.page === p
-                      ? "bg-linear-to-r from-blue-600 to-indigo-600 border-blue-600 text-white shadow-sm"
-                      : "bg-white border-gray-200 text-gray-600 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600"
-                  }`}
-                >
-                  {p}
-                </button>
-              ))}
-              <button
-                onClick={() => handlePageChange(searchOption.page + 1)}
-                disabled={searchOption.page === totalPages}
-                className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-400 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-default cursor-pointer text-sm transition-colors"
-                title="다음 페이지"
-              >
-                ›
-              </button>
-              <button
-                onClick={() => handlePageChange(totalPages)}
-                disabled={searchOption.page === totalPages}
-                className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-400 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-default cursor-pointer text-sm transition-colors"
-                title="마지막 페이지"
-              >
-                »
-              </button>
-            </div>
-          )}
         </div>
       </div>
     </div>
