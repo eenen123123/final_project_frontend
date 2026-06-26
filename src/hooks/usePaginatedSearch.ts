@@ -9,13 +9,14 @@ interface Options {
   pageSize?: number;
   blockSize?: number;
   enabled?: boolean;
+  extraDeps?: unknown[];
 }
 
 export function usePaginatedSearch<T>(
   fetcher: (page: number, size: number, keyword: string) => Promise<PageResponse<T>>,
   options: Options = {}
 ) {
-  const { pageSize = 10, blockSize = 5, enabled = true } = options;
+  const { pageSize = 10, blockSize = 5, enabled = true, extraDeps = [] } = options;
   const fetcherRef = useRef(fetcher);
   fetcherRef.current = fetcher;
 
@@ -51,7 +52,8 @@ export function usePaginatedSearch<T>(
     return () => {
       cancelled = true;
     };
-  }, [page, pageSize, keyword, enabled]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, pageSize, keyword, enabled, ...extraDeps]);
 
   const handleSearch = useCallback(() => {
     if (!searchInput.trim()) {

@@ -1,12 +1,19 @@
 ﻿import { Link } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import ServiceSidebar from '../components/ServiceSidebar';
 import NoticeHeader from './components/NoticeHeader';
 import api from '../../../api/api';
 import type { NoticeItem } from '../../../types/CustomerServiceInterface';
 import { usePaginatedSearch, type PageResponse } from '../../../hooks/usePaginatedSearch';
 
-const PAGE_SIZE = 15;
+const PAGE_SIZE = 10;
+
+const NOTICE_TYPE_OPTIONS = [
+  { value: '', label: '전체' },
+  { value: '01', label: '일반공지' },
+  { value: '02', label: '이벤트' },
+  { value: '03', label: '점검' },
+];
 
 const TYPE_BADGE: Record<string, string> = {
   '01': 'bg-blue-50 text-blue-600',
@@ -16,6 +23,7 @@ const TYPE_BADGE: Record<string, string> = {
 
 export default function NoticePage() {
   useEffect(() => { window.scrollTo(0, 0); }, []);
+  const [noticeTypeCd, setNoticeTypeCd] = useState('');
 
   const {
     items,
@@ -32,9 +40,9 @@ export default function NoticePage() {
   } = usePaginatedSearch<NoticeItem>(
     (page, size, keyword) =>
       api.get<PageResponse<NoticeItem>>('/api/notice/paged', {
-        params: { page, size, ...(keyword && { keyword }) },
+        params: { page, size, ...(keyword && { keyword }), ...(noticeTypeCd && { noticeTypeCd }) },
       }).then(r => r.data),
-    { pageSize: PAGE_SIZE, blockSize: 5 }
+    { pageSize: PAGE_SIZE, blockSize: 5, extraDeps: [noticeTypeCd] }
   );
 
   return (
@@ -143,6 +151,15 @@ export default function NoticePage() {
 
             {/* 하단 검색 */}
             <div className="flex flex-wrap items-center gap-2 justify-center mt-4">
+              <select
+                value={noticeTypeCd}
+                onChange={(e) => { setNoticeTypeCd(e.target.value); setPage(1); }}
+                className="border border-gray-300 rounded text-xs px-3 py-2 focus:outline-none focus:border-blue-400 transition-colors cursor-pointer"
+              >
+                {NOTICE_TYPE_OPTIONS.map(o => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
+              </select>
               <input
                 type="text"
                 value={searchInput}

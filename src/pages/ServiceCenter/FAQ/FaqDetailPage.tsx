@@ -83,7 +83,7 @@ export default function FaqDetailPage() {
             {/* 본문 내용 */}
             <div className="min-h-48 py-6 border-b border-gray-200 mb-6">
               {faq.postCn ? (
-                <div className="text-sm text-gray-700 leading-relaxed prose max-w-none" dangerouslySetInnerHTML={{ __html: faq.postCn }} />
+                <div className="text-sm text-gray-700 leading-relaxed prose max-w-none" dangerouslySetInnerHTML={{ __html: faq.postCn.replace(/src="\/admin\//g, 'src="http://localhost:8080/admin/') }} />
               ) : (
                 <p className="text-sm text-gray-400">내용이 없습니다.</p>
               )}
