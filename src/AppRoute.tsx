@@ -11,6 +11,7 @@ import ClassroomQnaFormPage from "./pages/Classroom/ClassroomQnaFormPage";
 import ClassroomDataroomPage from "./pages/Classroom/ClassroomDataroomPage";
 import ProtectedRoute from "./auth/ProtectedRoute";
 import MyPage from "./pages/User/Mypage/MyPage";
+import NotificationsPage from "./pages/User/Mypage/NotificationsPage";
 import ProtectedRouteAdmin from "./auth/ProtectedRouteAdmin";
 import AdminPage from "./pages/Admin/AdminPage";
 import Login from "./pages/User/Login";
@@ -173,6 +174,7 @@ export default function AppRoute() {
         <Route path="/mypage/report" element={<StudyReportPage />} />
         <Route path="/mypage/grades" element={<GradesPage />} />
         <Route path="/mypage/couponpoint" element={<CouponPointPage />} />
+        <Route path="/mypage/notifications" element={<NotificationsPage />} />
         <Route path="/mypage/verify" element={<VerifyPasswordPage />} />
         <Route path="/mypage/profile/edit" element={<ProfileEditPage />} />
         <Route path="/my-classrooms" element={<MyClassroomsPage />} />
