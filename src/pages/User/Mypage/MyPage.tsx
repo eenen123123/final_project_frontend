@@ -7,7 +7,7 @@ import StudyStatus from "../Mypage/components/StudyStatus";
 import StudyCalendar from "../Mypage/components/StudyCalendar";
 import StudyReport from "../Mypage/components//StudyReport";
 import AlertDropdown from "../Mypage/components/AlertDropdown";
-import type { AlertItem } from "../Mypage/components/AlertDropdown";
+import { useNotifications } from "../../../hooks/useNotifications";
 import type {
   CourseStatus,
   StudySubject,
@@ -28,88 +28,6 @@ const COURSE_STATUS: CourseStatus = {
   coupon: 1,
   point: 0,
 };
-
-
-
-const INIT_NOTIFICATIONS: AlertItem[] = [
-  {
-    id: "a1",
-    message: "사용하지 않은 쿠폰이 있습니다. [교재 할인권]",
-    read: false,
-    important: false,
-    date: "2026.05.22",
-  },
-  {
-    id: "a2",
-    message: "사회문화 A — 5월 모의고사 해설 라이브가 오늘 20:00 시작됩니다.",
-    read: false,
-    important: true,
-    date: "2026.05.18",
-  },
-  {
-    id: "a3",
-    message: "13~14강 자료가 업데이트되었습니다. [일탈 이론 v2]",
-    read: false,
-    important: false,
-    date: "2026.05.05",
-  },
-  {
-    id: "a4",
-    message: "수강 기간 만료 7일 전입니다. 연장을 확인해주세요.",
-    read: false,
-    important: true,
-    date: "2026.05.04",
-  },
-  {
-    id: "a5",
-    message: "QnA #005번 질문에 답변이 등록되었습니다.",
-    read: true,
-    important: false,
-    date: "2026.05.03",
-  },
-  {
-    id: "a6",
-    message: "수강 기간 연장 정책이 변경되었습니다.",
-    read: true,
-    important: false,
-    date: "2026.04.28",
-  },
-];
-
-const INIT_MESSAGES: AlertItem[] = [
-  {
-    id: "m1",
-    from: "관리자",
-    message: "5월 모의고사 해설 라이브 일정을 확인해주세요.",
-    read: false,
-    important: false,
-    date: "2026.05.22",
-  },
-  {
-    id: "m2",
-    from: "관리자",
-    message: "최근 구매하신 강좌의 구매내역 입니다.",
-    read: false,
-    important: false,
-    date: "2026.05.21",
-  },
-  {
-    id: "m3",
-    from: "임정환 선생님",
-    message: "질문 주신 사회문화 A 2강 내용 답변 드렸습니다.",
-    read: false,
-    important: true,
-    date: "2026.05.20",
-  },
-  {
-    id: "m4",
-    from: "관리자",
-    message: "수강 기간 연장 정책 변경 안내드립니다.",
-    read: true,
-    important: false,
-    date: "2026.04.28",
-  },
-];
 
 interface NoticeItem {
   postSn: number;
@@ -150,66 +68,100 @@ export default function MyPage() {
     : "bg-gray-100 text-gray-700";
 
   const [activeSection, setActiveSection] = useState("마이룸");
-  const [notifications, setNotifications] = useState<AlertItem[]>(INIT_NOTIFICATIONS);
-  const [messages, setMessages] = useState<AlertItem[]>(INIT_MESSAGES);
+  const { notifications, markAsRead, dismiss } = useNotifications();
   const [courseStatus, setCourseStatus] = useState<CourseStatus>(COURSE_STATUS);
   const [teachers, setTeachers] = useState<TeacherRank[]>([]);
   const [subjects, setSubjects] = useState<StudySubject[]>([]);
 
   useEffect(() => {
-    api.get<{ subjectName: string; totalSeconds: number }[]>("/api/mypage/subject-progress")
+    api
+      .get<{ subjectName: string; totalSeconds: number }[]>(
+        "/api/mypage/subject-progress",
+      )
       .then((res) => {
         const data = res.data;
         const max = Math.max(...data.map((s) => s.totalSeconds), 1);
-        setSubjects(data.map((s) => ({
-          name: s.subjectName,
-          percent: Math.round((s.totalSeconds / max) * 100),
-          minutes: s.totalSeconds > 0 ? Math.floor(s.totalSeconds / 60) : null,
-        })));
+        setSubjects(
+          data.map((s) => ({
+            name: s.subjectName,
+            percent: Math.round((s.totalSeconds / max) * 100),
+            minutes:
+              s.totalSeconds > 0 ? Math.floor(s.totalSeconds / 60) : null,
+          })),
+        );
       })
       .catch(() => {});
   }, []);
 
   useEffect(() => {
     // 장바구니 수
-    api.get<{ cartSn: number }[]>("/api/cart")
-      .then((res) => setCourseStatus((prev) => ({ ...prev, cart: res.data.length })))
+    api
+      .get<{ cartSn: number }[]>("/api/cart")
+      .then((res) =>
+        setCourseStatus((prev) => ({ ...prev, cart: res.data.length })),
+      )
       .catch(() => {});
     // 수강중/수강완료 강좌 수 (만료일 기준 분류)
-    api.get<{ enrlSn: number; accsEndDt: string }[]>("/api/mypage/courses")
+    api
+      .get<{ enrlSn: number; accsEndDt: string }[]>("/api/mypage/courses")
       .then((res) => {
         const now = Date.now();
-        const active = res.data.filter((c) => new Date(c.accsEndDt).getTime() >= now).length;
-        const completed = res.data.filter((c) => new Date(c.accsEndDt).getTime() < now).length;
+        const active = res.data.filter(
+          (c) => new Date(c.accsEndDt).getTime() >= now,
+        ).length;
+        const completed = res.data.filter(
+          (c) => new Date(c.accsEndDt).getTime() < now,
+        ).length;
         setCourseStatus((prev) => ({ ...prev, active, completed }));
       })
       .catch(() => {});
     // 보유 쿠폰 수
-    api.get<{ mcpntSn: number }[]>("/api/coupons/my/available")
-      .then((res) => setCourseStatus((prev) => ({ ...prev, coupon: res.data.length })))
+    api
+      .get<{ mcpntSn: number }[]>("/api/coupons/my/available")
+      .then((res) =>
+        setCourseStatus((prev) => ({ ...prev, coupon: res.data.length })),
+      )
       .catch(() => {});
     // 주문/배송 수
-    api.get<{ totalCount: number }>("/api/orders/my", { params: { page: 1 } })
-      .then((res) => setCourseStatus((prev) => ({ ...prev, order: res.data.totalCount ?? 0 })))
+    api
+      .get<{ totalCount: number }>("/api/orders/my", { params: { page: 1 } })
+      .then((res) =>
+        setCourseStatus((prev) => ({
+          ...prev,
+          order: res.data.totalCount ?? 0,
+        })),
+      )
       .catch(() => {});
     // HM 포인트 잔액
-    api.get<number>("/api/points/balance", { params: { assetType: "HM_POINT" } })
+    api
+      .get<number>("/api/points/balance", { params: { assetType: "HM_POINT" } })
       .then((res) => setCourseStatus((prev) => ({ ...prev, point: res.data })))
       .catch(() => {});
   }, []);
   useEffect(() => {
-    api.get<{ instructorName: string; profileImage?: string; subjectName: string; totalSeconds: number }[]>("/api/mypage/instructor-ranking")
+    api
+      .get<
+        {
+          instructorName: string;
+          profileImage?: string;
+          subjectName: string;
+          totalSeconds: number;
+        }[]
+      >("/api/mypage/instructor-ranking")
       .then((res) => {
-        setTeachers(res.data.map((item, i) => ({
-          rank: i + 1,
-          label: `[${item.subjectName}] ${item.instructorName}선생님`,
-          hours: item.totalSeconds >= 3600
-            ? `${Math.floor(item.totalSeconds / 3600)}시간 ${Math.floor((item.totalSeconds % 3600) / 60)}분`
-            : item.totalSeconds >= 60
-              ? `${Math.floor(item.totalSeconds / 60)}분`
-              : `${item.totalSeconds}초`,
-          profileImage: item.profileImage ?? undefined,
-        })));
+        setTeachers(
+          res.data.map((item, i) => ({
+            rank: i + 1,
+            label: `[${item.subjectName}] ${item.instructorName}선생님`,
+            hours:
+              item.totalSeconds >= 3600
+                ? `${Math.floor(item.totalSeconds / 3600)}시간 ${Math.floor((item.totalSeconds % 3600) / 60)}분`
+                : item.totalSeconds >= 60
+                  ? `${Math.floor(item.totalSeconds / 60)}분`
+                  : `${item.totalSeconds}초`,
+            profileImage: item.profileImage ?? undefined,
+          })),
+        );
       })
       .catch(() => {});
   }, []);
@@ -217,19 +169,26 @@ export default function MyPage() {
   const [notices, setNotices] = useState<NoticeItem[]>([]);
 
   useEffect(() => {
-    api.get<{ postSn: number; postSj: string; regDt: string }[]>("/api/notice").then((res) => {
-      const now = Date.now();
-      setNotices(res.data.slice(0, 4).map((n) => {
-        const date = n.regDt ? new Date(n.regDt) : null;
-        return {
-          ...n,
-          dateStr: date
-            ? `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`
-            : "",
-          isNew: date ? now - date.getTime() < 7 * 24 * 60 * 60 * 1000 : false,
-        };
-      }));
-    }).catch((error) => alert(error.response?.data?.message));
+    api
+      .get<{ postSn: number; postSj: string; regDt: string }[]>("/api/notice")
+      .then((res) => {
+        const now = Date.now();
+        setNotices(
+          res.data.slice(0, 4).map((n) => {
+            const date = n.regDt ? new Date(n.regDt) : null;
+            return {
+              ...n,
+              dateStr: date
+                ? `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`
+                : "",
+              isNew: date
+                ? now - date.getTime() < 7 * 24 * 60 * 60 * 1000
+                : false,
+            };
+          }),
+        );
+      })
+      .catch((error) => alert(error.response?.data?.message));
   }, []);
 
   return (
@@ -254,17 +213,7 @@ export default function MyPage() {
                 <span className="font-bold">{userName ?? "-"}</span>님
               </span>
               <div className="flex items-center gap-4 ml-auto text-sm text-gray-500">
-                <AlertDropdown
-                  type="message"
-                  items={messages}
-                  onChange={setMessages}
-                />
-                <div className="w-px h-4 bg-gray-200" />
-                <AlertDropdown
-                  type="notification"
-                  items={notifications}
-                  onChange={setNotifications}
-                />
+                <AlertDropdown items={notifications} onRead={markAsRead} onDismiss={dismiss} />
                 <div className="w-px h-4 bg-gray-200" />
                 <button
                   onClick={() => {
@@ -296,7 +245,6 @@ export default function MyPage() {
             <FeaturedCarousel />
             <StudyCalendar />
             <StudyReport subjects={subjects} teachers={teachers} />
-
 
             {/* 공지사항 + 고객센터 */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-5">
