@@ -123,14 +123,21 @@ export default function ProfileEditPage() {
         if (res.data.userProfile) setPreviewImage(res.data.userProfile);
       } catch (err) {
         const axiosErr = err as { response?: { data?: { message?: string } } };
-        console.error("프로필 정보 불러오기 실패", axiosErr.response?.data?.message);
+        console.error(
+          "프로필 정보 불러오기 실패",
+          axiosErr.response?.data?.message,
+        );
       }
     };
     fetchProfile();
   }, []);
 
   const roleRaw = getRole();
-  const roles = Array.isArray(roleRaw) ? roleRaw : roleRaw ? [roleRaw as unknown as string] : [];
+  const roles = Array.isArray(roleRaw)
+    ? roleRaw
+    : roleRaw
+      ? [roleRaw as unknown as string]
+      : [];
   if (!roles.some((r) => ALLOWED_ROLES.includes(r))) {
     return <NotFound />;
   }
@@ -145,10 +152,7 @@ export default function ProfileEditPage() {
 
   const handleTelnoChange = (value: string) => {
     const digits = value.replace(/\D/g, "").slice(0, 11);
-    let formatted = digits;
-    if (digits.length > 7) formatted = `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
-    else if (digits.length > 3) formatted = `${digits.slice(0, 3)}-${digits.slice(3)}`;
-    handleChange("userTelno", formatted);
+    handleChange("userTelno", digits);
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -164,8 +168,8 @@ export default function ProfileEditPage() {
     const newErrors: Partial<Record<string, string>> = {};
     if (!profileData.userTelno) {
       newErrors.userTelno = "전화번호를 입력해주세요.";
-    } else if (!/^010-\d{3,4}-\d{4}$/.test(profileData.userTelno)) {
-      newErrors.userTelno = "010-0000-0000 형식으로 입력해주세요.";
+    } else if (!/^01[0-9]\d{7,8}$/.test(profileData.userTelno)) {
+      newErrors.userTelno = "숫자만 입력해주세요. (예: 01012345678)";
     }
     if (!profileData.userEmailAddr) {
       newErrors.userEmailAddr = "이메일을 입력해주세요.";
@@ -210,7 +214,11 @@ export default function ProfileEditPage() {
       setProfileFile(null);
     } catch (err) {
       const axiosErr = err as { response?: { data?: { message?: string } } };
-      setErrors({ submit: axiosErr.response?.data?.message ?? "저장에 실패했습니다. 다시 시도해주세요." });
+      setErrors({
+        submit:
+          axiosErr.response?.data?.message ??
+          "저장에 실패했습니다. 다시 시도해주세요.",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -230,7 +238,11 @@ export default function ProfileEditPage() {
       setConfirmPassword("");
     } catch (err) {
       const axiosErr = err as { response?: { data?: { message?: string } } };
-      setErrors({ submit: axiosErr.response?.data?.message ?? "저장에 실패했습니다. 다시 시도해주세요." });
+      setErrors({
+        submit:
+          axiosErr.response?.data?.message ??
+          "저장에 실패했습니다. 다시 시도해주세요.",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -238,7 +250,9 @@ export default function ProfileEditPage() {
 
   const handleWithdraw = async () => {
     try {
-      await api.delete("/api/mypage/withdraw", { data: { reason: "사용자 자발적 탈퇴" } });
+      await api.delete("/api/mypage/withdraw", {
+        data: { reason: "사용자 자발적 탈퇴" },
+      });
       alert("탈퇴가 완료되었습니다.");
       navigate("/login");
     } catch {
@@ -253,7 +267,14 @@ export default function ProfileEditPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
           <div className="flex flex-col items-center gap-3 bg-white rounded-2xl shadow-xl px-10 py-7 border border-gray-300">
             <div className="w-14 h-14 rounded-full bg-green-50 border-2 border-green-600 flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-7 h-7 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-7 h-7 text-green-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={3}
+              >
                 <polyline points="20 6 9 17 4 12" />
               </svg>
             </div>
@@ -294,12 +315,22 @@ export default function ProfileEditPage() {
               <div className="relative inline-block mb-3">
                 <div
                   className="w-16 h-16 rounded-full overflow-hidden flex items-center justify-center border-2"
-                  style={{ borderColor: accentColor, background: isWithdraw ? "#FEF2F2" : "#EBF5FF" }}
+                  style={{
+                    borderColor: accentColor,
+                    background: isWithdraw ? "#FEF2F2" : "#EBF5FF",
+                  }}
                 >
                   {previewImage ? (
-                    <img src={previewImage} alt="프로필" className="w-full h-full object-cover" />
+                    <img
+                      src={previewImage}
+                      alt="프로필"
+                      className="w-full h-full object-cover"
+                    />
                   ) : (
-                    <span className="text-2xl font-semibold" style={{ color: isWithdraw ? "#991B1B" : "#1D4ED8" }}>
+                    <span
+                      className="text-2xl font-semibold"
+                      style={{ color: isWithdraw ? "#991B1B" : "#1D4ED8" }}
+                    >
                       {initial}
                     </span>
                   )}
@@ -332,25 +363,31 @@ export default function ProfileEditPage() {
                   onChange={handleImageChange}
                 />
               </div>
-              <p className="text-sm font-semibold text-gray-900">{profileData.userName || userName}</p>
+              <p className="text-sm font-semibold text-gray-900">
+                {profileData.userName || userName}
+              </p>
               <p className="text-xs text-gray-400 mt-0.5">일반 회원</p>
             </div>
             <nav className="py-1">
               {NAV_ITEMS.map((item) => {
                 const isActive = activeMenu === item.key;
-                const itemColor = item.key === "withdraw" ? "#EF4444" : "#3B82F6";
+                const itemColor =
+                  item.key === "withdraw" ? "#EF4444" : "#3B82F6";
                 const itemBg = item.key === "withdraw" ? "#FEF2F2" : "#EBF5FF";
-                const itemText = item.key === "withdraw" ? "#991B1B" : "#1D4ED8";
+                const itemText =
+                  item.key === "withdraw" ? "#991B1B" : "#1D4ED8";
                 return (
                   <button
                     key={item.key}
                     onClick={() => {
                       setActiveMenu(item.key);
-                                        setErrors({});
+                      setErrors({});
                     }}
                     className="w-full text-left px-4 py-2.5 text-xs transition-colors"
                     style={{
-                      borderLeft: isActive ? `3px solid ${itemColor}` : "3px solid transparent",
+                      borderLeft: isActive
+                        ? `3px solid ${itemColor}`
+                        : "3px solid transparent",
                       background: isActive ? itemBg : "transparent",
                       color: isActive ? itemText : "#6B7280",
                       fontWeight: isActive ? 500 : 400,
@@ -388,18 +425,31 @@ export default function ProfileEditPage() {
               <>
                 <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
                   <div className="px-5 py-3.5 border-b border-gray-100 flex items-center gap-2">
-                    <div className="w-0.5 h-4 rounded-full" style={{ background: accentColor }}></div>
-                    <p className="text-sm font-medium text-gray-900">기본 정보</p>
+                    <div
+                      className="w-0.5 h-4 rounded-full"
+                      style={{ background: accentColor }}
+                    ></div>
+                    <p className="text-sm font-medium text-gray-900">
+                      기본 정보
+                    </p>
                   </div>
                   <div className="px-5 divide-y divide-gray-50">
                     {[
                       { label: "아이디", value: profileData.userId || userId },
-                      { label: "이름", value: profileData.userName || userName },
-                      { label: "성별", value: genderLabel[profileData.userGndrCd] ?? "-" },
+                      {
+                        label: "이름",
+                        value: profileData.userName || userName,
+                      },
+                      {
+                        label: "성별",
+                        value: genderLabel[profileData.userGndrCd] ?? "-",
+                      },
                       { label: "생년월일", value: profileData.userBrdt || "-" },
                     ].map(({ label, value }) => (
                       <div key={label} className="flex items-center py-3">
-                        <span className="w-24 text-xs text-gray-400 flex-shrink-0">{label}</span>
+                        <span className="w-24 text-xs text-gray-400 flex-shrink-0">
+                          {label}
+                        </span>
                         <span className="text-sm text-gray-400">{value}</span>
                       </div>
                     ))}
@@ -408,34 +458,54 @@ export default function ProfileEditPage() {
 
                 <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
                   <div className="px-5 py-3.5 border-b border-gray-100 flex items-center gap-2">
-                    <div className="w-0.5 h-4 rounded-full" style={{ background: accentColor }}></div>
+                    <div
+                      className="w-0.5 h-4 rounded-full"
+                      style={{ background: accentColor }}
+                    ></div>
                     <p className="text-sm font-medium text-gray-900">연락처</p>
                   </div>
                   <div className="px-5 divide-y divide-gray-50">
-                    <div className="flex items-center py-3 gap-3">
-                      <span className="w-24 text-xs text-gray-400 flex-shrink-0">전화번호</span>
+                    <div className="flex items-start py-3 gap-3">
+                      <span className="w-24 text-xs text-gray-400 flex-shrink-0 pt-1.5">
+                        전화번호
+                      </span>
                       <div>
                         <input
                           type="tel"
                           value={profileData.userTelno}
                           onChange={(e) => handleTelnoChange(e.target.value)}
-                          placeholder="010-0000-0000"
+                          placeholder="예) 01012345678"
                           className={`w-56 text-sm ${errors.userTelno ? "border-red-300" : ""}`}
                         />
-                        {errors.userTelno && <p className="mt-1 text-xs text-red-500">{errors.userTelno}</p>}
+                        <p className="mt-1 text-[11px] text-gray-400">
+                          * 입력 시 '-' 를 제외하고 입력해주세요.
+                        </p>
+                        {errors.userTelno && (
+                          <p className="mt-1 text-xs text-red-500">
+                            {errors.userTelno}
+                          </p>
+                        )}
                       </div>
                     </div>
                     <div className="flex items-center py-3 gap-3">
-                      <span className="w-24 text-xs text-gray-400 flex-shrink-0">이메일</span>
+                      <span className="w-24 text-xs text-gray-400 flex-shrink-0">
+                        이메일
+                      </span>
                       <div>
                         <input
                           type="email"
                           value={profileData.userEmailAddr}
-                          onChange={(e) => handleChange("userEmailAddr", e.target.value)}
+                          onChange={(e) =>
+                            handleChange("userEmailAddr", e.target.value)
+                          }
                           placeholder="example@email.com"
                           className={`w-72 text-sm ${errors.userEmailAddr ? "border-red-300" : ""}`}
                         />
-                        {errors.userEmailAddr && <p className="mt-1 text-xs text-red-500">{errors.userEmailAddr}</p>}
+                        {errors.userEmailAddr && (
+                          <p className="mt-1 text-xs text-red-500">
+                            {errors.userEmailAddr}
+                          </p>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -443,12 +513,17 @@ export default function ProfileEditPage() {
 
                 <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
                   <div className="px-5 py-3.5 border-b border-gray-100 flex items-center gap-2">
-                    <div className="w-0.5 h-4 rounded-full" style={{ background: accentColor }}></div>
+                    <div
+                      className="w-0.5 h-4 rounded-full"
+                      style={{ background: accentColor }}
+                    ></div>
                     <p className="text-sm font-medium text-gray-900">주소</p>
                   </div>
                   <div className="px-5 divide-y divide-gray-50">
                     <div className="flex items-center py-3 gap-3">
-                      <span className="w-24 text-xs text-gray-400 flex-shrink-0">우편번호</span>
+                      <span className="w-24 text-xs text-gray-400 flex-shrink-0">
+                        우편번호
+                      </span>
                       <div className="flex items-center gap-2">
                         <input
                           type="text"
@@ -465,10 +540,14 @@ export default function ProfileEditPage() {
                           검색
                         </button>
                       </div>
-                      {errors.userZip && <p className="text-xs text-red-500">{errors.userZip}</p>}
+                      {errors.userZip && (
+                        <p className="text-xs text-red-500">{errors.userZip}</p>
+                      )}
                     </div>
                     <div className="flex items-center py-3 gap-3">
-                      <span className="w-24 text-xs text-gray-400 flex-shrink-0">주소</span>
+                      <span className="w-24 text-xs text-gray-400 flex-shrink-0">
+                        주소
+                      </span>
                       <input
                         type="text"
                         value={profileData.userAddr}
@@ -478,11 +557,15 @@ export default function ProfileEditPage() {
                       />
                     </div>
                     <div className="flex items-center py-3 gap-3">
-                      <span className="w-24 text-xs text-gray-400 flex-shrink-0">상세주소</span>
+                      <span className="w-24 text-xs text-gray-400 flex-shrink-0">
+                        상세주소
+                      </span>
                       <input
                         type="text"
                         value={profileData.userDaddr}
-                        onChange={(e) => handleChange("userDaddr", e.target.value)}
+                        onChange={(e) =>
+                          handleChange("userDaddr", e.target.value)
+                        }
                         placeholder="상세주소를 입력해주세요"
                         className="flex-1 text-sm"
                       />
@@ -513,12 +596,19 @@ export default function ProfileEditPage() {
             {activeMenu === "password" && (
               <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
                 <div className="px-5 py-3.5 border-b border-gray-100 flex items-center gap-2">
-                  <div className="w-0.5 h-4 rounded-full" style={{ background: accentColor }}></div>
-                  <p className="text-sm font-medium text-gray-900">비밀번호 변경</p>
+                  <div
+                    className="w-0.5 h-4 rounded-full"
+                    style={{ background: accentColor }}
+                  ></div>
+                  <p className="text-sm font-medium text-gray-900">
+                    비밀번호 변경
+                  </p>
                 </div>
                 <div className="px-5 divide-y divide-gray-50">
                   <div className="flex items-center py-3 gap-3">
-                    <span className="w-28 text-xs text-gray-400 flex-shrink-0">새 비밀번호</span>
+                    <span className="w-28 text-xs text-gray-400 flex-shrink-0">
+                      새 비밀번호
+                    </span>
                     <div>
                       <div className="relative">
                         <input
@@ -540,11 +630,17 @@ export default function ProfileEditPage() {
                           <EyeIcon show={showNewPw} />
                         </button>
                       </div>
-                      {errors.newPassword && <p className="mt-1 text-xs text-red-500">{errors.newPassword}</p>}
+                      {errors.newPassword && (
+                        <p className="mt-1 text-xs text-red-500">
+                          {errors.newPassword}
+                        </p>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center py-3 gap-3">
-                    <span className="w-28 text-xs text-gray-400 flex-shrink-0">비밀번호 확인</span>
+                    <span className="w-28 text-xs text-gray-400 flex-shrink-0">
+                      비밀번호 확인
+                    </span>
                     <div>
                       <div className="relative">
                         <input
@@ -566,7 +662,11 @@ export default function ProfileEditPage() {
                           <EyeIcon show={showConfirmPw} />
                         </button>
                       </div>
-                      {errors.confirmPassword && <p className="mt-1 text-xs text-red-500">{errors.confirmPassword}</p>}
+                      {errors.confirmPassword && (
+                        <p className="mt-1 text-xs text-red-500">
+                          {errors.confirmPassword}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -590,7 +690,9 @@ export default function ProfileEditPage() {
             )}
 
             {/* 회원 탈퇴 */}
-            {activeMenu === "withdraw" && <WithdrawSection onWithdraw={handleWithdraw} />}
+            {activeMenu === "withdraw" && (
+              <WithdrawSection onWithdraw={handleWithdraw} />
+            )}
           </div>
         </div>
       </div>
