@@ -7,6 +7,7 @@ import ClassroomExamPage from "./pages/Classroom/ClassroomExamPage";
 import ClassroomAssignPage from "./pages/Classroom/ClassroomAssignPage";
 import ClassroomNoticePage from "./pages/Classroom/ClassroomNoticePage";
 import ClassroomQnaPage from "./pages/Classroom/ClassroomQnaPage";
+import ClassroomQnaFormPage from "./pages/Classroom/ClassroomQnaFormPage";
 import ClassroomDataroomPage from "./pages/Classroom/ClassroomDataroomPage";
 import ProtectedRoute from "./auth/ProtectedRoute";
 import MyPage from "./pages/User/Mypage/MyPage";
@@ -177,12 +178,14 @@ export default function AppRoute() {
         <Route path="/my-classrooms" element={<MyClassroomsPage />} />
         <Route path="/classroom/:classId" element={<ClassroomLayout />}>
           <Route index element={<ClassroomPage />} />
+          <Route path="notices/:postSn" element={<ClassroomNoticePage />} />
+          <Route path="qna/write" element={<ClassroomQnaFormPage />} />
+          <Route path="qna/:postSn" element={<ClassroomQnaPage />} />
+          <Route path="qna/:postSn/edit" element={<ClassroomQnaFormPage />} />
+          <Route path="dataroom/:postSn" element={<ClassroomDataroomPage />} />
+          <Route path="assignments/:asgmtSn" element={<ClassroomAssignPage />} />
+          <Route path="exams/:examSn" element={<ClassroomExamPage />} />
         </Route>
-        <Route path="/classroom/:classId/exams/:examSn" element={<ClassroomExamPage />} />
-        <Route path="/classroom/:classId/assignments/:asgmtSn" element={<ClassroomAssignPage />} />
-        <Route path="/classroom/:classId/notices/:postSn" element={<ClassroomNoticePage />} />
-        <Route path="/classroom/:classId/qna/:postSn" element={<ClassroomQnaPage />} />
-        <Route path="/classroom/:classId/dataroom/:postSn" element={<ClassroomDataroomPage />} />
         <Route path="/customer/qna/write" element={<QnaWritePage />} />
         <Route path="/customer/qna/my" element={<QnAPage myOnly />} />
         <Route path="/customer/qna/:postSn/edit" element={<QnaEditPage />} />
@@ -196,7 +199,6 @@ export default function AppRoute() {
         <Route path="/info/refund" element={<RefundPolicyPage />} />
         <Route path="/info/tax-deduction" element={<TaxDeductionPage />} />
         <Route path="/checkout" element={<CheckoutPage />} />
-        <Route path="/mycart/orderhistory" element={<OrderHistoryPage />} />
         <Route path="/mycart/orderhistory" element={<OrderHistoryPage />} />
         <Route
           path="/mycart/orderhistory/:ordSn"
