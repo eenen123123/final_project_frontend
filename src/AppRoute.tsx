@@ -41,7 +41,6 @@ import VerifyPasswordPage from "./pages/User/VerifyPasswordPage";
 import NotFound from "./pages/NotFound";
 import MyLecturePage from "./pages/User/Mypage/MyLecturePage";
 import ProfileEditPage from "./pages/User/Mypage/ProfileEditPage";
-import DummyPage from "./pages/User/Mypage/dummy";
 import StudyReportPage from "./pages/User/Mypage/StudyReportPage";
 import GradesPage from "./pages/User/Mypage/GradesPage";
 import MyCalendarPage from "./pages/User/Mypage/MyCalendarPage";
@@ -158,7 +157,6 @@ export default function AppRoute() {
         element={<DataRoomDetailPage />}
       />
       <Route path="/customer/*" element={<ServiceCenterPage />} />
-      <Route path="/dummy" element={<DummyPage />} />
 
       {/* 인증이 필요한 라우트 */}
       <Route element={<ProtectedRoute />}>
@@ -209,8 +207,7 @@ export default function AppRoute() {
           element={<ShippingDetailPage />}
         />
 
-        {/* <Route path="/mypage/couponpoint" element={<CouponPointPage />} /> */}
-        <Route path="/payment" element={<PaymentPage />} />
+<Route path="/payment" element={<PaymentPage />} />
       </Route>
 
       {/* 관리자 전용 라우트 */}

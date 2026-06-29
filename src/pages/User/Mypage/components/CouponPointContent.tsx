@@ -18,6 +18,10 @@ interface UserCoupon {
   expiryDt: string;
   useYn: "N" | "Y" | "E";
   useDt?: string;
+  discType?: "FIXED" | "RATE";
+  discAmt?: number;
+  discRate?: number;
+  useLimitCd?: "ALL" | "COURSE" | "TEXTBOOK";
 }
 
 interface PointHist {
@@ -200,7 +204,9 @@ export default function CouponPointContent() {
         setHmPointExpiring(hmExp.data);
         setStudyExpiring(studyExp.data);
       } catch {
-        // 잔액 조회 실패 시 무시
+        alert(
+          "잔액 정보를 불러오는 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
+        );
       }
     };
     fetchBalance();
@@ -253,12 +259,11 @@ export default function CouponPointContent() {
   const [couponSubTab, setCouponSubTab] = useState<"history" | "register">(
     "history",
   );
-  const [couponSn, setCouponSn] = useState(["", "", "", ""]);
+  const [couponSn, setCouponSn] = useState(["", "", ""]);
   const snRef0 = useRef<HTMLInputElement>(null);
   const snRef1 = useRef<HTMLInputElement>(null);
   const snRef2 = useRef<HTMLInputElement>(null);
-  const snRef3 = useRef<HTMLInputElement>(null);
-  const snRefs = [snRef0, snRef1, snRef2, snRef3];
+  const snRefs = [snRef0, snRef1, snRef2];
   const [chargeAmount, setChargeAmount] = useState("1000");
   const [selectedPreset, setSelectedPreset] = useState<number | null>(null);
   const [emailAgreed, setEmailAgreed] = useState(false);
@@ -468,7 +473,7 @@ export default function CouponPointContent() {
                 </td>
                 <td className="py-8 px-8">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 ml-6">
                       {couponSn.map((val, i) => (
                         <div key={i} className="flex items-center gap-3">
                           <input
@@ -483,13 +488,13 @@ export default function CouponPointContent() {
                               const next = [...couponSn];
                               next[i] = v;
                               setCouponSn(next);
-                              if (v.length === 5 && i < 3)
+                              if (v.length === 5 && i < 2)
                                 snRefs[i + 1].current?.focus();
                             }}
                             placeholder="5자리"
-                            className="border border-gray-300 px-3 py-1 w-24 text-center text-sm text-gray-700 bg-white focus:outline-none focus:border-gray-500 tracking-widest"
+                            className="border border-gray-300 px-3 py-1 w-28 text-center text-sm text-gray-700 bg-white focus:outline-none focus:border-gray-500 tracking-widest"
                           />
-                          {i < 3 && (
+                          {i < 2 && (
                             <span className="text-gray-400 font-bold">-</span>
                           )}
                         </div>
@@ -498,25 +503,31 @@ export default function CouponPointContent() {
                     <button
                       type="button"
                       onClick={async () => {
-                        const code = couponSn.join("-");
+                        const code = couponSn.join("");
                         if (couponSn.some((v) => v.length !== 5)) {
                           alert("할인권 번호를 모두 입력해주세요. (각 5자리)");
                           return;
                         }
                         try {
-                          await api.post("/api/coupons/redeem", {
-                            couponCode: code,
-                          });
-                          alert("할인권이 정상적으로 등록되었습니다.");
-                          setCouponSn(["", "", "", ""]);
-                          snRefs[0].current?.focus();
+                          const res = await api.post<{ couponNm: string }>(
+                            "/api/coupons/redeem",
+                            {
+                              couponCode: code,
+                            },
+                          );
+                          alert(
+                            `"${res.data.couponNm}" 할인권이 정상적으로 등록되었습니다.`,
+                          );
+                          setCouponSn(["", "", ""]);
+                          setCouponSubTab("history");
+                          fetchCoupons(1);
                         } catch {
                           alert(
                             "유효하지 않은 할인권 번호이거나 이미 사용된 번호입니다.",
                           );
                         }
                       }}
-                      className="px-6 py-2 bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold transition-colors cursor-pointer whitespace-nowrap mr-20"
+                      className="px-6 py-2 bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold transition-colors cursor-pointer whitespace-nowrap mr-32"
                     >
                       등록하기 &gt;
                     </button>
@@ -639,10 +650,11 @@ export default function CouponPointContent() {
               {activeTab === "hm-coupon" ? (
                 <table className="w-full text-xs border-collapse">
                   <colgroup>
+                    <col style={{ width: "14%" }} />
+                    <col style={{ width: "34%" }} />
                     <col style={{ width: "18%" }} />
-                    <col style={{ width: "42%" }} />
-                    <col style={{ width: "16%" }} />
-                    <col style={{ width: "24%" }} />
+                    <col style={{ width: "14%" }} />
+                    <col style={{ width: "20%" }} />
                   </colgroup>
                   <thead>
                     <tr className="border-b border-gray-200 bg-white">
@@ -651,6 +663,9 @@ export default function CouponPointContent() {
                       </th>
                       <th className="py-3 px-4 text-center font-bold text-gray-700">
                         쿠폰명
+                      </th>
+                      <th className="py-3 px-2 text-center font-bold text-gray-700">
+                        혜택
                       </th>
                       <th className="py-3 px-2 text-center font-bold text-gray-700">
                         상태
@@ -671,7 +686,7 @@ export default function CouponPointContent() {
                         return (
                           <tr>
                             <td
-                              colSpan={4}
+                              colSpan={5}
                               className="py-14 text-center text-gray-500 font-medium bg-white"
                             >
                               보유 쿠폰이 없습니다.
@@ -700,13 +715,41 @@ export default function CouponPointContent() {
                           <td className="py-3 px-4 text-left text-gray-800 font-medium">
                             {c.couponNm}
                           </td>
+                          <td className="py-3 px-2">
+                            <div className="flex items-center gap-1.5">
+                              {c.useLimitCd && (
+                                <span
+                                  className={`inline-flex items-center justify-center w-14 py-0.5 rounded text-[10px] font-bold border flex-shrink-0 ${
+                                    c.useLimitCd === "COURSE"
+                                      ? "bg-blue-50 text-blue-600 border-blue-200"
+                                      : c.useLimitCd === "TEXTBOOK"
+                                        ? "bg-orange-50 text-orange-600 border-orange-200"
+                                        : "bg-purple-50 text-purple-600 border-purple-200"
+                                  }`}
+                                >
+                                  {c.useLimitCd === "ALL"
+                                    ? "강좌+교재"
+                                    : c.useLimitCd === "COURSE"
+                                      ? "강좌"
+                                      : "교재"}
+                                </span>
+                              )}
+                              <span className="text-xs text-gray-700 font-medium">
+                                {c.discType === "FIXED" && c.discAmt
+                                  ? `${c.discAmt.toLocaleString()}원 할인`
+                                  : c.discType === "RATE" && c.discRate
+                                    ? `${c.discRate}% 할인`
+                                    : "-"}
+                              </span>
+                            </div>
+                          </td>
                           <td
                             className={`py-3 px-2 text-center font-bold ${useYnColor[c.useYn] ?? "text-gray-500"}`}
                           >
                             {useYnLabel[c.useYn] ?? c.useYn}
                           </td>
                           <td className="py-3 px-2 text-center text-gray-600">
-                            {c.expiryDt}
+                            {c.expiryDt ? c.expiryDt.slice(0, 10) : "-"}
                           </td>
                         </tr>
                       ));
@@ -781,14 +824,20 @@ export default function CouponPointContent() {
                                 : "-"}
                             </td>
                             <td className="py-3 px-2 text-center font-bold">
-                              {isEarn
-                                ? <span className="text-emerald-600">{`+${h.changeAmt.toLocaleString()}`}</span>
-                                : <span className="text-gray-400">-</span>}
+                              {isEarn ? (
+                                <span className="text-emerald-600">{`+${h.changeAmt.toLocaleString()}`}</span>
+                              ) : (
+                                <span className="text-gray-400">-</span>
+                              )}
                             </td>
                             <td className="py-3 px-2 text-center font-bold">
-                              {!isEarn
-                                ? <span className="text-red-400">{Math.abs(h.changeAmt).toLocaleString()}</span>
-                                : <span className="text-gray-400">-</span>}
+                              {!isEarn ? (
+                                <span className="text-red-400">
+                                  {Math.abs(h.changeAmt).toLocaleString()}
+                                </span>
+                              ) : (
+                                <span className="text-gray-400">-</span>
+                              )}
                             </td>
                             <td className="py-3 px-2 text-center text-gray-500">
                               {h.expiryDt ?? "-"}

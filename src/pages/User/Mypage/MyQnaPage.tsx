@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import MyPageSidebar from "./components/MyPageSidebar";
 import api from "../../../api/api";
@@ -67,8 +67,15 @@ export default function MyQnaPage() {
     { pageSize: 10, blockSize: 5, enabled: activeTab === "instructor" && isAuthReady },
   );
 
-  const answeredCount = customerItems.filter((i) => i.answStatCd !== "01").length;
-  const waitingCount = customerItems.filter((i) => i.answStatCd === "01").length;
+  const [qnaSummary, setQnaSummary] = useState<{ total: number; answered: number; waiting: number } | null>(null);
+
+  useEffect(() => {
+    if (activeTab === "customer" && isAuthReady) {
+      api.get<{ total: number; answered: number; waiting: number }>("/api/qna/my/summary")
+        .then((r) => setQnaSummary(r.data))
+        .catch(() => {});
+    }
+  }, [activeTab, isAuthReady]);
 
   const TABS = [
     { key: "instructor" as TabKey, label: "선생님 Q&A" },
@@ -121,13 +128,13 @@ export default function MyQnaPage() {
             {activeTab === "customer" && (
               <div className="grid grid-cols-3 divide-x divide-gray-200 border border-t-0 border-gray-200 bg-white mb-6">
                 <div className="py-3 text-center text-xs text-gray-600">
-                  읽지 않은 답변 : 총 <span className="font-bold text-blue-600">0</span>건
+                  전체 : 총 <span className="font-bold text-blue-600">{qnaSummary?.total ?? customerTotal}</span>건
                 </div>
                 <div className="py-3 text-center text-xs text-gray-600">
-                  답변완료 : 총 <span className="font-bold text-blue-600">{answeredCount}</span>건
+                  답변완료 : 총 <span className="font-bold text-blue-600">{qnaSummary?.answered ?? 0}</span>건
                 </div>
                 <div className="py-3 text-center text-xs text-gray-600">
-                  답변대기 : 총 <span className="font-bold text-blue-600">{waitingCount}</span>건
+                  답변대기 : 총 <span className="font-bold text-blue-600">{qnaSummary?.waiting ?? 0}</span>건
                 </div>
               </div>
             )}
@@ -162,13 +169,20 @@ export default function MyQnaPage() {
                         <tr key={item.postSn} className="hover:bg-gray-50 transition-colors">
                           <td className="py-3 px-3 text-center text-xs text-gray-400">{item.postSn}</td>
                           <td className="py-3 px-3">
-                            <Link to={`/instructor/${item.instrUuid}/qna/${item.postSn}`} className="text-sm text-gray-800 hover:text-blue-600 transition-colors">
-                              {item.secrYn === "Y" && <span className="mr-1 text-gray-400">🔒</span>}
-                              {item.postSj}
-                            </Link>
+                            {item.instrUuid ? (
+                              <Link to={`/instructor/${item.instrUuid}/qna/${item.postSn}`} className="text-sm text-gray-800 hover:text-blue-600 transition-colors">
+                                {item.secrYn === "Y" && <span className="mr-1 text-gray-400">🔒</span>}
+                                {item.postSj}
+                              </Link>
+                            ) : (
+                              <span className="text-sm text-gray-800">
+                                {item.secrYn === "Y" && <span className="mr-1 text-gray-400">🔒</span>}
+                                {item.postSj}
+                              </span>
+                            )}
                           </td>
                           <td className="py-3 px-3 text-center text-xs text-gray-500">{item.instrUserNm}</td>
-                          <td className="py-3 px-3 text-center text-xs text-gray-400">{item.regDt}</td>
+                          <td className="py-3 px-3 text-center text-xs text-gray-400">{item.regDt?.slice(0, 10)}</td>
                           <td className="py-3 px-3 text-center">
                             {item.answYn === "Y"
                               ? <span className="text-xs bg-blue-50 text-blue-700 font-semibold px-2 py-0.5 rounded-full">답변완료</span>

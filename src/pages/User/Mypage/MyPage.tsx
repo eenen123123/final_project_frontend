@@ -5,7 +5,7 @@ import { useAuth } from "../../../auth/AuthContext";
 import api from "../../../api/api";
 import StudyStatus from "../Mypage/components/StudyStatus";
 import StudyCalendar from "../Mypage/components/StudyCalendar";
-import StudyReport from "../Mypage/components//StudyReport";
+import StudyReport from "../Mypage/components/StudyReport";
 import AlertDropdown from "../Mypage/components/AlertDropdown";
 import { useNotifications } from "../../../hooks/useNotifications";
 import type {
@@ -16,16 +16,12 @@ import type {
 import MyPageSidebar from "../Mypage/components/MyPageSidebar";
 import FeaturedCarousel from "../Mypage/components/FeaturedCarousel";
 
-// ── 더미 데이터 ───────────────────────────────────────────────────────────
 const COURSE_STATUS: CourseStatus = {
-  active: 1,
-  activeLabel: "0",
-  completed: 2,
-  waiting: 0,
-  activeBook: 1,
+  active: 0,
+  completed: 0,
   cart: 0,
   order: 0,
-  coupon: 1,
+  coupon: 0,
   point: 0,
 };
 
@@ -188,7 +184,7 @@ export default function MyPage() {
           }),
         );
       })
-      .catch((error) => alert(error.response?.data?.message));
+      .catch(() => {});
   }, []);
 
   return (
@@ -291,7 +287,7 @@ export default function MyPage() {
                     <div>
                       <p className="text-xs text-gray-400 mb-1">전화</p>
                       <p className="text-2xl font-bold text-blue-500">
-                        1599-6405
+                        0000-0000
                       </p>
                     </div>
                     <div className="text-xs text-gray-400 text-right">

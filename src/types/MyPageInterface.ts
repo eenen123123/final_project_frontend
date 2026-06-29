@@ -24,10 +24,7 @@ export interface CalendarEvent {
 }
 export interface CourseStatus {
   active: number;
-  activeLabel: string;
   completed: number;
-  waiting: number;
-  activeBook: number;
   cart: number;
   order: number;
   coupon: number;

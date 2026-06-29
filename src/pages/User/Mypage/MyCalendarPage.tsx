@@ -9,7 +9,6 @@ import type {
 } from "../../../types/MyPageInterface";
 
 const DAYS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
-const API_BASE = "http://localhost:8081";
 
 const TYPE_COLOR: Record<string, { dot: string; text: string; badge: string }> =
   {
@@ -383,8 +382,8 @@ export default function MyCalendarPage() {
         const userSchedules = scheduleRes.data.map(mapScheduleDto);
 
         setEvents([...adminEvents, ...userSchedules]);
-      } catch (err) {
-        console.error("캘린더 데이터 로딩 실패:", err);
+      } catch {
+        // 캘린더 로딩 실패 시 빈 화면으로 처리
       } finally {
         setLoading(false);
       }
