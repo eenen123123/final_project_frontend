@@ -70,7 +70,7 @@ export default function ClassroomQnaFormPage() {
       const fileServerIds = await Promise.all(
         pendingFiles.map((pf) => uploadFile(pf.file, "CLASSROOM_QNA", classId ?? "0"))
       );
-      const payload = { boardSj: title, boardCn: html, fileServerIds };
+      const payload = { postSj: title, postCn: html, fileServerIds };
       if (isEdit) {
         await api.put(`/api/classroom/${classId}/qna/${postSn}`, payload);
         navigate(`/classroom/${classId}/qna/${postSn}`, { replace: true });
