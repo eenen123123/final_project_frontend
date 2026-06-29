@@ -52,8 +52,12 @@
     @apply flex items-center justify-center w-8 h-8 rounded transition-colors text-gray-600 hover:bg-gray-100 cursor-pointer;
   }
 
+  .sitemap-btn-dark {
+    @apply bg-gray-900 text-white hover:bg-gray-100 hover:text-gray-600;
+  }
+
   .sitemap-btn-active {
-    @apply bg-gray-900 text-white;
+    @apply bg-gray-900 text-white hover:bg-gray-100 hover:text-gray-600;
   }
 
   /* 관리자 뱃지 */
