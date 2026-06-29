@@ -146,7 +146,7 @@ const getDefaultDates = () => {
 export default function CouponPointContent() {
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState<TabType>(
-    (searchParams.get("tab") as TabType | null) ?? "hm-coupon"
+    (searchParams.get("tab") as TabType | null) ?? "hm-coupon",
   );
   const [coupons, setCoupons] = useState<UserCoupon[]>([]);
   const [showModal, setShowModal] = useState(false);
@@ -774,15 +774,21 @@ export default function CouponPointContent() {
                               {h.regDt?.slice(0, 10)}
                             </td>
                             <td className="py-3 px-4 text-left text-gray-800">
-                              {h.memo || "-"}
+                              {h.memo
+                                ? h.memo.length > 32
+                                  ? h.memo.slice(0, 32) + "…"
+                                  : h.memo
+                                : "-"}
                             </td>
-                            <td className="py-3 px-2 text-center text-emerald-600 font-bold">
-                              {isEarn ? `+${h.changeAmt.toLocaleString()}` : ""}
+                            <td className="py-3 px-2 text-center font-bold">
+                              {isEarn
+                                ? <span className="text-emerald-600">{`+${h.changeAmt.toLocaleString()}`}</span>
+                                : <span className="text-gray-400">-</span>}
                             </td>
-                            <td className="py-3 px-2 text-center text-red-400 font-bold">
+                            <td className="py-3 px-2 text-center font-bold">
                               {!isEarn
-                                ? Math.abs(h.changeAmt).toLocaleString()
-                                : ""}
+                                ? <span className="text-red-400">{Math.abs(h.changeAmt).toLocaleString()}</span>
+                                : <span className="text-gray-400">-</span>}
                             </td>
                             <td className="py-3 px-2 text-center text-gray-500">
                               {h.expiryDt ?? "-"}
