@@ -9,8 +9,6 @@ import CalendarEventModal from "./CalendarEventModal";
 import { Link } from "react-router-dom";
 
 const DAYS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
-const API_BASE = "http://localhost:8081";
-
 const TYPE_DOT: Record<string, string> = {
   holiday: "bg-red-400",
   event: "bg-orange-400",
@@ -308,6 +306,7 @@ export default function StudyCalendar() {
       </div>
 
       <CalendarEventModal
+        key={selectedDate}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         defaultDate={selectedDate}

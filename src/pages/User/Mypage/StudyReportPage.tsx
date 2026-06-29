@@ -138,7 +138,7 @@ export default function StudyReportPage() {
     api
       .get<Course[]>("/api/mypage/courses")
       .then((res) => setCourses(res.data))
-      .catch((error) => alert(error.response?.data?.message));
+      .catch((error) => alert(error.response?.data?.message ?? "강좌 정보를 불러올 수 없습니다."));
 
     api
       .get<{ instructorName: string; profileImage: string | null; subjectName: string; totalSeconds: number }[]>("/api/mypage/instructor-ranking")

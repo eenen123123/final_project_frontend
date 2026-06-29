@@ -32,7 +32,7 @@ const TAB_LABELS: { key: TabType; label: string }[] = [
   { key: "end", label: "수강종료 강좌" },
 ];
 
-const CATEGORIES = ["전체", "국어", "수학", "영어", "사탐", "과탐", "한국사"];
+const CATEGORIES = ["전체", "국어", "수학", "영어", "사회탐구", "과학탐구", "한국사"];
 const SORT_LABELS: { key: SortType; label: string }[] = [
   { key: "order", label: "신청일 최신순" },
   { key: "expire", label: "수강기간 임박순" },
@@ -75,7 +75,7 @@ export default function MyLecturePage() {
   const [toast, setToast] = useState<{ visible: boolean; message: string }>({ visible: false, message: "" });
 
   useEffect(() => {
-    api.get<{ enrlSn: number; courseSn: number; courseNm: string; thmbImg: string | null; instrNm: string; accsEndDt: string; progressPct: number }[]>("/api/mypage/courses")
+    api.get<{ enrlSn: number; courseSn: number; courseNm: string; thmbImg: string | null; instrNm: string; accsEndDt: string; progressPct: number; subjClNm: string | null }[]>("/api/mypage/courses")
       .then((res) => {
         const now = Date.now();
         setLectures(res.data.map((e, i) => {
@@ -89,8 +89,8 @@ export default function MyLecturePage() {
             courseSn: e.courseSn,
             title: e.courseNm ?? "",
             teacher: e.instrNm ? `${e.instrNm} 선생님` : "",
-            subject: "",
-            category: "전체",
+            subject: e.subjClNm ?? "",
+            category: e.subjClNm ?? "전체",
             progress: e.progressPct ?? 0,
             expireDate,
             dday: daysLeft !== null && daysLeft <= 14 ? daysLeft : null,
@@ -352,7 +352,7 @@ export default function MyLecturePage() {
                             onClick={() => {
                               api.get<{ course: { instrUuid: string } }>(`/api/course/${lecture.courseSn}`)
                                 .then((res) => navigate(`/instructor/${res.data.course.instrUuid}/courses/${lecture.courseSn}`))
-                                .catch((error) => alert(error.response?.data?.message));
+                                .catch((error) => alert(error.response?.data?.message ?? "강좌 정보를 불러올 수 없습니다."));
                             }}
                           >
                             {lecture.title}
@@ -378,7 +378,7 @@ export default function MyLecturePage() {
 
                           <div className="flex items-center justify-between">
                             <span className="text-xs text-gray-500 font-medium">
-                              학습률 진척도 ·{" "}
+                              학습 진척도 ·{" "}
                               <b style={{ color: accentColor }} className="font-semibold">
                                 {lecture.progress}% 완료
                               </b>
@@ -400,8 +400,9 @@ export default function MyLecturePage() {
                                 .then((res) => {
                                   const first = res.data.lectures?.[0];
                                   if (first) navigate(`/viewer?courseId=${lecture.courseSn}&lectureId=${first.lectureSn}`);
+                                  else alert("수강 가능한 강의가 없습니다.");
                                 })
-                                .catch((error) => alert(error.response?.data?.message));
+                                .catch((error) => alert(error.response?.data?.message ?? "강의 정보를 불러올 수 없습니다."));
                             }}
                             className="text-xs px-4 py-2.5 text-white rounded-xl font-semibold shadow-sm transition-all cursor-pointer whitespace-nowrap hover:opacity-90"
                             style={{ background: accentColor }}
@@ -412,7 +413,7 @@ export default function MyLecturePage() {
                             onClick={() => {
                               api.get<{ course: { instrUuid: string } }>(`/api/course/${lecture.courseSn}`)
                                 .then((res) => navigate(`/instructor/${res.data.course.instrUuid}/courses/${lecture.courseSn}`))
-                                .catch((error) => alert(error.response?.data?.message));
+                                .catch((error) => alert(error.response?.data?.message ?? "강좌 정보를 불러올 수 없습니다."));
                             }}
                             className="text-xs px-4 py-2.5 border border-gray-200 rounded-xl font-medium text-gray-600 bg-white hover:bg-gray-50 transition-colors cursor-pointer whitespace-nowrap"
                           >
@@ -433,7 +434,7 @@ export default function MyLecturePage() {
                 className="w-full flex items-center gap-2 px-5 py-4 text-left cursor-pointer hover:bg-gray-50/50 transition-colors"
               >
                 <svg
-                  xmlns="http://www.w3.org/2000/xl"
+                  xmlns="http://www.w3.org/2000/svg"
                   className="w-4 h-4 text-blue-500 flex-shrink-0"
                   viewBox="0 0 24 24"
                   fill="currentColor"

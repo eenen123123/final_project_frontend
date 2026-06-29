@@ -149,28 +149,6 @@ export default function OrderHistoryDetailPage() {
           <div className="flex-1 min-w-0 space-y-6">
             {/* 상단 네비게이션 */}
             <div className="flex flex-col gap-3">
-              <button
-                type="button"
-                onClick={() => navigate(-1)}
-                className="group inline-flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-slate-700 transition-colors cursor-pointer w-fit"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={2.5}
-                  stroke="currentColor"
-                  className="w-3.5 h-3.5 transform group-hover:-translate-x-0.5 transition-transform"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M15.75 19.5 8.25 12l7.5-7.5"
-                  />
-                </svg>
-                주문 내역으로 돌아가기
-              </button>
-
               <div className="flex items-center justify-between mt-1">
                 <h2 className="text-2xl font-bold tracking-tight text-slate-900">
                   주문 상세 내역
@@ -388,6 +366,20 @@ export default function OrderHistoryDetailPage() {
                 )}
               </div>
             )}
+
+            {/* 하단 돌아가기 버튼 */}
+            <div className="flex justify-center">
+              <button
+                type="button"
+                onClick={() => navigate(-1)}
+                className="inline-flex items-center gap-2 px-10 py-3 text-sm font-bold text-white bg-slate-500 hover:bg-slate-600 rounded-lg transition-colors shadow-sm"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+                </svg>
+                주문 내역으로 돌아가기
+              </button>
+            </div>
           </div>
         </div>
       </div>

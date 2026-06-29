@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import MyPageSidebar from "./components/MyPageSidebar";
 import api from "../../../api/api";
+import axios from "axios";
 import { Link, useParams } from "react-router-dom";
 import { useAuth } from "../../../auth/AuthContext";
 
@@ -97,10 +98,10 @@ export default function OrderHistoryPage() {
       setOrders(res.data.items);
       setTotalCount(res.data.totalCount);
     } catch (err) {
-      console.error("주문 내역 조회 실패:", err);
-      if (err instanceof Error) {
-        alert("주문 내역 조회 중 오류가 발생했습니다: " + err.message);
-      }
+      const msg = axios.isAxiosError(err)
+        ? (err.response?.data?.message ?? "주문 내역을 불러올 수 없습니다.")
+        : "주문 내역을 불러올 수 없습니다.";
+      alert(msg);
     }
   };
   useEffect(() => {

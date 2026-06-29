@@ -63,13 +63,23 @@ export default function ShippingDetailPage() {
   const { ordSn } = useParams<{ ordSn: string }>();
   const navigate = useNavigate();
   const [shipping, setShipping] = useState<ShippingInfo | null>(null);
+  const [orderCanceled, setOrderCanceled] = useState(false);
+  const [faqOpen, setFaqOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [isError, setIsError] = useState(false);
 
   useEffect(() => {
-    api
-      .get<ShippingInfo>(`/api/shipping/${ordSn}`)
-      .then((res) => setShipping(res.data))
+    Promise.all([
+      api.get<ShippingInfo>(`/api/shipping/${ordSn}`),
+      api.get<{ ordStatCd: string }>(`/api/orders/detail?id=${ordSn}`),
+    ])
+      .then(([shippingRes, orderRes]) => {
+        setShipping(shippingRes.data);
+        const statCd = orderRes.data.ordStatCd;
+        if (statCd === "CANCELED" || statCd === "CANCEL_REQUESTED") {
+          setOrderCanceled(true);
+        }
+      })
       .catch(() => setIsError(true))
       .finally(() => setLoading(false));
   }, [ordSn]);
@@ -79,7 +89,8 @@ export default function ShippingDetailPage() {
     alert("운송장 번호가 복사되었습니다.");
   };
 
-  const status = shipping ? statusMap[shipping.dlvryStatCd] : null;
+  const effectiveDlvryStatCd = orderCanceled ? "CANCELED" : shipping?.dlvryStatCd ?? "READY";
+  const status = statusMap[effectiveDlvryStatCd];
   const currentStep = status?.step ?? 0;
 
   return (
@@ -98,27 +109,6 @@ export default function ShippingDetailPage() {
           <div className="flex-1 min-w-0 space-y-6">
             {/* 상단 네비게이션 */}
             <div className="flex flex-col gap-3">
-              <button
-                type="button"
-                onClick={() => navigate(-1)}
-                className="group inline-flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-slate-700 transition-colors cursor-pointer w-fit"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={2.5}
-                  stroke="currentColor"
-                  className="w-3.5 h-3.5 transform group-hover:-translate-x-0.5 transition-transform"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M15.75 19.5 8.25 12l7.5-7.5"
-                  />
-                </svg>
-                주문 내역으로 돌아가기
-              </button>
               <h2 className="text-2xl font-bold tracking-tight text-slate-900 mt-1">
                 배송 상세 정보
               </h2>
@@ -163,39 +153,54 @@ export default function ShippingDetailPage() {
                       배송 상태
                     </p>
                     <span
-                      className={`inline-flex px-2.5 py-0.5 rounded-md text-xs font-bold tracking-wide border ${status?.cls}`}
+                      className={`inline-flex px-2.5 py-0.5 rounded-md text-xs font-bold tracking-wide border -ml-0.5 ${status?.cls}`}
                     >
                       {status?.label}
                     </span>
                   </div>
-                  <div className="w-px h-8 bg-slate-100 hidden sm:block" />
-                  <div>
-                    <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wider mb-1">
-                      운송장 번호
-                    </p>
-                    {shipping.invoiceNo ? (
-                      <div className="flex items-center gap-2">
-                        <p className="font-mono text-sm font-bold text-slate-800 tracking-tight select-all">
-                          {shipping.invoiceNo}
+                  {effectiveDlvryStatCd !== "CANCELED" && (
+                    <>
+                      <div className="w-px h-8 bg-slate-100 hidden sm:block" />
+                      <div>
+                        <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wider mb-1">
+                          운송장 번호
                         </p>
-                        <button
-                          type="button"
-                          onClick={() => handleCopyInvoice(shipping.invoiceNo!)}
-                          className="px-1.5 py-0.5 text-[10px] font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded cursor-pointer transition-colors"
-                        >
-                          복사
-                        </button>
+                        {shipping.invoiceNo ? (
+                          <div className="flex items-center gap-2">
+                            <p className="font-mono text-sm font-bold text-slate-800 tracking-tight select-all">
+                              {shipping.invoiceNo}
+                            </p>
+                            <button
+                              type="button"
+                              onClick={() => handleCopyInvoice(shipping.invoiceNo!)}
+                              className="px-1.5 py-0.5 text-[10px] font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded cursor-pointer transition-colors"
+                            >
+                              복사
+                            </button>
+                          </div>
+                        ) : (
+                          <p className="text-xs font-semibold text-amber-500">
+                            택배사 등록 대기 중
+                          </p>
+                        )}
                       </div>
-                    ) : (
-                      <p className="text-xs font-semibold text-amber-500">
-                        택배사 등록 대기 중
-                      </p>
-                    )}
-                  </div>
+                    </>
+                  )}
                 </div>
 
                 {/* ✨ 2. [신규 추가] 시각적 배송 타임라인 트래커 (허전함 해결사) */}
-                {shipping.dlvryStatCd !== "CANCELED" && (
+                {effectiveDlvryStatCd === "CANCELED" && (
+                  <div className="bg-rose-50 border border-rose-100 rounded-2xl p-8 flex flex-col items-center gap-3 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.02)]">
+                    <div className="w-12 h-12 rounded-full bg-rose-100 flex items-center justify-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6 text-rose-500">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                      </svg>
+                    </div>
+                    <p className="text-sm font-bold text-rose-600">배송이 취소되었습니다.</p>
+                    <p className="text-xs text-rose-400">주문 취소로 인해 배송이 중단되었습니다.</p>
+                  </div>
+                )}
+                {effectiveDlvryStatCd !== "CANCELED" && (
                   <div className="bg-white border border-slate-100 rounded-2xl p-8 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.02)]">
                     <div className="relative flex items-center justify-between max-w-xl mx-auto py-4">
                       {/* 백그라운드 진행 바 게이지 */}
@@ -378,42 +383,48 @@ export default function ShippingDetailPage() {
                   </div>
                 </div>
 
-                {/* ✨ 4. [신규 추가] 하단 미니 FAQ/안내 가이드라인 카드 (푸터 여백 보완용) */}
-                <div className="bg-white border border-slate-100 rounded-2xl shadow-[0_2px_12px_-4px_rgba(0,0,0,0.02)] overflow-hidden">
-                  <div className="px-6 py-4.5 border-b border-slate-50 bg-slate-50/30">
-                    <h3 className="text-sm font-bold text-slate-800 flex items-center gap-1.5">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth={2}
-                        stroke="currentColor"
-                        className="w-4 h-4 text-slate-500"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z"
-                        />
+                {/* 돌아가기 버튼 */}
+                <div className="flex justify-center">
+                  <button
+                    type="button"
+                    onClick={() => navigate(-1)}
+                    className="inline-flex items-center gap-2 px-10 py-3 text-sm font-bold text-white bg-slate-500 hover:bg-slate-600 rounded-lg transition-colors shadow-sm"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+                    </svg>
+                    주문 내역으로 돌아가기
+                  </button>
+                </div>
+
+                {/* 교재 배송 및 반품 안내 */}
+                <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setFaqOpen((v) => !v)}
+                    className="w-full flex items-center justify-between px-5 py-4 cursor-pointer"
+                  >
+                    <span className="flex items-center gap-2 text-sm font-bold text-gray-800">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 text-blue-500">
+                        <path fillRule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12Zm8.706-1.442c1.146-.573 2.437.463 2.126 1.706l-.709 2.836.042-.02a.75.75 0 0 1 .67 1.34l-.04.022c-1.147.573-2.438-.463-2.127-1.706l.71-2.836-.042.02a.75.75 0 1 1-.671-1.34l.041-.022ZM12 9a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z" clipRule="evenodd" />
                       </svg>
-                      교재 배송 및 반품 안내 FAQ
-                    </h3>
-                  </div>
-                  <div className="p-6 divide-y divide-slate-100">
-                    {SHIPPING_FAQS.map((faq, i) => (
-                      <div key={i} className={`py-3.5 first:pt-0 last:pb-0`}>
-                        <p className="text-xs font-bold text-slate-800 flex items-center gap-2">
-                          <span className="text-blue-500 font-extrabold font-mono">
-                            Q.
-                          </span>
-                          {faq.q}
-                        </p>
-                        <p className="text-[11px] text-slate-500 mt-1.5 pl-4 leading-relaxed font-medium">
-                          {faq.a}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
+                      교재 배송 및 반품 안내
+                    </span>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"
+                      className={`w-4 h-4 text-gray-400 transition-transform ${faqOpen ? "rotate-180" : ""}`}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                    </svg>
+                  </button>
+                  {faqOpen && (
+                    <ul className="px-5 pb-5 pt-4 space-y-2 border-t border-gray-100">
+                      {SHIPPING_FAQS.map((faq, idx) => (
+                        <li key={idx} className="text-[11px] leading-relaxed text-gray-400 flex items-start gap-1.5">
+                          <span className="shrink-0 text-blue-300 font-bold select-none">·</span>
+                          <span><span className="font-semibold text-gray-500">{faq.q}</span> {faq.a}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
               </div>
             )}
