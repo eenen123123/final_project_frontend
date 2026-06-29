@@ -32,7 +32,6 @@ const TAB_LABELS: { key: TabType; label: string }[] = [
   { key: "end", label: "수강종료 강좌" },
 ];
 
-const LECTURE_TYPES = ["전체", "일반강좌/패키지", "PASS", "PAC", "무료강좌"];
 const CATEGORIES = ["전체", "국어", "수학", "영어", "사탐", "과탐", "한국사"];
 const SORT_LABELS: { key: SortType; label: string }[] = [
   { key: "order", label: "신청일 최신순" },
@@ -68,7 +67,6 @@ export default function MyLecturePage() {
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState("수강중 강좌");
   const [activeTab, setActiveTab] = useState<TabType>("active");
-  const [lectureType, setLectureType] = useState("전체");
   const [category, setCategory] = useState("전체");
   const [sort, setSort] = useState<SortType>("recent");
   const [lectures, setLectures] = useState<Lecture[]>([]);
@@ -178,7 +176,6 @@ export default function MyLecturePage() {
                     onClick={() => {
                       setActiveTab(key);
                       setCategory("전체");
-                      setLectureType("전체");
                     }}
                     className={`flex items-center gap-2 px-4 py-3 text-sm font-medium transition-all cursor-pointer relative top-[1px] border-b-2
                       ${
@@ -204,18 +201,6 @@ export default function MyLecturePage() {
             <div className="bg-white border border-gray-200 rounded-xl overflow-hidden mb-5 shadow-sm">
               <table className="w-full border-collapse text-left">
                 <tbody>
-                  <tr className="border-b border-gray-100">
-                    <th className="w-24 sm:w-28 bg-gray-50/80 px-4 py-3 text-xs font-bold text-gray-500 border-r border-gray-100 uppercase tracking-wider text-center select-none">
-                      수강유형
-                    </th>
-                    <td className="px-4 py-3.5">
-                      <div className="flex gap-1.5 flex-wrap">
-                        {LECTURE_TYPES.map((t) => (
-                          <FilterPill key={t} label={t} active={lectureType === t} onClick={() => setLectureType(t)} />
-                        ))}
-                      </div>
-                    </td>
-                  </tr>
                   <tr>
                     <th className="w-24 sm:w-28 bg-gray-50/80 px-4 py-3 text-xs font-bold text-gray-500 border-r border-gray-100 uppercase tracking-wider text-center select-none">
                       과목영역

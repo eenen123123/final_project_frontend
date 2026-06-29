@@ -18,6 +18,14 @@ interface Subject {
   minutes: number;
 }
 
+interface Instructor {
+  rank: number;
+  instructorName: string;
+  profileImage: string | null;
+  subjectName: string;
+  totalSeconds: number;
+}
+
 const NOW = Date.now();
 
 const THUMB_COLORS = [
@@ -124,11 +132,20 @@ export default function StudyReportPage() {
   const [activeSection, setActiveSection] = useState("수강 리포트");
   const [courses, setCourses] = useState<Course[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [instructors, setInstructors] = useState<Instructor[]>([]);
+
   useEffect(() => {
     api
       .get<Course[]>("/api/mypage/courses")
       .then((res) => setCourses(res.data))
       .catch((error) => alert(error.response?.data?.message));
+
+    api
+      .get<{ instructorName: string; profileImage: string | null; subjectName: string; totalSeconds: number }[]>("/api/mypage/instructor-ranking")
+      .then((res) => {
+        setInstructors(res.data.map((item, i) => ({ rank: i + 1, ...item })));
+      })
+      .catch(() => {});
 
     api
       .get<{ subjectName: string; totalSeconds: number }[]>(
@@ -137,7 +154,7 @@ export default function StudyReportPage() {
       .then((res) => {
         const data = res.data;
         if (data.length === 0) return;
-        const maxSeconds = Math.max(...data.map((d) => d.totalSeconds));
+        const maxSeconds = Math.max(...data.map((d) => d.totalSeconds), 1);
         setSubjects(
           data.map((d) => ({
             name: d.subjectName,
@@ -269,7 +286,7 @@ export default function StudyReportPage() {
                                 {s.name}
                               </td>
                               <td className="py-2 text-slate-400 text-right pr-3 font-mono">
-                                {s.percent}%
+                                {isNaN(s.percent) ? "" : `${s.percent}%`}
                               </td>
                               <td className="py-2 text-slate-800 text-right font-bold font-mono">
                                 {s.minutes}분
@@ -345,65 +362,67 @@ export default function StudyReportPage() {
               </div>
             </div>
 
-            {/* 3. 하단 주간 학습 시간 통계 바 차트 */}
+            {/* 3. 선생님 집중도 */}
             <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.02)]">
               <div className="flex items-center justify-between mb-6">
-                <h4 className="text-sm font-bold text-slate-800">
-                  주간 일별 학습 시간
-                </h4>
+                <h4 className="text-sm font-bold text-slate-800">선생님 집중도</h4>
                 <span className="text-[10px] font-bold px-2 py-0.5 bg-slate-50 border border-slate-100 rounded-md text-slate-400">
-                  최근 7일 트렌드
+                  전체 기간 기준
                 </span>
               </div>
 
-              {/* 차트 프레임워크 데코레이션 가이드라인 추가 */}
-              <div className="relative pt-4">
-                <div className="absolute inset-0 flex flex-col justify-between pointer-events-none h-28 border-b border-slate-100/70">
-                  <div className="w-full border-t border-slate-50" />
-                  <div className="w-full border-t border-slate-50" />
-                  <div className="w-full border-t border-slate-50" />
+              {instructors.length === 0 ? (
+                <div className="py-12 text-center text-xs font-medium text-slate-300">
+                  누적된 학습 데이터 기록이 없습니다.
                 </div>
+              ) : (
+                <div className="space-y-5">
+                  {instructors.map((instr) => {
+                    const maxSeconds = instructors[0].totalSeconds;
+                    const barPct = Math.round((instr.totalSeconds / maxSeconds) * 100);
+                    const hours = Math.floor(instr.totalSeconds / 3600);
+                    const mins = Math.floor((instr.totalSeconds % 3600) / 60);
+                    const timeStr = hours > 0 ? `${hours}시간 ${mins}분` : `${mins}분`;
 
-                <div className="relative flex items-end gap-3 h-28 z-10">
-                  {[
-                    { day: "월", minutes: 45 },
-                    { day: "화", minutes: 90 },
-                    { day: "수", minutes: 30 },
-                    { day: "목", minutes: 120 },
-                    { day: "금", minutes: 60 },
-                    { day: "토", minutes: 15 },
-                    { day: "일", minutes: 75 },
-                  ].map(({ day, minutes }) => {
-                    const maxMinutes = 120;
-                    const heightPct = (minutes / maxMinutes) * 100;
                     return (
-                      <div
-                        key={day}
-                        className="flex-1 flex flex-col items-center gap-1.5 group"
-                      >
-                        <span className="text-[10px] font-mono font-bold text-slate-400 opacity-80 group-hover:opacity-100 group-hover:text-blue-600 transition-all">
-                          {minutes}분
+                      <div key={instr.rank} className="flex items-center gap-4">
+                        {/* 순위 */}
+                        <span className={`text-sm font-extrabold w-4 shrink-0 ${instr.rank === 1 ? "text-amber-500" : "text-slate-300"}`}>
+                          {instr.rank}
                         </span>
-                        <div
-                          className="w-full flex items-end"
-                          style={{ height: "80px" }}
-                        >
-                          <div
-                            className="w-full rounded-t-lg bg-gradient-to-t from-blue-500/80 to-blue-400 group-hover:from-blue-600 group-hover:to-blue-500 transition-all duration-300 shadow-sm shadow-blue-100"
-                            style={{
-                              height: `${heightPct}%`,
-                              minHeight: "4px",
-                            }}
-                          />
+
+                        {/* 프로필 이미지 */}
+                        <div className="w-10 h-10 rounded-xl overflow-hidden bg-slate-100 shrink-0 flex items-center justify-center">
+                          {instr.profileImage ? (
+                            <img src={instr.profileImage} alt={instr.instructorName} className="w-full h-full object-cover" />
+                          ) : (
+                            <span className="text-sm font-bold text-slate-400">
+                              {instr.instructorName.slice(0, 1)}
+                            </span>
+                          )}
                         </div>
-                        <span className="text-xs text-slate-400 font-bold group-hover:text-slate-700 transition-colors">
-                          {day}
-                        </span>
+
+                        {/* 이름 + 과목 + 바 */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between mb-1.5">
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-xs font-bold text-slate-700">{instr.instructorName} 선생님</span>
+                              <span className="text-[10px] px-1.5 py-0.5 bg-blue-50 text-blue-500 rounded font-semibold">{instr.subjectName}</span>
+                            </div>
+                            <span className="text-xs font-mono font-bold text-slate-500 shrink-0 ml-2">{timeStr}</span>
+                          </div>
+                          <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                            <div
+                              className={`h-full rounded-full transition-all duration-500 ${instr.rank === 1 ? "bg-blue-500" : "bg-slate-300"}`}
+                              style={{ width: `${barPct}%` }}
+                            />
+                          </div>
+                        </div>
                       </div>
                     );
                   })}
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </div>
