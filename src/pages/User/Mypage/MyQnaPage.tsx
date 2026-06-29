@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import MyPageSidebar from "./components/MyPageSidebar";
 import api from "../../../api/api";
 import { usePaginatedSearch, type PageResponse } from "../../../hooks/usePaginatedSearch";
@@ -29,7 +29,7 @@ interface InstructorQnaItem {
 export default function MyQnaPage() {
   const [activeTab, setActiveTab] = useState<TabKey>("instructor");
   const { isAuthReady } = useAuth();
-  const navigate = useNavigate();
+
 
   // 고객센터 Q&A
   const {
@@ -193,12 +193,6 @@ export default function MyQnaPage() {
                   </div>
                 )}
 
-                <div className="flex justify-end mt-3">
-                  <button type="button" onClick={() => navigate("/instructors")}
-                    className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2 rounded transition-colors">
-                    질문 등록하기
-                  </button>
-                </div>
               </>
             )}
 

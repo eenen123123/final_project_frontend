@@ -145,6 +145,7 @@ export default function AddressBookPage() {
     try {
       await api.post(`/api/addresses/${addressSn}/default`);
       fetchAddresses();
+      alert("기본 배송지로 설정되었습니다.");
     } catch {
       alert("기본 배송지 변경에 실패했습니다.");
     }

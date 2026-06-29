@@ -137,7 +137,7 @@ export default function CheckoutPage() {
   const [addrJibun, setAddrJibun] = useState("");
   const [addrDtl, setAddrDtl] = useState("");
   const [deliveryMsg, setDeliveryMsg] = useState("");
-  const [saveAddress, setSaveAddress] = useState(true);
+  const [saveAddress, setSaveAddress] = useState(false);
   const [isAddressFromBook, setIsAddressFromBook] = useState(false);
 
   const handleAddressSearch = () => {
