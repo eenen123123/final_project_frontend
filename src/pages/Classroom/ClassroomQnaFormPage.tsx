@@ -16,6 +16,12 @@ interface PendingFile {
   file: File;
 }
 
+interface ExistingFile {
+  fileServerId: number;
+  orgnFileNm: string;
+  fileSizeCnt: number;
+}
+
 export default function ClassroomQnaFormPage() {
   const { classId, postSn } = useParams();
   const navigate = useNavigate();
@@ -26,6 +32,7 @@ export default function ClassroomQnaFormPage() {
   const [hasPendingUploads, setHasPendingUploads] = useState(false);
   const [initialContent, setInitialContent] = useState<JSONContent | undefined>(undefined);
   const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
+  const [existingFiles, setExistingFiles] = useState<ExistingFile[]>([]);
   const [loading, setLoading] = useState(isEdit);
   const [saving, setSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -44,6 +51,7 @@ export default function ClassroomQnaFormPage() {
         } catch {
           setInitialContent(undefined);
         }
+        setExistingFiles(r.data.attachedFiles ?? []);
         setLoading(false);
       })
       .catch(() => navigate(-1));
@@ -67,9 +75,10 @@ export default function ClassroomQnaFormPage() {
     if (!html || html === "<p></p>") { alert("내용을 입력해주세요."); return; }
     setSaving(true);
     try {
-      const fileServerIds = await Promise.all(
+      const newFileServerIds = await Promise.all(
         pendingFiles.map((pf) => uploadFile(pf.file, "CLASSROOM_QNA", classId ?? "0"))
       );
+      const fileServerIds = [...existingFiles.map((f) => f.fileServerId), ...newFileServerIds];
       const payload = { postSj: title, postCn: html, fileServerIds };
       if (isEdit) {
         await api.put(`/api/classroom/${classId}/qna/${postSn}`, payload);
@@ -142,6 +151,21 @@ export default function ClassroomQnaFormPage() {
                 <i className="fa-solid fa-cloud-arrow-up text-xl text-slate-300 group-hover:text-blue-400 transition-colors" />
                 <span className="text-sm font-semibold text-slate-400 group-hover:text-blue-500 transition-colors">클릭하여 파일 첨부</span>
               </button>
+              {existingFiles.length > 0 && (
+                <div className="flex flex-col gap-1.5 mt-2">
+                  {existingFiles.map((ef) => (
+                    <div key={ef.fileServerId} className="flex items-center gap-3 px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-600">
+                      <i className="fa-solid fa-paperclip text-slate-300" />
+                      <span className="flex-1 truncate">{ef.orgnFileNm}</span>
+                      <span className="text-xs text-slate-400 shrink-0">{(ef.fileSizeCnt / 1024).toFixed(1)} KB</span>
+                      <button onClick={() => setExistingFiles((p) => p.filter((x) => x.fileServerId !== ef.fileServerId))}
+                        className="text-slate-300 hover:text-red-400 transition-colors shrink-0">
+                        <i className="fa-solid fa-xmark" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
               {pendingFiles.length > 0 && (
                 <div className="flex flex-col gap-1.5 mt-2">
                   {pendingFiles.map((pf) => (
