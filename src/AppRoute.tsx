@@ -55,6 +55,7 @@ import InstructorBoardLayout from "./pages/Instructor/InstructorBoardLayout";
 import CoursesTab from "./pages/Instructor/InstructorBoard/CoursesTab";
 import BoardTab from "./pages/Instructor/InstructorBoard/BoardTab";
 import BoardPostDetailPage from "./pages/Instructor/InstructorBoard/BoardPostDetailPage";
+import InstructorQnaFormPage from "./pages/Instructor/InstructorBoard/InstructorQnaFormPage";
 import PaymentPage from "./pages/Payment/PaymentPage";
 import OrderHistoryPage from "./pages/User/Mypage/OrderHistoryPage";
 import CouponPointPage from "./pages/User/Mypage/CouponPointPage";
@@ -131,6 +132,8 @@ export default function AppRoute() {
               />
             }
           />
+          <Route path="qna/write" element={<InstructorQnaFormPage />} />
+          <Route path="qna/:postSn/edit" element={<InstructorQnaFormPage />} />
           <Route path=":boardType/:postSn" element={<BoardPostDetailPage />} />
           <Route path="*" element={<NotFound />} />
         </Route>

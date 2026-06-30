@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import api from "../../../api/api";
 import { formatPostDate } from "../InstructorDetail/utils";
-import TipTapEditor from "../../../components/TipTapEditor/TipTapEditor";
-import type { JSONContent } from "@tiptap/react";
+import { useAuth } from "../../../auth/AuthContext";
+import { getFilesToken } from "../../../api/fileApi";
+import { processHtml } from "../../../utils/renderHtml";
 
 interface AttachedFile {
-  fileSn: number;
-  originalFileName: string;
+  atchFileDtlSn: number;
+  fileName: string;
   fileUrl: string;
 }
 
@@ -15,7 +16,7 @@ interface BoardPostDetail {
   postSn: number;
   boardTypeCd: string;
   title: string;
-  content: JSONContent | undefined;
+  content: string | null;
   writerName: string;
   regDt: string;
   viewCount: number;
@@ -27,6 +28,7 @@ interface BoardPostDetail {
   prevPost: { postSn: number; title: string } | null;
   nextPost: { postSn: number; title: string } | null;
   files: AttachedFile[] | null;
+  myPost: boolean;
 }
 
 export default function BoardPostDetailPage() {
@@ -36,19 +38,72 @@ export default function BoardPostDetailPage() {
     postSn: string;
   }>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const { isAuthenticated } = useAuth();
   const [post, setPost] = useState<BoardPostDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [accessDenied, setAccessDenied] = useState(false);
+  const [resolvedContent, setResolvedContent] = useState<string | null>(null);
+  const [fileTokenMap, setFileTokenMap] = useState<Record<number, string>>({});
 
   useEffect(() => {
+    if (boardType === "dataroom" && !isAuthenticated) {
+      navigate("/login", { state: { from: location } });
+      return;
+    }
     if (!instrUuid || !postSn) return;
     let cancelled = false;
     api
       .get<BoardPostDetail>(`/api/instructors/${instrUuid}/board/${postSn}`)
       .then((res) => {
-        if (!cancelled) setPost(res.data);
+        if (cancelled) return;
+        setPost(res.data);
+
+        // 첨부파일 토큰
+        const files = res.data.files ?? [];
+        if (files.length > 0) {
+          const fileServerIds = files
+            .map((f: AttachedFile) => {
+              const m = f.fileUrl.match(/\/files\/(\d+)\//);
+              return m ? Number(m[1]) : null;
+            })
+            .filter((id): id is number => id !== null);
+          if (fileServerIds.length > 0) {
+            getFilesToken(fileServerIds)
+              .then((map) => { if (!cancelled) setFileTokenMap(map); })
+              .catch(() => {});
+          }
+        }
+
+        const html = res.data.content ?? "";
+        const fileIds = [...html.matchAll(/data-file-id="(\d+)"/g)].map((m) =>
+          Number(m[1]),
+        );
+
+        if (fileIds.length === 0) {
+          setResolvedContent(processHtml(html));
+          return;
+        }
+
+        getFilesToken(fileIds)
+          .then((tokenMap) => {
+            if (cancelled) return;
+            const injected = html.replace(
+              /(<img[^>]*data-file-id="(\d+)"[^>]*)(\/?>)/g,
+              (_match, before, id, close) => {
+                const url = tokenMap[Number(id)];
+                return url ? `${before} src="${url}"${close}` : `${before}${close}`;
+              },
+            );
+            setResolvedContent(processHtml(injected));
+          })
+          .catch(() => setResolvedContent(html));
       })
       .catch((e) => {
-        if (!cancelled) console.error("게시글 상세 조회 실패", e);
+        if (cancelled) return;
+        const status = e?.response?.status;
+        if (status === 403 || status === 401) setAccessDenied(true);
+        console.error("게시글 상세 조회 실패", e);
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -56,12 +111,20 @@ export default function BoardPostDetailPage() {
     return () => {
       cancelled = true;
     };
-  }, [instrUuid, postSn]);
+  }, [instrUuid, postSn, boardType, isAuthenticated, navigate, location]);
 
   const backPath = `/instructor/${instrUuid}/${boardType}`;
 
+  if (boardType === "dataroom" && !isAuthenticated) {
+    return null;
+  }
+
   if (loading) {
     return <p className="text-sm text-gray-400">불러오는 중...</p>;
+  }
+
+  if (accessDenied) {
+    return <p className="text-sm text-gray-400">비밀글입니다. 작성자만 열람할 수 있습니다.</p>;
   }
 
   if (!post) {
@@ -73,7 +136,7 @@ export default function BoardPostDetailPage() {
       {/* 제목 + 메타 */}
       <div className="border-b border-gray-200 pb-4 mb-6">
         <h2 className="text-xl font-extrabold text-gray-900 mb-2">
-          {post.title}
+          <span dangerouslySetInnerHTML={{ __html: processHtml(post.title) }} />
         </h2>
         <div className="flex items-center gap-4 text-xs text-gray-400">
           <span>{post.writerName}</span>
@@ -83,9 +146,9 @@ export default function BoardPostDetailPage() {
       </div>
 
       {/* 본문 */}
-      <div className="min-h-40 py-4 border-b border-gray-100 mb-6 text-sm text-gray-700 whitespace-pre-line leading-relaxed">
-        {post.content ? (
-          <TipTapEditor initialContent={post.content} editable={false} />
+      <div className="min-h-40 py-4 border-b border-gray-100 mb-6 text-sm text-gray-700 leading-relaxed prose prose-sm max-w-none">
+        {resolvedContent ? (
+          <div dangerouslySetInnerHTML={{ __html: resolvedContent }} />
         ) : (
           <span className="text-gray-400">내용이 없습니다.</span>
         )}
@@ -96,17 +159,35 @@ export default function BoardPostDetailPage() {
         <div className="mb-6 p-3 bg-gray-50 rounded border border-gray-200">
           <p className="text-xs font-semibold text-gray-500 mb-2">첨부파일</p>
           <ul className="space-y-1">
-            {post.files.map((file) => (
-              <li key={file.fileSn}>
-                <a
-                  href={file.fileUrl}
-                  download={file.originalFileName}
-                  className="text-sm text-blue-600 hover:underline"
-                >
-                  {file.originalFileName}
-                </a>
-              </li>
-            ))}
+            {post.files.map((file) => {
+              const m = file.fileUrl.match(/\/files\/(\d+)\//);
+              const fileServerId = m ? Number(m[1]) : null;
+              const tokenUrl = fileServerId ? fileTokenMap[fileServerId] : null;
+              const handleDownload = async () => {
+                const url = tokenUrl ?? file.fileUrl;
+                try {
+                  const res = await fetch(url);
+                  const blob = await res.blob();
+                  const a = document.createElement("a");
+                  a.href = URL.createObjectURL(blob);
+                  a.download = file.fileName;
+                  a.click();
+                  URL.revokeObjectURL(a.href);
+                } catch {
+                  window.open(url, "_blank");
+                }
+              };
+              return (
+                <li key={file.atchFileDtlSn}>
+                  <button
+                    onClick={handleDownload}
+                    className="text-sm text-blue-600 hover:underline cursor-pointer"
+                  >
+                    {file.fileName}
+                  </button>
+                </li>
+              );
+            })}
           </ul>
         </div>
       )}
@@ -128,9 +209,10 @@ export default function BoardPostDetailPage() {
                 </span>
               )}
             </div>
-            <div className="px-4 py-5 text-sm text-gray-700 whitespace-pre-line leading-relaxed">
-              {post.answerContent}
-            </div>
+            <div
+              className="px-4 py-5 text-sm text-gray-700 leading-relaxed prose prose-sm max-w-none"
+              dangerouslySetInnerHTML={{ __html: processHtml(post.answerContent) }}
+            />
           </div>
         ) : (
           <div className="mb-6 border border-gray-100 rounded px-4 py-6 text-center bg-gray-50">
@@ -140,28 +222,42 @@ export default function BoardPostDetailPage() {
           </div>
         ))}
 
-      {/* 목록 버튼 */}
-      <div className="mb-6">
+      {/* 목록 / 수정·삭제 버튼 */}
+      <div className="mb-6 flex items-center justify-between">
         <button
           onClick={() => navigate(backPath)}
           className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded text-sm text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="w-4 h-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M4 6h16M4 10h16M4 14h16M4 18h16"
-            />
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
           </svg>
           목록
         </button>
+
+        {boardType === "qna" && post.myPost && (
+          <div className="flex gap-2">
+            <button
+              onClick={() => navigate(`/instructor/${instrUuid}/qna/${post.postSn}/edit`)}
+              className="px-4 py-2 border border-gray-300 rounded text-sm text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
+            >
+              수정
+            </button>
+            <button
+              onClick={async () => {
+                if (!window.confirm("게시글을 삭제하시겠습니까?")) return;
+                try {
+                  await api.delete(`/api/instructors/${instrUuid}/board/${post.postSn}`);
+                  navigate(backPath, { replace: true });
+                } catch {
+                  alert("삭제에 실패했습니다.");
+                }
+              }}
+              className="px-4 py-2 border border-red-200 rounded text-sm text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
+            >
+              삭제
+            </button>
+          </div>
+        )}
       </div>
 
       {/* 이전글 / 다음글 */}

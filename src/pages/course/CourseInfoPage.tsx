@@ -338,13 +338,24 @@ export default function CourseInfoPage() {
           <div></div>
           <div className="flex gap-2">
             <button
-              onClick={addCourseToCart}
+              onClick={() => {
+                const orderName =
+                  includeTextbook && textBooks.length > 0
+                    ? `${course.courseName} 외 ${textBooks.length}건`
+                    : course.courseName;
+                navigate(
+                  `/payment?type=course&name=${encodeURIComponent(orderName)}&price=${total}`,
+                );
+              }}
               className="text-sm font-semibold text-white bg-blue-500 hover:bg-blue-600 rounded px-5 py-2 cursor-pointer transition-colors"
             >
-              장바구니
-            </button>
-            <button className="text-sm font-semibold text-white bg-orange-500 hover:bg-orange-600 rounded px-5 py-2 cursor-pointer transition-colors">
               구매하기
+            </button>
+            <button
+              onClick={addCourseToCart}
+              className="text-sm font-semibold text-white bg-orange-500 hover:bg-orange-600 px-5 py-2 cursor-pointer transition-colors"
+            >
+              장바구니
             </button>
           </div>
         </div>
@@ -377,11 +388,10 @@ export default function CourseInfoPage() {
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            className={`px-8 py-3 text-sm font-medium cursor-pointer transition-colors ${
-              activeTab === tab.key
-                ? "text-blue-600 border-b-2 border-blue-600 -mb-px"
-                : "text-gray-500 hover:text-gray-700"
-            }`}
+            className={`px-8 py-3 text-sm font-medium cursor-pointer transition-colors ${activeTab === tab.key
+              ? "text-blue-600 border-b-2 border-blue-600 -mb-px"
+              : "text-gray-500 hover:text-gray-700"
+              }`}
           >
             {tab.label}
           </button>
