@@ -176,17 +176,6 @@ export default function NewHeader() {
       <div className="header-nav-bar hidden md:block">
         <div className="max-w-7xl mx-auto px-6 h-11 flex items-center gap-1">
           {/* 사이트맵 버튼 + 드롭다운 (외부 클릭 감지 영역) */}
-          <div ref={siteMapAreaRef}>
-            <button
-              onClick={toggleSiteMap}
-              className={`sitemap-btn ${siteMapOpen ? "sitemap-btn-active" : ""}`}
-            >
-              <i
-                className={`fa-solid ${siteMapOpen ? "fa-xmark" : "fa-bars"} text-sm`}
-              />
-            </button>
-            <SiteMap isOpen={siteMapOpen} onClose={closeSiteMap} />
-          </div>
 
           <div className="header-util-divider mx-2" />
 
