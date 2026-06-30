@@ -63,11 +63,13 @@ export default function NewHeader() {
       <div className="max-w-7xl mx-auto px-6 h-14 items-center justify-between hidden md:flex">
         {/* 로고 */}
         <Link to="/" className="brand-logo group">
-          <div className="brand-logo-icon">
+          <div className={`brand-logo-icon ${isParent ? "bg-emerald-500! group-hover:bg-emerald-600!" : isAdmin ? "bg-violet-600! group-hover:bg-violet-700!" : ""}`}>
             <i className="fa-solid fa-bolt text-white text-sm" />
           </div>
           <span className="brand-logo-text">HERMES</span>
-          <span className="brand-logo-dot">.</span>
+          <span className={`brand-logo-dot ${isParent ? "text-emerald-500!" : isAdmin ? "text-violet-600!" : ""}`}>.</span>
+          {isParent && <span className="brand-logo-text text-emerald-500">학부모</span>}
+          {isAdmin && <span className="brand-logo-text text-violet-600">관리자</span>}
         </Link>
 
         {/* 우측 유틸리티 */}
@@ -177,7 +179,7 @@ export default function NewHeader() {
         <div className="max-w-7xl mx-auto px-6 h-11 flex items-center gap-1">
           {/* 사이트맵 버튼 + 드롭다운 (외부 클릭 감지 영역) */}
 
-          <div className="header-util-divider mx-2" />
+          {/* <div className="header-util-divider mx-2" /> */}
 
           {/* 메인 네비 */}
           <nav className="flex items-center gap-0.5 flex-1">
