@@ -15,7 +15,7 @@ export interface ChildInfo {
 
 export interface AttendanceRecord {
   day: number;
-  status: "ATTEND" | "LATE" | "ABSENT";
+  status: "ATTEND" | "LATE" | "ABSENT" | "EARLY_LEAVE";
 }
 
 export interface AttendanceResponse {
@@ -24,6 +24,7 @@ export interface AttendanceResponse {
   attendCount: number;
   lateCount: number;
   absentCount: number;
+  earlyLeaveCount: number;
   records: AttendanceRecord[];
 }
 

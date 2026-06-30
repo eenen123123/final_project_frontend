@@ -46,6 +46,7 @@ function AttendanceCalendar({
     ATTEND: "bg-emerald-500 text-white",
     LATE: "bg-amber-400 text-white",
     ABSENT: "bg-red-400 text-white",
+    EARLY_LEAVE: "bg-orange-400 text-white",
   };
 
   const today = new Date();
@@ -64,6 +65,9 @@ function AttendanceCalendar({
           </span>
           <span className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-amber-400" />지각
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-orange-400" />조퇴
           </span>
           <span className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-red-400" />결석
@@ -113,13 +117,13 @@ function AttendanceCalendar({
 function ParentSidebar({
   child,
   children,
-  selectedId,
+  selectedClassSn,
   onSelect,
 }: {
   child: ChildInfo;
   children: ChildInfo[];
-  selectedId: string;
-  onSelect: (id: string) => void;
+  selectedClassSn: number;
+  onSelect: (classSn: number) => void;
 }) {
   return (
     <div className="space-y-4">
@@ -129,27 +133,30 @@ function ParentSidebar({
           자녀 선택
         </span>
         <div className="flex flex-col gap-2">
-          {children.map((c) => (
-            <button
-              key={c.studentId}
-              onClick={() => onSelect(c.studentId)}
-              className={`flex items-center gap-3 p-3 rounded-xl text-left transition-all border
-                ${selectedId === c.studentId ? "border-emerald-300 bg-emerald-50" : "border-slate-100 hover:bg-slate-50"}`}
-            >
-              <div
-                className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0
-                ${selectedId === c.studentId ? "bg-emerald-500 text-white" : "bg-slate-100 text-slate-600"}`}
+          {children.map((c) => {
+            const isActive = c.classSn === selectedClassSn;
+            return (
+              <button
+                key={c.classSn}
+                onClick={() => onSelect(c.classSn)}
+                className={`flex items-center gap-3 p-3 rounded-xl text-left transition-all border
+                  ${isActive ? "border-emerald-300 bg-emerald-50" : "border-slate-100 hover:bg-slate-50"}`}
               >
-                {c.studentName.length > 1 ? c.studentName[1] : c.studentName[0]}
-              </div>
-              <div>
-                <p className={`text-sm font-bold ${selectedId === c.studentId ? "text-emerald-700" : "text-slate-700"}`}>
-                  {c.studentName}
-                </p>
-                <p className="text-xs text-slate-400 mt-0.5">{c.classroomName}</p>
-              </div>
-            </button>
-          ))}
+                <div
+                  className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0
+                  ${isActive ? "bg-emerald-500 text-white" : "bg-slate-100 text-slate-600"}`}
+                >
+                  {c.studentName.length > 1 ? c.studentName[1] : c.studentName[0]}
+                </div>
+                <div>
+                  <p className={`text-sm font-bold ${isActive ? "text-emerald-700" : "text-slate-700"}`}>
+                    {c.studentName}
+                  </p>
+                  <p className="text-xs text-slate-400 mt-0.5">{c.classroomName}</p>
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -208,7 +215,7 @@ function HomeTab({
           <div>
             <p className="text-sm font-bold text-amber-700">출석률 주의</p>
             <p className="text-xs text-amber-600 mt-0.5">
-              {child.studentName} 학생의 이번 달 출석률이 {child.attendanceRate}%입니다. 확인이 필요합니다.
+              {child.studentName} 학생의 출석률이 {child.attendanceRate}%입니다. 확인이 필요합니다.
             </p>
           </div>
         </div>
@@ -290,6 +297,8 @@ function AttendanceTab({
   viewMonth,
   onPrev,
   onNext,
+  isAtMin,
+  isAtMax,
 }: {
   child: ChildInfo;
   attendance: AttendanceResponse | null;
@@ -297,15 +306,15 @@ function AttendanceTab({
   viewMonth: number;
   onPrev: () => void;
   onNext: () => void;
+  isAtMin: boolean;
+  isAtMax: boolean;
 }) {
-  const now = new Date();
-  const isCurrentMonth = viewYear === now.getFullYear() && viewMonth === now.getMonth() + 1;
-
   const summary = [
     { label: "출석", count: attendance?.attendCount ?? "-", color: "text-emerald-600", bg: "bg-emerald-50 border-emerald-100" },
     { label: "지각", count: attendance?.lateCount ?? "-", color: "text-amber-600", bg: "bg-amber-50 border-amber-100" },
+    { label: "조퇴", count: attendance?.earlyLeaveCount ?? "-", color: "text-orange-500", bg: "bg-orange-50 border-orange-100" },
     { label: "결석", count: attendance?.absentCount ?? "-", color: "text-red-500", bg: "bg-red-50 border-red-100" },
-    { label: "출석률", count: `${child.attendanceRate ?? 0}%`, color: "text-blue-600", bg: "bg-blue-50 border-blue-100" },
+    { label: "출석률", count: child.attendanceRate != null ? `${child.attendanceRate}%` : "-", color: "text-blue-600", bg: "bg-blue-50 border-blue-100" },
   ];
 
   return (
@@ -313,7 +322,8 @@ function AttendanceTab({
       <div className="flex items-center justify-between">
         <button
           onClick={onPrev}
-          className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-slate-100 transition-colors text-slate-500"
+          disabled={isAtMin}
+          className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-slate-100 transition-colors text-slate-500 disabled:opacity-30 disabled:cursor-not-allowed"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -322,7 +332,7 @@ function AttendanceTab({
         <span className="text-base font-bold text-slate-700">{viewYear}년 {viewMonth}월</span>
         <button
           onClick={onNext}
-          disabled={isCurrentMonth}
+          disabled={isAtMax}
           className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-slate-100 transition-colors text-slate-500 disabled:opacity-30 disabled:cursor-not-allowed"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -330,7 +340,7 @@ function AttendanceTab({
           </svg>
         </button>
       </div>
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-5 gap-3">
         {summary.map(({ label, count, color, bg }) => (
           <div key={label} className={`bg-white border rounded-xl p-5 text-center ${bg}`}>
             <p className="text-xs text-slate-400 mb-1">{label}</p>
@@ -339,6 +349,9 @@ function AttendanceTab({
         ))}
       </div>
       <AttendanceCalendar attendance={attendance} />
+      <p className="text-xs text-slate-400 text-center">
+        수강 시작일({child.enrollStartDate})부터 현재까지 조회 가능합니다.
+      </p>
     </div>
   );
 }
@@ -434,7 +447,7 @@ function AssignTab({ assigns }: { assigns: AssignItem[] }) {
 // ==========================================
 export default function ParentPage() {
   const [children, setChildren] = useState<ChildInfo[]>([]);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedClassSn, setSelectedClassSn] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>("home");
 
   const [attendance, setAttendance] = useState<AttendanceResponse | null>(null);
@@ -447,7 +460,16 @@ export default function ParentPage() {
 
   const [loading, setLoading] = useState(true);
 
-  const child = children.find((c) => c.studentId === selectedId) ?? null;
+  const child = children.find((c) => c.classSn === selectedClassSn) ?? null;
+
+  // 운영기간 하한/상한 계산
+  const startDate = child?.enrollStartDate ? new Date(child.enrollStartDate) : null;
+  const minYear = startDate?.getFullYear() ?? now.getFullYear();
+  const minMonth = startDate ? startDate.getMonth() + 1 : now.getMonth() + 1;
+  const maxYear = now.getFullYear();
+  const maxMonth = now.getMonth() + 1;
+  const isAtMin = viewYear === minYear && viewMonth === minMonth;
+  const isAtMax = viewYear === maxYear && viewMonth === maxMonth;
 
   // 자녀 목록 로드
   useEffect(() => {
@@ -455,25 +477,25 @@ export default function ParentPage() {
       .getChildren()
       .then((data) => {
         setChildren(data);
-        if (data.length > 0) setSelectedId(data[0].studentId);
+        if (data.length > 0) setSelectedClassSn(data[0].classSn);
       })
       .finally(() => setLoading(false));
   }, []);
 
   // 출석 데이터 로드 (월 변경 시 재조회)
   useEffect(() => {
-    const target = children.find((c) => c.studentId === selectedId);
+    const target = children.find((c) => c.classSn === selectedClassSn);
     if (!target) return;
     let cancelled = false;
     parentApi.getAttendance(target.studentId, viewYear, viewMonth)
       .then((att) => { if (!cancelled) setAttendance(att); })
       .catch(() => { if (!cancelled) setAttendance(null); });
     return () => { cancelled = true; };
-  }, [selectedId, children, viewYear, viewMonth]);
+  }, [selectedClassSn, children, viewYear, viewMonth]);
 
   // 과제/시험 데이터 로드 (자녀 변경 시)
   useEffect(() => {
-    const target = children.find((c) => c.studentId === selectedId);
+    const target = children.find((c) => c.classSn === selectedClassSn);
     if (!target) return;
     let cancelled = false;
     Promise.all([
@@ -489,26 +511,25 @@ export default function ParentPage() {
       setExams([]);
     });
     return () => { cancelled = true; };
-  }, [selectedId, children]);
+  }, [selectedClassSn, children]);
 
   const handlePrevMonth = () => {
+    if (isAtMin) return;
     if (viewMonth === 1) { setViewYear((y) => y - 1); setViewMonth(12); }
     else setViewMonth((m) => m - 1);
   };
 
   const handleNextMonth = () => {
-    const n = new Date();
-    if (viewYear === n.getFullYear() && viewMonth === n.getMonth() + 1) return;
+    if (isAtMax) return;
     if (viewMonth === 12) { setViewYear((y) => y + 1); setViewMonth(1); }
     else setViewMonth((m) => m + 1);
   };
 
-  const handleSelectChild = (id: string) => {
-    setSelectedId(id);
+  const handleSelectChild = (classSn: number) => {
+    setSelectedClassSn(classSn);
     setActiveTab("home");
-    const n = new Date();
-    setViewYear(n.getFullYear());
-    setViewMonth(n.getMonth() + 1);
+    setViewYear(now.getFullYear());
+    setViewMonth(now.getMonth() + 1);
   };
 
   if (loading) {
@@ -537,7 +558,7 @@ export default function ParentPage() {
               <ParentSidebar
                 child={child}
                 children={children}
-                selectedId={selectedId!}
+                selectedClassSn={selectedClassSn!}
                 onSelect={handleSelectChild}
               />
             )}
@@ -573,7 +594,7 @@ export default function ParentPage() {
             {child ? (
               <AnimatePresence mode="wait">
                 <motion.div
-                  key={`${selectedId}-${activeTab}`}
+                  key={`${selectedClassSn}-${activeTab}`}
                   initial={{ opacity: 0, y: 4 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -4 }}
@@ -588,6 +609,8 @@ export default function ParentPage() {
                       viewMonth={viewMonth}
                       onPrev={handlePrevMonth}
                       onNext={handleNextMonth}
+                      isAtMin={isAtMin}
+                      isAtMax={isAtMax}
                     />
                   )}
                   {activeTab === "score" && <ScoreTab exams={exams} />}
