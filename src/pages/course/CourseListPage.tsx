@@ -152,24 +152,29 @@ function CourseItem({ course }: { course: Course }) {
           </h3>
         </Link>
         {course.explain && (
-          <ul className="hidden sm:block space-y-0.5 pt-0.5">
+          <ul className="hidden sm:block space-y-0.5 pt-0.5 whitespace-nowrap overflow-hidden text-ellipsis w-full">
             {course.explain
               .split("\n")
               .filter((l) => l.trim())
               .slice(0, 2)
-              .map((line, i) => (
-                <li
-                  key={i}
-                  className="flex items-start gap-1 text-sm text-gray-500 leading-relaxed"
-                >
-                  <span className="text-gray-400 shrink-0">·</span>
-                  {line.trim()}
-                </li>
-              ))}
+              .map((line, i) => {
+                return (
+                  <li
+                    key={i}
+                    className="flex items-start gap-1 text-sm text-gray-500 leading-relaxed"
+                  >
+                    <span className="text-gray-400 shrink-0">·</span>
+                    {line.trim()}
+                  </li>
+                );
+              })}
           </ul>
         )}
+
         <div className="mt-auto pt-2 flex items-center justify-between">
-          <Link to={`/instructor/${course.instrUuid}/courses/${course.courseSn}`}>
+          <Link
+            to={`/instructor/${course.instrUuid}/courses/${course.courseSn}`}
+          >
             <span className="inline-flex items-center gap-0.5 text-xs sm:text-sm text-blue-500 hover:text-blue-700 font-medium transition-colors">
               자세히 보기
               <svg
