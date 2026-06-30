@@ -179,7 +179,7 @@ export default function NewHeader() {
           <div ref={siteMapAreaRef}>
             <button
               onClick={toggleSiteMap}
-              className={`sitemap-btn ${siteMapOpen ? "sitemap-btn-active" : ""}`}
+              className={`sitemap-btn sitemap-btn-dark ${siteMapOpen ? "sitemap-btn-active" : ""}`}
             >
               <i
                 className={`fa-solid ${siteMapOpen ? "fa-xmark" : "fa-bars"} text-sm`}
