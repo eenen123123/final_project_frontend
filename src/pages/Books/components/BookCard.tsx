@@ -42,15 +42,21 @@ export default function BookCard({ book }: { book: TextbookDto }) {
         itemQty: 1,
       });
       // 201 Created — 새로 담김
-      const go = window.confirm(`${res.data}\n마이페이지(장바구니)에서 확인하시겠습니까?`);
+      const go = window.confirm(
+        `${res.data}\n마이페이지(장바구니)에서 확인하시겠습니까?`,
+      );
       if (go) navigate("/mycart");
     } catch (err) {
-      const axiosErr = err as { response?: { status?: number; data?: { message?: string } } };
+      const axiosErr = err as {
+        response?: { status?: number; data?: { message?: string } };
+      };
       const status = axiosErr.response?.status;
       const message = axiosErr.response?.data?.message;
       if (status === 409) {
         // 409 Conflict — 이미 담긴 상품 (CART_ITEM_ALREADY_EXISTS)
-        const go = window.confirm(`${message}\n마이페이지(장바구니)에서 확인하시겠습니까?`);
+        const go = window.confirm(
+          `${message}\n마이페이지(장바구니)에서 확인하시겠습니까?`,
+        );
         if (go) navigate("/mycart");
       } else if (status === 401) {
         alert("로그인이 필요합니다.");
@@ -61,9 +67,11 @@ export default function BookCard({ book }: { book: TextbookDto }) {
   };
 
   return (
-    <div onClick={goDetail} className="bg-white rounded-2xl overflow-hidden shadow-sm transition-all border border-gray-100 hover:shadow-md hover:border-gray-200 cursor-pointer">
+    <div
+      onClick={goDetail}
+      className="bg-white rounded-2xl overflow-hidden shadow-sm transition-all border border-gray-100 hover:shadow-md hover:border-gray-200 cursor-pointer"
+    >
       <div className="p-4 sm:p-5 sm:flex sm:gap-6 sm:items-start">
-
         {/* 북 커버 (모바일: float로 띄워 본문이 아래까지 감싸도록) */}
         <div className="float-left mr-4 mb-2 sm:float-none sm:mr-0 sm:mb-0 sm:shrink-0">
           {book.thmbImg ? (
@@ -126,15 +134,21 @@ export default function BookCard({ book }: { book: TextbookDto }) {
             {/* 간략 요약 */}
             {book.bookSmry && (
               <ul className="space-y-0.5 pt-0.5">
-                {book.bookSmry.split("\n").filter(l => l.trim()).slice(0, 2).map((line, i) => (
-                  <li key={i} className="flex items-start gap-1 text-xs sm:text-sm text-gray-500 leading-relaxed">
-                    <span className="text-gray-400 flex-shrink-0">·</span>
-                    {line.trim()}
-                  </li>
-                ))}
+                {book.bookSmry
+                  .split("\n")
+                  .filter((l) => l.trim())
+                  .slice(0, 2)
+                  .map((line, i) => (
+                    <li
+                      key={i}
+                      className="flex items-start gap-1 text-xs sm:text-sm text-gray-500 leading-relaxed"
+                    >
+                      <span className="text-gray-400 flex-shrink-0">·</span>
+                      {line.trim()}
+                    </li>
+                  ))}
               </ul>
             )}
-
           </div>
 
           {/* 하단 메타 + 버튼 */}
@@ -145,7 +159,10 @@ export default function BookCard({ book }: { book: TextbookDto }) {
                   <span className="font-semibold text-gray-600">연결 강좌</span>{" "}
                   {book.courseNm}
                   {book.instrUserNm && (
-                    <span className="text-gray-400"> · {book.instrUserNm} 선생님</span>
+                    <span className="text-gray-400">
+                      {" "}
+                      · {book.instrUserNm} 선생님
+                    </span>
                   )}
                 </span>
               )}
@@ -169,14 +186,14 @@ export default function BookCard({ book }: { book: TextbookDto }) {
                 >
                   <ShoppingCart size={15} />
                 </button>
-                <button
+                {/* <button
                   onClick={(e) => { e.stopPropagation(); }}
                   disabled={!inStock}
                   className="w-8 h-8 flex items-center justify-center bg-gray-900 rounded-lg text-white hover:bg-gray-700 transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
                   title="바로 구매"
                 >
                   <CreditCard size={15} />
-                </button>
+                </button> */}
               </div>
             </div>
           </div>

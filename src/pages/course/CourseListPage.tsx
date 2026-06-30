@@ -2,6 +2,7 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import api from "../../api/api";
+import { ShoppingCart } from "lucide-react";
 
 interface Subject {
   subjId: number;
@@ -205,7 +206,7 @@ function CourseItem({ course }: { course: Course }) {
           {course.explain && (
             <>
               <span className="text-gray-300">·</span>
-              <span className="text-gray-400 truncate max-w-[200px]">
+              <span className="text-gray-400 truncate max-w-[400px]">
                 {course.explain}
               </span>
             </>
@@ -246,11 +247,10 @@ function CourseItem({ course }: { course: Course }) {
         )}
         <button
           onClick={addToCart}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border-2 border-orange-400 text-orange-500 text-xs font-semibold hover:bg-orange-400 hover:text-white transition-all duration-150 cursor-pointer shadow-sm"
+          className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-lg text-gray-500 hover:bg-gray-50 hover:border-gray-400 transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
           title="장바구니 담기"
         >
-          <CartIcon />
-          <span>담기</span>
+          <ShoppingCart size={15} />
         </button>
       </div>
     </li>
