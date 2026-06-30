@@ -2,7 +2,7 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import api from "../../api/api";
-import { ShoppingCart } from "lucide-react";
+import { RefreshCw, ShoppingCart } from "lucide-react";
 
 interface Subject {
   subjId: number;
@@ -24,8 +24,6 @@ const CATEGORY_OPTIONS = [
 
 // 한 페이지당 강좌 수 (백엔드 PaginationInfo 와 동일)
 const PAGE_SIZE = 10;
-// 한 번에 보여줄 페이지 번호 개수
-const BLOCK_SIZE = 5;
 
 interface SearchOption {
   category: string;
@@ -52,45 +50,6 @@ interface Course {
   thumbnailImg?: string;
 }
 
-// MARK: 장바구니 아이콘
-function CartIcon() {
-  return (
-    <svg
-      width="17"
-      height="17"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
-      <line x1="3" y1="6" x2="21" y2="6" />
-      <path d="M16 10a4 4 0 01-8 0" />
-    </svg>
-  );
-}
-
-// MARK: 책 아이콘
-function BookIcon() {
-  return (
-    <svg
-      width="32"
-      height="32"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M4 19.5A2.5 2.5 0 016.5 17H20" />
-      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" />
-    </svg>
-  );
-}
-
 // MARK: 검색 아이콘
 function SearchIcon() {
   return (
@@ -107,30 +66,6 @@ function SearchIcon() {
       <circle cx="11" cy="11" r="8" />
       <line x1="21" y1="21" x2="16.65" y2="16.65" />
     </svg>
-  );
-}
-
-// MARK: 강좌 뱃지 컴포넌트
-function CourseBadges({ course }: { course: Course }) {
-  return (
-    <div className="flex flex-wrap gap-1.5 mb-2">
-      {course.isNew && (
-        <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-linear-to-r from-slate-700 to-slate-900 text-white tracking-wide shadow-sm">
-          NEW
-        </span>
-      )}
-      {course.isBest && (
-        <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-linear-to-r from-emerald-500 to-green-500 text-white tracking-wide shadow-sm">
-          BEST
-        </span>
-      )}
-      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 border border-amber-200">
-        🔥 인기
-      </span>
-      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-violet-50 text-violet-600 border border-violet-200">
-        ⭐ 추천
-      </span>
-    </div>
   );
 }
 
@@ -172,65 +107,105 @@ function CourseItem({ course }: { course: Course }) {
   };
 
   return (
-    <li className="group flex items-center gap-3 sm:gap-5 py-4 px-4 sm:py-5 sm:px-5 border-b border-gray-100 hover:bg-linear-to-r hover:from-blue-50/40 hover:to-transparent transition-all duration-200">
-      {/* 과목 아이콘 */}
-      <div className="shrink-0 w-16 sm:w-24 h-auto rounded-xl bg-linear-to-br from-blue-100 to-indigo-100 flex items-center justify-center text-blue-500 group-hover:from-blue-200 group-hover:to-indigo-200 transition-colors">
-        {/* <BookIcon /> */}
+    <div className="group bg-white border border-gray-100 rounded-2xl shadow-sm flex items-start gap-3 sm:gap-5 py-4 px-4 sm:py-5 sm:px-5 hover:shadow-md transition-all duration-200">
+      {/* 썸네일 */}
+      <div className="shrink-0">
         {course.thumbnailImg ? (
           <img
             src={course.thumbnailImg}
-            alt={`${course.courseName} 책 이미지`}
-            className="w-full h-full object-cover rounded-xl"
+            alt={course.courseName}
+            className="w-16 h-24 sm:w-32 sm:h-44 object-cover rounded-xl shadow-sm"
           />
         ) : (
-          <div className="min-h-[100px] align-middle flex items-center justify-center text-blue-500">
-            <BookIcon />
+          <div className="w-16 h-24 sm:w-32 sm:h-44 bg-blue-400 rounded-xl shadow-sm p-2 sm:p-3 flex flex-col justify-between text-white border-l-4 border-black/20">
+            <div className="space-y-0.5 sm:space-y-1">
+              <span className="text-[8px] sm:text-[11px] bg-white/20 px-1 py-0.5 rounded font-bold tracking-widest uppercase block">
+                HERMES
+              </span>
+              <h5 className="text-[9px] sm:text-[12px] font-bold leading-tight line-clamp-2 mt-1">
+                {course.subjectName}
+              </h5>
+              <h5 className="text-[10px] sm:text-[13px] font-bold leading-tight line-clamp-2 mt-1">
+                {course.courseName}
+              </h5>
+            </div>
+            <span className="text-[8px] sm:text-[11px] font-medium text-right block opacity-80">
+              {course.instructorName}
+            </span>
           </div>
         )}
       </div>
 
-      {/* 왼쪽: 뱃지 + 제목 + 메타 */}
-      <div className="flex-1 min-w-0">
-        <CourseBadges course={course} />
-        <Link to={`/instructor/${course.instrUuid}/courses/${course.courseSn}`}>
-          <p className="text-sm font-bold text-gray-900 leading-snug mb-1 group-hover:text-blue-700 transition-colors">
-            {course.courseName}
-          </p>
-        </Link>
-        <div className="flex flex-wrap items-center gap-1.5 text-xs text-gray-500 mb-1.5">
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 rounded-full text-gray-600 font-medium">
+      {/* 콘텐츠 */}
+      <div className="flex-1 min-w-0 flex flex-col gap-1 sm:gap-2">
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span className="text-[10px] sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 bg-gray-100 rounded-full text-gray-600">
             {course.subjectName}
           </span>
-          <span className="text-gray-300">·</span>
-          <span className="text-gray-500">{course.instructorName}</span>
-          {course.explain && (
-            <>
-              <span className="text-gray-300">·</span>
-              <span className="text-gray-400 truncate max-w-[400px]">
-                {course.explain}
-              </span>
-            </>
-          )}
+          <span className="text-xs sm:text-sm text-gray-700 font-bold">
+            {course.instructorName}
+          </span>
         </div>
         <Link to={`/instructor/${course.instrUuid}/courses/${course.courseSn}`}>
-          <span className="inline-flex items-center gap-0.5 text-[11px] text-blue-500 hover:text-blue-700 font-medium transition-colors">
-            자세히 보기
-            <svg
-              width="10"
-              height="10"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-            >
-              <path d="M5 12h14M12 5l7 7-7 7" />
-            </svg>
-          </span>
+          <h3 className="text-sm sm:text-xl font-bold text-gray-900 leading-snug group-hover:text-blue-700 transition-colors line-clamp-2">
+            {course.courseName}
+          </h3>
         </Link>
+        {course.explain && (
+          <ul className="hidden sm:block space-y-0.5 pt-0.5">
+            {course.explain
+              .split("\n")
+              .filter((l) => l.trim())
+              .slice(0, 2)
+              .map((line, i) => (
+                <li
+                  key={i}
+                  className="flex items-start gap-1 text-sm text-gray-500 leading-relaxed"
+                >
+                  <span className="text-gray-400 shrink-0">·</span>
+                  {line.trim()}
+                </li>
+              ))}
+          </ul>
+        )}
+        <div className="mt-auto pt-2 flex items-center justify-between">
+          <Link to={`/instructor/${course.instrUuid}/courses/${course.courseSn}`}>
+            <span className="inline-flex items-center gap-0.5 text-xs sm:text-sm text-blue-500 hover:text-blue-700 font-medium transition-colors">
+              자세히 보기
+              <svg
+                width="10"
+                height="10"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+              >
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
+            </span>
+          </Link>
+          {/* 모바일: 가격 + 장바구니 인라인 */}
+          <div className="flex items-center gap-2 sm:hidden">
+            {formattedPrice ? (
+              <span className="text-sm font-bold text-gray-900">
+                {formattedPrice}
+              </span>
+            ) : (
+              <span className="text-xs text-gray-400">가격 문의</span>
+            )}
+            <button
+              onClick={addToCart}
+              className="w-7 h-7 flex items-center justify-center border border-gray-300 rounded-lg text-gray-500 hover:bg-gray-50 cursor-pointer"
+              title="장바구니 담기"
+            >
+              <ShoppingCart size={13} />
+            </button>
+          </div>
+        </div>
       </div>
 
-      {/* 오른쪽: 가격 + 장바구니 */}
-      <div className="shrink-0 flex flex-col items-end gap-2">
+      {/* 데스크톱: 가격 + 장바구니 */}
+      <div className="hidden sm:flex flex-col items-end gap-2 shrink-0">
         {formattedPrice ? (
           <div className="text-right">
             <p className="text-[10px] text-gray-400 font-medium mb-0.5">
@@ -247,34 +222,13 @@ function CourseItem({ course }: { course: Course }) {
         )}
         <button
           onClick={addToCart}
-          className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-lg text-gray-500 hover:bg-gray-50 hover:border-gray-400 transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+          className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-lg text-gray-500 hover:bg-gray-50 hover:border-gray-400 transition-colors cursor-pointer"
           title="장바구니 담기"
         >
           <ShoppingCart size={15} />
         </button>
       </div>
-    </li>
-  );
-}
-
-// MARK: 로딩 스켈레톤
-function SkeletonItem() {
-  return (
-    <li className="flex items-center gap-5 py-5 px-5 border-b border-gray-100 animate-pulse">
-      <div className="w-12 h-12 rounded-xl bg-gray-100 shrink-0" />
-      <div className="flex-1 min-w-0 space-y-2">
-        <div className="flex gap-1.5">
-          <div className="h-4 w-10 rounded-full bg-gray-100" />
-          <div className="h-4 w-10 rounded-full bg-gray-100" />
-        </div>
-        <div className="h-4 w-2/3 rounded bg-gray-100" />
-        <div className="h-3 w-1/3 rounded bg-gray-100" />
-      </div>
-      <div className="shrink-0 flex flex-col items-end gap-2">
-        <div className="h-4 w-20 rounded bg-gray-100" />
-        <div className="h-7 w-16 rounded-lg bg-gray-100" />
-      </div>
-    </li>
+    </div>
   );
 }
 
@@ -356,9 +310,6 @@ export default function CourseListPage() {
   };
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
-  const currentBlock = Math.ceil(searchOption.page / BLOCK_SIZE);
-  const startPage = (currentBlock - 1) * BLOCK_SIZE + 1;
-  const endPage = Math.min(totalPages, currentBlock * BLOCK_SIZE);
 
   return (
     // MARK: 전체 페이지 컨테이너
@@ -492,96 +443,82 @@ export default function CourseListPage() {
           </aside>
 
           {/* MARK: 메인 콘텐츠 */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <h2 className="text-lg font-bold text-gray-800">강좌 목록</h2>
-                {!loading && (
-                  <span className="text-xs px-2.5 py-1 bg-blue-100 text-blue-700 rounded-full font-bold">
-                    {totalCount > 0 ? `${totalCount}개` : `${courses.length}개`}
-                  </span>
-                )}
+          <div className="flex-1 min-w-0 space-y-4">
+            <div className="flex items-center justify-between px-1 py-3">
+              <span className="text-sm text-gray-600">
+                총 <b className="text-gray-900 font-semibold">{totalCount}</b>
+                개의 강좌
+              </span>
+              <button onClick={handleReset} className="cursor-pointer">
+                <RefreshCw
+                  size={15}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                />
+              </button>
+            </div>
+
+            {loading ? (
+              <div className="bg-white border border-gray-100 rounded-2xl py-20 text-center shadow-sm">
+                <p className="text-sm text-gray-400">강좌를 불러오는 중...</p>
               </div>
-            </div>
-
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-              {loading ? (
-                <ul>
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <SkeletonItem key={i} />
-                  ))}
-                </ul>
-              ) : courses.length > 0 ? (
-                <ul>
-                  {courses.map((course) => (
-                    <CourseItem key={course.courseSn} course={course} />
-                  ))}
-                </ul>
-              ) : (
-                <div className="py-24 flex flex-col items-center gap-3 text-center">
-                  <div className="w-14 h-14 rounded-2xl bg-gray-100 flex items-center justify-center text-gray-300">
-                    <BookIcon />
-                  </div>
-                  <p className="text-sm font-semibold text-gray-500">
-                    강좌가 없습니다
-                  </p>
-                  <p className="text-xs text-gray-400">
-                    다른 검색어로 시도해 보세요.
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* MARK: 페이지네이션 */}
-            {!loading && totalPages > 1 && (
-              <div className="flex items-center justify-center gap-1.5 mt-6">
-                <button
-                  onClick={() => handlePageChange(1)}
-                  disabled={searchOption.page === 1}
-                  className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-400 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-default cursor-pointer text-sm transition-colors"
-                  title="첫 페이지"
+            ) : courses.length > 0 ? (
+              <div className="flex flex-col gap-4">
+                {courses.map((course) => (
+                  <CourseItem key={course.courseSn} course={course} />
+                ))}
+              </div>
+            ) : (
+              <div className="bg-white border border-gray-100 rounded-2xl py-20 text-center shadow-sm">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="w-12 h-12 text-gray-200 mx-auto mb-3"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.2"
                 >
-                  «
-                </button>
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                </svg>
+                <p className="text-sm text-gray-400 font-medium">
+                  해당하는 강좌가 없습니다.
+                </p>
+              </div>
+            )}
+
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-1 mt-5">
                 <button
-                  onClick={() => handlePageChange(searchOption.page - 1)}
+                  onClick={() =>
+                    handlePageChange(Math.max(1, searchOption.page - 1))
+                  }
                   disabled={searchOption.page === 1}
-                  className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-400 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-default cursor-pointer text-sm transition-colors"
-                  title="이전 페이지"
+                  className="w-8 h-8 flex items-center justify-center border border-gray-200 rounded text-gray-400 hover:bg-gray-50 disabled:opacity-30 cursor-pointer text-sm"
                 >
                   ‹
                 </button>
-                {Array.from(
-                  { length: endPage - startPage + 1 },
-                  (_, i) => startPage + i,
-                ).map((p) => (
-                  <button
-                    key={p}
-                    onClick={() => handlePageChange(p)}
-                    className={`w-9 h-9 flex items-center justify-center rounded-lg border text-sm font-semibold transition-colors cursor-pointer ${
-                      searchOption.page === p
-                        ? "bg-linear-to-r from-blue-600 to-indigo-600 border-blue-600 text-white shadow-sm"
-                        : "bg-white border-gray-200 text-gray-600 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600"
-                    }`}
-                  >
-                    {p}
-                  </button>
-                ))}
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                  (p) => (
+                    <button
+                      key={p}
+                      onClick={() => handlePageChange(p)}
+                      className={`w-8 h-8 flex items-center justify-center border rounded text-xs font-medium transition-colors cursor-pointer
+                    ${searchOption.page === p ? "bg-gray-900 text-white border-gray-900" : "text-gray-500 border-gray-200 hover:bg-gray-50"}`}
+                    >
+                      {p}
+                    </button>
+                  ),
+                )}
                 <button
-                  onClick={() => handlePageChange(searchOption.page + 1)}
+                  onClick={() =>
+                    handlePageChange(
+                      Math.min(totalPages, searchOption.page + 1),
+                    )
+                  }
                   disabled={searchOption.page === totalPages}
-                  className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-400 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-default cursor-pointer text-sm transition-colors"
-                  title="다음 페이지"
+                  className="w-8 h-8 flex items-center justify-center border border-gray-200 rounded text-gray-400 hover:bg-gray-50 disabled:opacity-30 cursor-pointer text-sm"
                 >
                   ›
-                </button>
-                <button
-                  onClick={() => handlePageChange(totalPages)}
-                  disabled={searchOption.page === totalPages}
-                  className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-400 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-default cursor-pointer text-sm transition-colors"
-                  title="마지막 페이지"
-                >
-                  »
                 </button>
               </div>
             )}

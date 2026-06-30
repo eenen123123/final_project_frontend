@@ -83,14 +83,17 @@ export default function BookCard({ book }: { book: TextbookDto }) {
           ) : (
             <div className="w-24 h-32 sm:w-36 sm:h-48 bg-blue-900 rounded-r-xl shadow-md p-3 flex flex-col justify-between text-white border-l-4 border-black/20">
               <div className="space-y-1">
-                <span className="text-[9px] bg-white/20 px-1.5 py-0.5 rounded font-bold tracking-widest uppercase">
+                <span className="text-[12px] bg-white/20 px-1.5 py-0.5 rounded font-bold tracking-widest uppercase">
                   HERMES
                 </span>
-                <h5 className="text-[11px] font-bold leading-tight tracking-tight line-clamp-3 mt-1">
+                <h5 className="text-[13px] font-bold leading-tight tracking-tight line-clamp-2 mt-2">
+                  {book.subjNm}
+                </h5>
+                <h5 className="text-[13px] font-bold leading-tight tracking-tight line-clamp-3 mt-1">
                   {book.textbookNm}
                 </h5>
               </div>
-              <span className="text-[10px] font-medium tracking-tight text-right block opacity-80">
+              <span className="text-[12px] font-medium tracking-tight text-right block opacity-80">
                 {book.authrNm} 저
               </span>
             </div>
