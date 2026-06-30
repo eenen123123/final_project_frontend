@@ -72,9 +72,9 @@ export default function NewHeader() {
 
         {/* 우측 유틸리티 */}
         <div className="header-util">
-          <span className="font-semibold">
+          {/* <span className="font-semibold">
             수능 <span className="text-blue-600 font-bold">D-{D_DAY}</span>
-          </span>
+          </span> */}
           <div className="header-util-divider" />
 
           {isAuthenticated ? (
