@@ -361,7 +361,7 @@ export default function CheckoutPage() {
         saveToAddressBook: hasBook ? saveAddress : false,
         coupons: Object.entries(itemCoupons).map(([cartSn, coupon]) => {
           const item = items.find((i) => i.cartSn === Number(cartSn));
-          return { mcpntSn: coupon.mcpntSn, prodDivCd: item?.prodDivCd ?? "" };
+          return { mcpntSn: coupon.mcpntSn, prodDivCd: item?.prodDivCd ?? "", prodSn: item?.prodSn };
         }).filter((c) => c.prodDivCd !== ""),
       });
 
