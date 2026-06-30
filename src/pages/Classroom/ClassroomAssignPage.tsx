@@ -120,15 +120,15 @@ export default function ClassroomAssignPage() {
   if (!assign) return null;
 
   return (
-    <div className="flex-1">
-      <div className="max-w-5xl mx-auto px-10 py-8 flex flex-col gap-5">
+    <div className="flex-1 overflow-y-scroll">
+      <div className="max-w-6xl mx-auto px-8 py-8 flex flex-col gap-5">
         <button onClick={() => navigate(`/classroom/${classId}?tab=assign`)} className="flex items-center gap-2 text-slate-400 hover:text-slate-600 transition-colors text-sm font-medium w-fit">
           <i className="fa-solid fa-arrow-left" /> 과제 목록으로
         </button>
 
         {/* 과제 내용 */}
-        <div className="bg-white border border-slate-100 rounded-2xl overflow-hidden">
-          <div className="px-7 py-5 border-b border-slate-100 flex items-center justify-between">
+        <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
+          <div className="px-7 py-5 border-b border-slate-200 flex items-center justify-between">
             <h2 className="text-base font-bold text-slate-800">{assign.asgmtNm}</h2>
             <div className="flex items-center gap-2 text-sm text-slate-400 shrink-0">
               <i className="fa-regular fa-clock" />
@@ -139,8 +139,8 @@ export default function ClassroomAssignPage() {
         </div>
 
         {/* 내 제출 */}
-        <div className="bg-white border border-slate-100 rounded-2xl overflow-hidden">
-          <div className="px-7 py-5 border-b border-slate-100 flex items-center justify-between">
+        <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
+          <div className="px-7 py-5 border-b border-slate-200 flex items-center justify-between">
             <h3 className="text-sm font-bold text-slate-800">내 제출</h3>
             <div className="flex items-center gap-3">
               {assign.score != null && <span className="text-sm font-black text-blue-600">{assign.score}점</span>}
@@ -157,12 +157,12 @@ export default function ClassroomAssignPage() {
               <RichContent html={assign.sbmtCn ?? ""} className="text-sm text-slate-700 leading-relaxed prose prose-sm max-w-none" />
 
               {(assign.attachedFiles ?? []).length > 0 && (
-                <div className="flex flex-col gap-2 pt-3 border-t border-slate-100">
+                <div className="flex flex-col gap-2 pt-3 border-t border-slate-200">
                   <p className="text-xs font-semibold text-slate-400 mb-1">
                     <i className="fa-solid fa-paperclip mr-1" />첨부파일
                   </p>
                   {(assign.attachedFiles ?? []).map((f) => (
-                    <div key={f.fileServerId} className="flex items-center gap-3 px-4 py-2.5 rounded-xl border border-slate-100 text-sm text-slate-600">
+                    <div key={f.fileServerId} className="flex items-center gap-3 px-4 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-600">
                       <i className="fa-solid fa-file text-slate-300" />
                       <span className="flex-1 truncate">{f.orgnFileNm}</span>
                       <span className="text-xs text-slate-400">{(f.fileSizeCnt / 1024).toFixed(1)} KB</span>
@@ -220,7 +220,7 @@ export default function ClassroomAssignPage() {
                     {(existingFiles.length > 0 || pendingFiles.length > 0) && (
                       <div className="flex flex-col gap-1.5 mt-1">
                         {existingFiles.map((f) => (
-                          <div key={f.fileServerId} className="flex items-center gap-3 px-4 py-2.5 rounded-xl border border-slate-100 bg-slate-50 text-sm text-slate-600">
+                          <div key={f.fileServerId} className="flex items-center gap-3 px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-600">
                             <i className="fa-solid fa-file text-slate-300" />
                             <span className="flex-1 truncate">{f.orgnFileNm}</span>
                             <span className="text-xs text-slate-400 shrink-0">{(f.fileSizeCnt / 1024).toFixed(1)} KB</span>

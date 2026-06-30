@@ -113,8 +113,8 @@ export default function ClassroomExamPage() {
   const timerCls = countdown && countdown.h === 0 && countdown.m < 10 ? "text-red-500" : "text-slate-800";
 
   return (
-    <div className="flex-1">
-      <div className="bg-white border-b border-slate-100 px-10 h-12 flex items-center justify-between gap-4">
+    <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="bg-white border-b border-slate-200 px-8 h-12 flex items-center justify-between gap-4 shrink-0">
         <div className="flex items-center gap-2 min-w-0">
           <i className="fa-solid fa-clipboard-question text-blue-500 text-sm" />
           <span className="font-bold text-slate-800 text-sm truncate">{exam.examNm}</span>
@@ -136,10 +136,11 @@ export default function ClassroomExamPage() {
         </div>
       </div>
 
-      <div className="max-w-3xl mx-auto px-6 py-8 flex flex-col gap-6">
+      <div className="flex-1 overflow-y-scroll">
+        <div className="max-w-6xl mx-auto px-8 py-8 flex flex-col gap-6">
         {exam.questions.map((q) => (
-          <div key={q.qstnSn} className="bg-white border border-slate-100 rounded-2xl overflow-hidden">
-            <div className="px-8 py-5 border-b border-slate-100 flex items-center justify-between gap-4">
+          <div key={q.qstnSn} className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
+            <div className="px-8 py-5 border-b border-slate-200 flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <span className="w-8 h-8 rounded-full bg-blue-600 text-white text-sm font-black flex items-center justify-center flex-shrink-0">{q.qstnNo}</span>
                 <RichContent html={q.qstnCn} className="text-sm font-semibold text-slate-800 leading-relaxed prose prose-sm max-w-none" />
@@ -153,7 +154,7 @@ export default function ClassroomExamPage() {
                     const val = String(i + 1);
                     const selected = answers[q.qstnSn] === val;
                     return (
-                      <label key={i} className={`flex items-center gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-all ${selected ? "border-blue-300 bg-blue-50" : "border-slate-100 hover:border-slate-200 hover:bg-slate-50"}`}>
+                      <label key={i} className={`flex items-center gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-all ${selected ? "border-blue-300 bg-blue-50" : "border-slate-200 hover:border-slate-200 hover:bg-slate-50"}`}>
                         <input type="radio" name={`q-${q.qstnSn}`} value={val} checked={selected}
                           onChange={() => setAnswer(q.qstnSn, val)} className="accent-blue-600 w-4 h-4 shrink-0" />
                         <span className={`text-sm font-medium ${selected ? "text-blue-700" : "text-slate-700"}`}>{choice}</span>
@@ -180,6 +181,7 @@ export default function ClassroomExamPage() {
             className="px-8 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-bold rounded-xl transition-colors">
             {status === "submitting" ? "제출 중..." : "최종 답안 제출"}
           </button>
+        </div>
         </div>
       </div>
     </div>

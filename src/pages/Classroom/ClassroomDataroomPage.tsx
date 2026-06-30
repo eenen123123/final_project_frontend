@@ -52,13 +52,13 @@ export default function ClassroomDataroomPage() {
   const files = item.attachedFiles ?? [];
 
   return (
-    <div className="flex-1">
-      <div className="max-w-5xl mx-auto px-10 py-8">
+    <div className="flex-1 overflow-y-scroll">
+      <div className="max-w-6xl mx-auto px-8 py-8">
         <button onClick={() => navigate(`/classroom/${classId}?tab=dataroom`)} className="flex items-center gap-2 text-slate-400 hover:text-slate-600 transition-colors text-sm font-medium mb-6">
           <i className="fa-solid fa-arrow-left" /> 자료실 목록으로
         </button>
-        <div className="bg-white border border-slate-100 rounded-2xl overflow-hidden">
-          <div className="px-7 py-6 border-b border-slate-100">
+        <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
+          <div className="px-7 py-6 border-b border-slate-200">
             <h1 className="text-base font-bold text-slate-800 leading-snug">{title}</h1>
             <div className="flex items-center gap-3 mt-3 text-sm text-slate-400">
               <span>{author}</span>
@@ -76,7 +76,7 @@ export default function ClassroomDataroomPage() {
           {content && (
             <RichContent
               html={content}
-              className="px-7 py-8 text-sm text-slate-700 leading-relaxed min-h-[140px] prose prose-sm max-w-none border-b border-slate-100"
+              className="px-7 py-8 text-sm text-slate-700 leading-relaxed min-h-[140px] prose prose-sm max-w-none border-b border-slate-200"
             />
           )}
 
@@ -88,7 +88,7 @@ export default function ClassroomDataroomPage() {
                   첨부파일 <span className="font-normal text-slate-400">({files.length}개)</span>
                 </p>
                 {files.map((f) => (
-                  <div key={f.fileServerId} className="flex items-center gap-3 rounded-lg border border-slate-100 px-4 py-3 text-sm text-slate-600 hover:bg-slate-50 transition-colors">
+                  <div key={f.fileServerId} className="flex items-center gap-3 rounded-lg border border-slate-200 px-4 py-3 text-sm text-slate-600 hover:bg-slate-50 transition-colors">
                     <i className="fa-solid fa-file text-slate-300" />
                     <span className="flex-1 truncate">{f.orgnFileNm}</span>
                     <span className="text-slate-400 text-xs whitespace-nowrap">{(f.fileSizeCnt / 1024).toFixed(1)} KB</span>
