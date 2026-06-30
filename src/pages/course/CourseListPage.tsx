@@ -182,7 +182,9 @@ function CourseItem({ course }: { course: Course }) {
             className="w-full h-full object-cover rounded-xl"
           />
         ) : (
-          <BookIcon />
+          <div className="min-h-[100px] align-middle flex items-center justify-center text-blue-500">
+            <BookIcon />
+          </div>
         )}
       </div>
 
@@ -397,7 +399,7 @@ export default function CourseListPage() {
         </header>
 
         <div className="max-w-6xl mx-auto px-4 md:px-6 py-8 flex flex-col gap-7 ">
-          {/* MARK: 사이드바 */}
+          {/* MARK: 검색 */}
           <aside className="w-full shrink-0 ">
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
               <h2 className="text-sm font-bold text-gray-700 mb-4 flex items-center gap-2">
