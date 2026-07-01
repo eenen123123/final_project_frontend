@@ -2,6 +2,7 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../../../api/api";
+import CourseCover from "../../course/CourseCover";
 
 function CartIcon() {
   return (
@@ -197,24 +198,21 @@ export default function CoursesTab() {
               }
               className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
             >
-              <div className="relative w-full aspect-video bg-gray-100 overflow-hidden flex items-center justify-center">
-                {course.thumbnailUrl ? (
-                  <>
-                    <img
-                      src={course.thumbnailUrl}
-                      alt=""
-                      aria-hidden
-                      className="absolute inset-0 w-full h-full object-cover blur-xl scale-110 opacity-60"
-                    />
-                    <img
-                      src={course.thumbnailUrl}
-                      alt={course.title}
-                      className="relative h-full w-auto object-contain"
-                    />
-                  </>
-                ) : (
-                  <span className="text-gray-300 text-sm">{course.category}</span>
-                )}
+              <div className="flex items-center justify-center bg-gray-50 py-6">
+                <CourseCover
+                  course={{
+                    subjectId: 0,
+                    courseName: course.title,
+                    subjectName: course.category ?? "",
+                    instructorName: "",
+                    instrUuid: instrUuid ?? "",
+                    courseSn: course.courseSn,
+                    explain: "",
+                    isBest: false,
+                    isNew: false,
+                    thumbnailImg: course.thumbnailUrl ?? undefined,
+                  }}
+                />
               </div>
 
               <div className="p-4">
@@ -232,12 +230,9 @@ export default function CoursesTab() {
                       : `${course.price.toLocaleString()}원`}
                   </span>
                   <div className="flex items-center gap-2">
-                    <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border-2 border-blue-600 bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700 hover:border-blue-700 transition-all duration-150 cursor-pointer shadow-sm">
-                      수강신청
-                    </button>
                     <button
                       onClick={(e) => addToCart(e, course.courseSn)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border-2 border-orange-400 text-orange-500 text-xs font-semibold hover:bg-orange-400 hover:text-white transition-all duration-150 cursor-pointer shadow-sm"
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border-2 border-slate-700 text-slate-600 text-xs font-semibold hover:bg-slate-700 hover:text-white transition-all duration-150 cursor-pointer shadow-sm"
                       title="장바구니 담기"
                     >
                       <CartIcon />
@@ -277,10 +272,11 @@ export default function CoursesTab() {
             <button
               key={p}
               onClick={() => handlePageChange(p)}
-              className={`w-9 h-9 flex items-center justify-center rounded-lg border text-sm font-semibold transition-colors cursor-pointer ${page === p
-                ? "bg-blue-600 border-blue-600 text-white shadow-sm"
-                : "bg-white border-gray-200 text-gray-600 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600"
-                }`}
+              className={`w-9 h-9 flex items-center justify-center rounded-lg border text-sm font-semibold transition-colors cursor-pointer ${
+                page === p
+                  ? "bg-blue-600 border-blue-600 text-white shadow-sm"
+                  : "bg-white border-gray-200 text-gray-600 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600"
+              }`}
             >
               {p}
             </button>

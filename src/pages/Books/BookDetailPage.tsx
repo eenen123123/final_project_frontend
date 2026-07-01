@@ -398,7 +398,11 @@ export default function BookDetailPage() {
             {courseOpen && (
               <div className="border-t border-gray-100">
                 <div
-                  onClick={() => navigate(`/courses/${book.courseSn}`)}
+                  onClick={() =>
+                    navigate(
+                      `/instructor/${book.instrUuid}/courses/${book.courseSn}`,
+                    )
+                  }
                   className="px-5 py-3.5 flex items-center gap-3 hover:bg-blue-50 transition-colors cursor-pointer group"
                 >
                   <div className="w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0" />

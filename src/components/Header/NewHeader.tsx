@@ -34,10 +34,10 @@ export default function NewHeader() {
     { to: "/gradeCut", label: "등급컷 조회" },
     // { to: "/header/Ainavigator", label: "AI 입시정보" },
     // { to: "/header/books", label: "HERMES 패스" },
-    {
-      to: "/viewer?courseId=81&lectureId=23",
-      label: "테스트 뷰어",
-    },
+    // {
+    //   to: "/viewer?courseId=81&lectureId=23",
+    //   label: "테스트 뷰어",
+    // },
     ...(isStudent ? [{ to: "/my-classrooms", label: "Classroom" }] : []),
   ];
 
@@ -177,7 +177,7 @@ export default function NewHeader() {
         <div className="max-w-7xl mx-auto px-6 h-11 flex items-center gap-1">
           {/* 사이트맵 버튼 + 드롭다운 (외부 클릭 감지 영역) */}
 
-          <div className="header-util-divider mx-2" />
+          {/* <div className="header-util-divider mx-2" /> */}
 
           {/* 메인 네비 */}
           <nav className="flex items-center gap-0.5 flex-1">

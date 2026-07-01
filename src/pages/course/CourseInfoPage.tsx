@@ -2,6 +2,7 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import api from "../../api/api";
+import CourseCover from "./CourseCover";
 
 interface Textbook {
   textbookSn: number;
@@ -126,14 +127,25 @@ export default function CourseInfoPage() {
 
     // 강좌 담기
     try {
-      const res = await api.post("/api/cart", { prodDivCd: "COURSE", prodSn: course.courseSn, itemQty: 1 });
+      const res = await api.post("/api/cart", {
+        prodDivCd: "COURSE",
+        prodSn: course.courseSn,
+        itemQty: 1,
+      });
       messages.push(String(res.data));
     } catch (err) {
       if (axios.isAxiosError(err)) {
         const status = err.response?.status;
-        if (status === 401) { alert("로그인이 필요합니다."); return; }
-        if (status === 409) { messages.push(err.response?.data?.message ?? "이미 담긴 강좌입니다."); }
-        else { alert(err.response?.data?.message ?? "오류가 발생했습니다."); return; }
+        if (status === 401) {
+          alert("로그인이 필요합니다.");
+          return;
+        }
+        if (status === 409) {
+          messages.push(err.response?.data?.message ?? "이미 담긴 강좌입니다.");
+        } else {
+          alert(err.response?.data?.message ?? "오류가 발생했습니다.");
+          return;
+        }
       }
     }
 
@@ -141,20 +153,31 @@ export default function CourseInfoPage() {
     if (includeTextbook && textBooks.length > 0) {
       for (const tb of textBooks) {
         try {
-          const res = await api.post("/api/cart", { prodDivCd: "TEXTBOOK", prodSn: tb.textbookSn, itemQty: 1 });
+          const res = await api.post("/api/cart", {
+            prodDivCd: "TEXTBOOK",
+            prodSn: tb.textbookSn,
+            itemQty: 1,
+          });
           messages.push(String(res.data));
         } catch (err) {
           if (axios.isAxiosError(err)) {
             const status = err.response?.status;
-            if (status === 409) { messages.push(err.response?.data?.message ?? "이미 담긴 교재입니다."); }
-            else { alert(err.response?.data?.message ?? "오류가 발생했습니다."); }
+            if (status === 409) {
+              messages.push(
+                err.response?.data?.message ?? "이미 담긴 교재입니다.",
+              );
+            } else {
+              alert(err.response?.data?.message ?? "오류가 발생했습니다.");
+            }
           }
         }
       }
     }
 
     if (messages.length > 0) {
-      const go = window.confirm(`${[...new Set(messages)].join("\n")}\n마이페이지(장바구니)에서 확인하시겠습니까?`);
+      const go = window.confirm(
+        `${[...new Set(messages)].join("\n")}\n마이페이지(장바구니)에서 확인하시겠습니까?`,
+      );
       if (go) navigate("/mycart");
     }
   };
@@ -165,7 +188,7 @@ export default function CourseInfoPage() {
       <div className="border border-gray-200 rounded mb-2">
         <div className="flex gap-5 p-5">
           {/* 강사 프로필 이미지 */}
-          <div className="shrink-0 w-36 h-40 bg-gray-100 rounded overflow-hidden">
+          {/* <div className="shrink-0 w-36 h-40 bg-gray-100 rounded overflow-hidden">
             {course.instructorProfileImg ? (
               <img
                 src={course.instructorProfileImg}
@@ -177,7 +200,8 @@ export default function CourseInfoPage() {
                 사진없음
               </div>
             )}
-          </div>
+          </div> */}
+          <CourseCover course={course} />
 
           {/* 강좌 정보 */}
           <div className="flex-1 min-w-0">
@@ -388,10 +412,11 @@ export default function CourseInfoPage() {
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            className={`px-8 py-3 text-sm font-medium cursor-pointer transition-colors ${activeTab === tab.key
-              ? "text-blue-600 border-b-2 border-blue-600 -mb-px"
-              : "text-gray-500 hover:text-gray-700"
-              }`}
+            className={`px-8 py-3 text-sm font-medium cursor-pointer transition-colors ${
+              activeTab === tab.key
+                ? "text-blue-600 border-b-2 border-blue-600 -mb-px"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
           >
             {tab.label}
           </button>
