@@ -89,31 +89,33 @@ export function HomeTab({ classSn, onTabChange }: { classSn: number | null; onTa
   const [dataroom, setDataroom] = useState<RecentItem[]>([]);
   const [answeredQna, setAnsweredQna] = useState<RecentQna[]>([]);
   const [loadError, setLoadError] = useState(false);
+  // eslint-disable-next-line react-hooks/purity -- D-day badge intentionally reflects wall-clock time at render
+  const now = Date.now();
 
   useEffect(() => {
     if (!classSn) return;
-    setLoadError(false);
-    const onError = () => setLoadError(true);
-    api.get(`/api/classroom/${classSn}/my-summary`).then((r) => setSummary(r.data)).catch(onError);
-    api.get(`/api/classroom/${classSn}/assignments`, { params: { page: 1, size: 50 } })
-      .then((r) => {
-        const items: UnsubmittedAssign[] = r.data.items ?? [];
-        setUnsubmitted(items.filter((a) => !a.submitted));
-      }).catch(onError);
-    api.get(`/api/classroom/${classSn}/notices`, { params: { page: 1, size: 5 } })
-      .then((r) => setNotices(r.data.items ?? [])).catch(onError);
-    api.get(`/api/classroom/${classSn}/dataroom`, { params: { page: 1, size: 5 } })
-      .then((r) => setDataroom(r.data.items ?? [])).catch(onError);
-    api.get(`/api/classroom/${classSn}/qna`, { params: { page: 1, size: 20, myOnly: true } })
-      .then((r) => {
-        const items: RecentQna[] = r.data.items ?? [];
-        setAnsweredQna(items.filter((q) => q.answYn === "Y").slice(0, 5));
-      }).catch(onError);
+    Promise.allSettled([
+      api.get(`/api/classroom/${classSn}/my-summary`).then((r) => setSummary(r.data)),
+      api.get(`/api/classroom/${classSn}/assignments`, { params: { page: 1, size: 50 } })
+        .then((r) => {
+          const items: UnsubmittedAssign[] = r.data.items ?? [];
+          setUnsubmitted(items.filter((a) => !a.submitted));
+        }),
+      api.get(`/api/classroom/${classSn}/notices`, { params: { page: 1, size: 5 } })
+        .then((r) => setNotices(r.data.items ?? [])),
+      api.get(`/api/classroom/${classSn}/dataroom`, { params: { page: 1, size: 5 } })
+        .then((r) => setDataroom(r.data.items ?? [])),
+      api.get(`/api/classroom/${classSn}/qna`, { params: { page: 1, size: 20, myOnly: true } })
+        .then((r) => {
+          const items: RecentQna[] = r.data.items ?? [];
+          setAnsweredQna(items.filter((q) => q.answYn === "Y").slice(0, 5));
+        }),
+    ]).then((results) => setLoadError(results.some((r) => r.status === "rejected")));
   }, [classSn]);
 
   const dDayBadge = (dueDt: string | null) => {
     if (!dueDt) return null;
-    const diff = Math.ceil((new Date(dueDt).getTime() - Date.now()) / 86400000);
+    const diff = Math.ceil((new Date(dueDt).getTime() - now) / 86400000);
     if (diff < 0) return null;
     if (diff === 0) return { label: "D-DAY", cls: "text-red-500 bg-red-50 border-red-100" };
     if (diff === 1) return { label: "D-1", cls: "text-amber-500 bg-amber-50 border-amber-100" };
@@ -166,7 +168,7 @@ export function HomeTab({ classSn, onTabChange }: { classSn: number | null; onTa
         <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
           <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
             <h3 className="text-sm font-bold text-slate-800">미제출 과제</h3>
-            <button onClick={() => onTabChange("assign")} className="text-sm font-semibold text-blue-500 hover:underline flex-shrink-0">
+            <button onClick={() => onTabChange("assign")} className="text-sm font-semibold text-blue-500 hover:underline shrink-0">
               전체 과제
             </button>
           </div>
@@ -184,7 +186,7 @@ export function HomeTab({ classSn, onTabChange }: { classSn: number | null; onTa
                     onClick={() => navigate(`/classroom/${classId}/assignments/${a.asgmtSn}`)}
                     className="px-6 py-3 flex items-center gap-3 hover:bg-slate-50 transition-colors cursor-pointer">
                     {badge && (
-                      <span className={`text-xs font-black px-2 py-1 rounded-lg border flex-shrink-0 ${badge.cls}`}>{badge.label}</span>
+                      <span className={`text-xs font-black px-2 py-1 rounded-lg border shrink-0 ${badge.cls}`}>{badge.label}</span>
                     )}
                     <div className="flex-1 min-w-0">
                       <RichContent html={a.asgmtNm} className="text-sm font-semibold text-slate-800 prose prose-sm max-w-none" />
@@ -379,24 +381,24 @@ interface LectureSummary {
   secondsWatched?: number | null;
 }
 
-type LectureFetch =
-  | { status: "idle" }
-  | { status: "loading" }
-  | { status: "error" }
-  | { status: "success"; lectures: LectureSummary[] };
+type LectureResult =
+  | { courseSn: number; status: "error" }
+  | { courseSn: number; status: "success"; lectures: LectureSummary[] };
 
 export function LectureTab({ courseSn }: { courseSn: number | null }) {
-  const [state, setState] = useState<LectureFetch>({ status: "idle" });
+  const [result, setResult] = useState<LectureResult | null>(null);
 
   useEffect(() => {
-    if (!courseSn) { setState({ status: "idle" }); return; }
-    setState({ status: "loading" });
+    if (!courseSn) return;
     api.get(`/api/course/${courseSn}`)
-      .then((r) => setState({ status: "success", lectures: r.data.lectures }))
-      .catch(() => setState({ status: "error" }));
+      .then((r) => setResult({ courseSn, status: "success", lectures: r.data.lectures }))
+      .catch(() => setResult({ courseSn, status: "error" }));
   }, [courseSn]);
 
-  const lectures = state.status === "success" ? state.lectures : [];
+  const status: "idle" | "loading" | "error" | "success" =
+    !courseSn ? "idle" : result?.courseSn !== courseSn ? "loading" : result.status;
+  const lectures = result?.status === "success" ? result.lectures : [];
+  const state = { status };
 
   return (
     <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
@@ -427,7 +429,7 @@ export function LectureTab({ courseSn }: { courseSn: number | null }) {
                   <td className="py-4 px-7 text-sm text-slate-300 font-mono whitespace-nowrap">{idx + 1}</td>
                   <td className="py-4 px-7">
                     <div className="flex items-center gap-3">
-                      <span className="w-8 h-8 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center text-blue-400 text-sm flex-shrink-0">
+                      <span className="w-8 h-8 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center text-blue-400 text-sm shrink-0">
                         <i className="fa-solid fa-play" />
                       </span>
                       <span className="font-semibold text-slate-800 text-sm">{l.lectureName}</span>
@@ -441,16 +443,16 @@ export function LectureTab({ courseSn }: { courseSn: number | null }) {
                   <td className="py-4 px-7 text-center">
                     {l.secondsWatched != null && l.lectureDuration
                       ? (() => {
-                          const pct = Math.min(100, Math.round((l.secondsWatched / l.lectureDuration) * 100));
-                          return (
-                            <div className="flex flex-col items-center gap-1">
-                              <span className={`text-xs font-semibold ${pct === 100 ? "text-emerald-500" : "text-blue-500"}`}>{pct}%</span>
-                              <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                                <div className={`h-full rounded-full ${pct === 100 ? "bg-emerald-400" : "bg-blue-400"}`} style={{ width: `${pct}%` }} />
-                              </div>
+                        const pct = Math.min(100, Math.round((l.secondsWatched / l.lectureDuration) * 100));
+                        return (
+                          <div className="flex flex-col items-center gap-1">
+                            <span className={`text-xs font-semibold ${pct === 100 ? "text-emerald-500" : "text-blue-500"}`}>{pct}%</span>
+                            <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                              <div className={`h-full rounded-full ${pct === 100 ? "bg-emerald-400" : "bg-blue-400"}`} style={{ width: `${pct}%` }} />
                             </div>
-                          );
-                        })()
+                          </div>
+                        );
+                      })()
                       : <span className="text-sm text-slate-300">-</span>
                     }
                   </td>
@@ -730,6 +732,151 @@ export function DataroomTab({ classSn }: { classSn: number | null }) {
       <div className="px-7 py-4 border-t border-slate-200 flex items-center justify-between">
         <p className="text-sm text-slate-400">전체 <span className="font-semibold text-slate-600">{totalCount}</span>건</p>
         <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+      </div>
+    </div>
+  );
+}
+
+// ── 출석 현황 탭 ─────────────────────────────────────────────────
+
+interface AttendanceIssueRecord {
+  day: number;
+  status: "ABSENT" | "LATE" | "EARLY_LEAVE";
+  note: string | null;
+}
+
+interface AttendanceIssueResponse {
+  year: number;
+  month: number;
+  lateCount: number;
+  absentCount: number;
+  earlyLeaveCount: number;
+  records: AttendanceIssueRecord[];
+}
+
+interface AttendanceSummary {
+  lateCount: number;
+  absentCount: number;
+  earlyLeaveCount: number;
+}
+
+const ATTENDANCE_STATUS: Record<string, { label: string; cls: string }> = {
+  LATE: { label: "지각", cls: "text-amber-600 bg-amber-50 border-amber-200" },
+  ABSENT: { label: "결석", cls: "text-red-500 bg-red-50 border-red-100" },
+  EARLY_LEAVE: { label: "조퇴", cls: "text-orange-500 bg-orange-50 border-orange-100" },
+};
+
+export function AttendanceTab({ classSn }: { classSn: number | null }) {
+  const now = new Date();
+  const [viewYear, setViewYear] = useState(now.getFullYear());
+  const [viewMonth, setViewMonth] = useState(now.getMonth() + 1);
+  const [attendance, setAttendance] = useState<AttendanceIssueResponse | null>(null);
+  const [summary, setSummary] = useState<AttendanceSummary | null>(null);
+
+  const maxYear = now.getFullYear();
+  const maxMonth = now.getMonth() + 1;
+  const isAtMax = viewYear === maxYear && viewMonth === maxMonth;
+
+  useEffect(() => {
+    if (!classSn) return;
+    let cancelled = false;
+    api.get(`/api/classroom/${classSn}/my-attendance`, { params: { year: viewYear, month: viewMonth } })
+      .then((r) => { if (!cancelled) setAttendance(r.data); })
+      .catch(() => { if (!cancelled) setAttendance(null); });
+    return () => { cancelled = true; };
+  }, [classSn, viewYear, viewMonth]);
+
+  useEffect(() => {
+    if (!classSn) return;
+    let cancelled = false;
+    api.get(`/api/classroom/${classSn}/my-attendance/summary`)
+      .then((r) => { if (!cancelled) setSummary(r.data); })
+      .catch(() => { if (!cancelled) setSummary(null); });
+    return () => { cancelled = true; };
+  }, [classSn]);
+
+  const handlePrevMonth = () => {
+    if (viewMonth === 1) { setViewYear((y) => y - 1); setViewMonth(12); }
+    else setViewMonth((m) => m - 1);
+  };
+  const handleNextMonth = () => {
+    if (isAtMax) return;
+    if (viewMonth === 12) { setViewYear((y) => y + 1); setViewMonth(1); }
+    else setViewMonth((m) => m + 1);
+  };
+
+  const monthSummary = [
+    { label: "지각", count: attendance?.lateCount ?? "-", color: "text-amber-600", bg: "bg-amber-50 border-amber-100" },
+    { label: "조퇴", count: attendance?.earlyLeaveCount ?? "-", color: "text-orange-500", bg: "bg-orange-50 border-orange-100" },
+    { label: "결석", count: attendance?.absentCount ?? "-", color: "text-red-500", bg: "bg-red-50 border-red-100" },
+  ];
+
+  const records = attendance?.records ?? [];
+
+  return (
+    <div className="flex flex-col gap-5">
+      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+        <div className="px-7 py-5 border-b border-slate-200">
+          <h3 className="text-sm font-bold text-slate-800">클래스 기간 근태 특이사항</h3>
+          <p className="text-sm text-slate-400 mt-1">수강 시작일부터 현재까지 누적입니다.</p>
+        </div>
+        <div className="grid grid-cols-3 gap-2 p-6">
+          {[
+            { label: "지각", count: summary?.lateCount ?? null, color: "text-amber-600" },
+            { label: "조퇴", count: summary?.earlyLeaveCount ?? null, color: "text-orange-500" },
+            { label: "결석", count: summary?.absentCount ?? null, color: "text-red-500" },
+          ].map((item) => (
+            <div key={item.label} className="flex flex-col items-center gap-1">
+              <span className={`text-2xl font-black ${item.color}`}>{item.count ?? "-"}</span>
+              <span className="text-xs font-bold text-slate-400">{item.label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between">
+        <button onClick={handlePrevMonth}
+          className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-slate-100 transition-colors text-slate-500">
+          <ChevronLeft size={16} />
+        </button>
+        <span className="text-base font-bold text-slate-700">{viewYear}년 {viewMonth}월</span>
+        <button onClick={handleNextMonth} disabled={isAtMax}
+          className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-slate-100 transition-colors text-slate-500 disabled:opacity-30 disabled:cursor-not-allowed">
+          <ChevronRight size={16} />
+        </button>
+      </div>
+
+      <div className="grid grid-cols-3 gap-3">
+        {monthSummary.map(({ label, count, color, bg }) => (
+          <div key={label} className={`border rounded-xl p-5 text-center ${bg}`}>
+            <p className="text-xs text-slate-400 mb-1">{label}</p>
+            <p className={`text-2xl font-bold ${color}`}>{count}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="bg-white border border-slate-200 rounded-xl p-5">
+        <span className="text-sm font-bold text-slate-700 block mb-4">
+          {viewYear}년 {viewMonth}월 근태 특이사항
+        </span>
+        {records.length === 0 ? (
+          <p className="text-sm text-slate-400 text-center py-6">이번 달 특이사항이 없습니다.</p>
+        ) : (
+          <ul className="divide-y divide-slate-100">
+            {records.map((r) => {
+              const info = ATTENDANCE_STATUS[r.status];
+              return (
+                <li key={r.day} className="py-3 flex items-start gap-3">
+                  <span className="text-sm font-semibold text-slate-500 w-14 shrink-0">{r.day}일</span>
+                  <span className={`text-xs font-bold px-2 py-0.5 rounded border shrink-0 ${info.cls}`}>
+                    {info.label}
+                  </span>
+                  <span className="text-sm text-slate-600">{r.note ?? "-"}</span>
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </div>
     </div>
   );
