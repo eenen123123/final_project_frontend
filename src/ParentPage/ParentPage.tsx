@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   parentApi,
   type ChildInfo,
-  type AttendanceResponse,
+  type AttendanceIssueResponse,
+  type AttendanceSummary,
   type AssignItem,
   type ExamItem,
 } from "../api/parentApi";
@@ -21,92 +22,48 @@ const TABS: { id: TabType; label: string }[] = [
 ];
 
 // ==========================================
-// 1. 출석 달력
+// 1. 근태 특이사항 리스트
 // ==========================================
-function AttendanceCalendar({
+function AttendanceIssueList({
   attendance,
+  year,
+  month,
 }: {
-  attendance: AttendanceResponse | null;
+  attendance: AttendanceIssueResponse | null;
+  year: number;
+  month: number;
 }) {
-  const now = new Date();
-  const year = attendance?.year ?? now.getFullYear();
-  const month = attendance?.month ?? now.getMonth() + 1;
-  const firstDayOfWeek = new Date(year, month - 1, 1).getDay();
-  const daysInMonth = new Date(year, month, 0).getDate();
-  const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
-  const prevDays = Array.from(
-    { length: firstDayOfWeek },
-    (_, i) => new Date(year, month - 1, 0).getDate() - firstDayOfWeek + 1 + i,
-  );
-
-  const getStatus = (day: number) =>
-    attendance?.records.find((r) => r.day === day)?.status;
-
-  const statusStyle: Record<string, string> = {
-    ATTEND: "bg-emerald-500 text-white",
-    LATE: "bg-amber-400 text-white",
-    ABSENT: "bg-red-400 text-white",
-    EARLY_LEAVE: "bg-orange-400 text-white",
+  const statusInfo: Record<string, { label: string; cls: string }> = {
+    LATE: { label: "지각", cls: "text-amber-600 bg-amber-50 border-amber-200" },
+    ABSENT: { label: "결석", cls: "text-red-500 bg-red-50 border-red-100" },
+    EARLY_LEAVE: { label: "조퇴", cls: "text-orange-500 bg-orange-50 border-orange-100" },
   };
 
-  const today = new Date();
-  const isCurrentMonth =
-    today.getFullYear() === year && today.getMonth() + 1 === month;
+  const records = attendance?.records ?? [];
 
   return (
     <div className="bg-white border border-slate-200 rounded-xl p-5">
-      <div className="flex items-center justify-between mb-4">
-        <span className="text-sm font-bold text-slate-700">
-          {year}년 {month}월 출석 현황
-        </span>
-        <div className="flex items-center gap-4 text-xs font-medium text-slate-500">
-          <span className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />출석
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-amber-400" />지각
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-orange-400" />조퇴
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-red-400" />결석
-          </span>
-        </div>
-      </div>
-      <div className="grid grid-cols-7 gap-1 text-center">
-        {["일", "월", "화", "수", "목", "금", "토"].map((d, i) => (
-          <div
-            key={d}
-            className={`text-xs font-bold pb-2 ${i === 0 ? "text-red-400" : "text-slate-400"}`}
-          >
-            {d}
-          </div>
-        ))}
-        {prevDays.map((d) => (
-          <div
-            key={`p${d}`}
-            className="h-9 flex items-center justify-center text-xs text-slate-200"
-          >
-            {d}
-          </div>
-        ))}
-        {days.map((d) => {
-          const status = getStatus(d);
-          const isToday = isCurrentMonth && d === today.getDate();
-          return (
-            <div
-              key={d}
-              className={`h-9 flex items-center justify-center text-xs rounded-lg font-semibold
-              ${isToday && !status ? "bg-blue-600 text-white" : ""}
-              ${status ? statusStyle[status] : !isToday ? "text-slate-500" : ""}
-            `}
-            >
-              {d}
-            </div>
-          );
-        })}
-      </div>
+      <span className="text-sm font-bold text-slate-700 block mb-4">
+        {year}년 {month}월 근태 특이사항
+      </span>
+      {records.length === 0 ? (
+        <p className="text-sm text-slate-400 text-center py-6">이번 달 특이사항이 없습니다.</p>
+      ) : (
+        <ul className="divide-y divide-slate-100">
+          {records.map((r) => {
+            const info = statusInfo[r.status];
+            return (
+              <li key={r.day} className="py-3 flex items-start gap-3">
+                <span className="text-sm font-semibold text-slate-500 w-14 shrink-0">{r.day}일</span>
+                <span className={`text-xs font-bold px-2 py-0.5 rounded border shrink-0 ${info.cls}`}>
+                  {info.label}
+                </span>
+                <span className="text-sm text-slate-600">{r.note ?? "-"}</span>
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </div>
   );
 }
@@ -189,12 +146,13 @@ function ParentSidebar({
 function HomeTab({
   child,
   assigns,
+  attendanceSummary,
 }: {
   child: ChildInfo;
   assigns: AssignItem[];
+  attendanceSummary: AttendanceSummary | null;
 }) {
   const gaugeItems = [
-    { label: "출석률", value: child.attendanceRate ?? 0, unit: "%", color: "#10B981" },
     { label: "과제 제출률", value: child.assignmentRate ?? 0, unit: "%", color: "#3B82F6" },
     { label: "평균 성적", value: child.recentExamAvgScore ?? 0, unit: "점", color: "#8B5CF6" },
   ];
@@ -203,30 +161,32 @@ function HomeTab({
 
   return (
     <div className="space-y-5">
-      {/* 출석률 주의 배너 */}
-      {child.attendanceRate != null && child.attendanceRate < 80 && (
-        <div className="border border-amber-200 bg-amber-50/60 rounded-xl p-5 flex items-center gap-4">
-          <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
-            <svg className="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-          </div>
-          <div>
-            <p className="text-sm font-bold text-amber-700">출석률 주의</p>
-            <p className="text-xs text-amber-600 mt-0.5">
-              {child.studentName} 학생의 출석률이 {child.attendanceRate}%입니다. 확인이 필요합니다.
-            </p>
-          </div>
+      {/* 근태 특이사항 요약 */}
+      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+        <div className="px-5 py-4 border-b border-slate-100 bg-slate-50/40">
+          <h3 className="text-sm font-bold text-slate-800">클래스 기간 근태 특이사항</h3>
+          <p className="text-xs text-slate-400 mt-1">수강 시작일부터 현재까지 누적입니다.</p>
         </div>
-      )}
+        <div className="grid grid-cols-3 gap-2 p-6">
+          {[
+            { label: "지각", count: attendanceSummary?.lateCount ?? null, color: "text-amber-600" },
+            { label: "조퇴", count: attendanceSummary?.earlyLeaveCount ?? null, color: "text-orange-500" },
+            { label: "결석", count: attendanceSummary?.absentCount ?? null, color: "text-red-500" },
+          ].map((item) => (
+            <div key={item.label} className="flex flex-col items-center gap-1">
+              <span className={`text-2xl font-black ${item.color}`}>{item.count ?? "-"}</span>
+              <span className="text-xs font-bold text-slate-400">{item.label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
 
       {/* 학습 현황 게이지 */}
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
         <div className="px-5 py-4 border-b border-slate-100 bg-slate-50/40">
           <h3 className="text-sm font-bold text-slate-800">학습 현황 요약</h3>
         </div>
-        <div className="grid grid-cols-3 gap-2 p-6">
+        <div className="grid grid-cols-2 gap-2 p-6">
           {gaugeItems.map((item, idx) => {
             const radius = 24;
             const circumference = 2 * Math.PI * radius;
@@ -301,7 +261,7 @@ function AttendanceTab({
   isAtMax,
 }: {
   child: ChildInfo;
-  attendance: AttendanceResponse | null;
+  attendance: AttendanceIssueResponse | null;
   viewYear: number;
   viewMonth: number;
   onPrev: () => void;
@@ -310,11 +270,9 @@ function AttendanceTab({
   isAtMax: boolean;
 }) {
   const summary = [
-    { label: "출석", count: attendance?.attendCount ?? "-", color: "text-emerald-600", bg: "bg-emerald-50 border-emerald-100" },
     { label: "지각", count: attendance?.lateCount ?? "-", color: "text-amber-600", bg: "bg-amber-50 border-amber-100" },
     { label: "조퇴", count: attendance?.earlyLeaveCount ?? "-", color: "text-orange-500", bg: "bg-orange-50 border-orange-100" },
     { label: "결석", count: attendance?.absentCount ?? "-", color: "text-red-500", bg: "bg-red-50 border-red-100" },
-    { label: "출석률", count: child.attendanceRate != null ? `${child.attendanceRate}%` : "-", color: "text-blue-600", bg: "bg-blue-50 border-blue-100" },
   ];
 
   return (
@@ -340,7 +298,7 @@ function AttendanceTab({
           </svg>
         </button>
       </div>
-      <div className="grid grid-cols-5 gap-3">
+      <div className="grid grid-cols-3 gap-3">
         {summary.map(({ label, count, color, bg }) => (
           <div key={label} className={`bg-white border rounded-xl p-5 text-center ${bg}`}>
             <p className="text-xs text-slate-400 mb-1">{label}</p>
@@ -348,7 +306,7 @@ function AttendanceTab({
           </div>
         ))}
       </div>
-      <AttendanceCalendar attendance={attendance} />
+      <AttendanceIssueList attendance={attendance} year={viewYear} month={viewMonth} />
       <p className="text-xs text-slate-400 text-center">
         수강 시작일({child.enrollStartDate})부터 현재까지 조회 가능합니다.
       </p>
@@ -429,9 +387,11 @@ function AssignTab({ assigns }: { assigns: AssignItem[] }) {
                 <span className="text-sm text-slate-700" dangerouslySetInnerHTML={{ __html: a.asgmtNm }} />
               </div>
               <div className="flex items-center gap-5">
-                {a.score != null && (
+                {a.score != null ? (
                   <span className="text-sm font-bold text-blue-600">{a.score}점</span>
-                )}
+                ) : a.submitted ? (
+                  <span className="text-sm font-medium text-slate-400">채점중</span>
+                ) : null}
                 <span className="text-xs text-slate-400">{a.dueDt ? a.dueDt.slice(0, 10) : "-"}</span>
               </div>
             </div>
@@ -450,7 +410,8 @@ export default function ParentPage() {
   const [selectedClassSn, setSelectedClassSn] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>("home");
 
-  const [attendance, setAttendance] = useState<AttendanceResponse | null>(null);
+  const [attendance, setAttendance] = useState<AttendanceIssueResponse | null>(null);
+  const [attendanceSummary, setAttendanceSummary] = useState<AttendanceSummary | null>(null);
   const [assigns, setAssigns] = useState<AssignItem[]>([]);
   const [exams, setExams] = useState<ExamItem[]>([]);
 
@@ -510,6 +471,9 @@ export default function ParentPage() {
       setAssigns([]);
       setExams([]);
     });
+    parentApi.getAttendanceSummary(target.studentId)
+      .then((summary) => { if (!cancelled) setAttendanceSummary(summary); })
+      .catch(() => { if (!cancelled) setAttendanceSummary(null); });
     return () => { cancelled = true; };
   }, [selectedClassSn, children]);
 
@@ -600,7 +564,9 @@ export default function ParentPage() {
                   exit={{ opacity: 0, y: -4 }}
                   transition={{ duration: 0.15 }}
                 >
-                  {activeTab === "home" && <HomeTab child={child} assigns={assigns} />}
+                  {activeTab === "home" && (
+                    <HomeTab child={child} assigns={assigns} attendanceSummary={attendanceSummary} />
+                  )}
                   {activeTab === "attendance" && (
                     <AttendanceTab
                       child={child}

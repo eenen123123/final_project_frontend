@@ -4,7 +4,7 @@ import api from "../api/api";
 import type { ClassroomInfo } from "../types/ClassroomInterface";
 import { useAuth } from "../auth/AuthContext";
 
-export type TabType = "home" | "notice" | "lecture" | "assign" | "qna" | "dataroom" | "exam" | "attend";
+export type TabType = "home" | "notice" | "lecture" | "assign" | "qna" | "dataroom" | "exam";
 
 const TABS: { id: TabType; label: string; icon: string }[] = [
   { id: "home", label: "홈", icon: "fa-solid fa-house" },
@@ -14,7 +14,6 @@ const TABS: { id: TabType; label: string; icon: string }[] = [
   { id: "exam", label: "시험", icon: "fa-solid fa-clipboard-question" },
   { id: "qna", label: "Q&A", icon: "fa-solid fa-comments" },
   { id: "dataroom", label: "자료실", icon: "fa-solid fa-folder-open" },
-  { id: "attend", label: "출석", icon: "fa-solid fa-calendar-check" },
 ];
 
 const STATUS_LABEL: Record<string, string> = {

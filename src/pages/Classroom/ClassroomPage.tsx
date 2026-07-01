@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { useOutletContext, useNavigate, useParams } from "react-router-dom";
 import {
-  HomeTab, NoticeTab, LectureTab, AssignTab, QnaTab, DataroomTab, ExamTab, AttendTab,
+  HomeTab, NoticeTab, LectureTab, AssignTab, QnaTab, DataroomTab, ExamTab,
 } from "./components/ClassroomTabs";
 import type { ClassroomInfo } from "../../types/ClassroomInterface";
 import type { TabType } from "../../layouts/ClassroomLayout";
@@ -34,7 +34,6 @@ export default function ClassroomPage() {
               case "qna":      return <QnaTab classSn={classSn} />;
               case "dataroom": return <DataroomTab classSn={classSn} />;
               case "exam":     return <ExamTab classSn={classSn} />;
-              case "attend":   return <AttendTab classSn={classSn} startYmd={classroom?.enrlStrtYmd ?? null} endYmd={classroom?.enrlEndYmd ?? null} />;
             }
           })()}
         </motion.div>

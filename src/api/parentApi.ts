@@ -8,24 +8,29 @@ export interface ChildInfo {
   classroomName: string;
   instructorName: string;
   enrollStartDate: string;
-  attendanceRate: number | null;
   assignmentRate: number | null;
   recentExamAvgScore: number | null;
 }
 
-export interface AttendanceRecord {
+export interface AttendanceIssueRecord {
   day: number;
-  status: "ATTEND" | "LATE" | "ABSENT" | "EARLY_LEAVE";
+  status: "ABSENT" | "LATE" | "EARLY_LEAVE";
+  note: string | null;
 }
 
-export interface AttendanceResponse {
+export interface AttendanceIssueResponse {
   year: number;
   month: number;
-  attendCount: number;
   lateCount: number;
   absentCount: number;
   earlyLeaveCount: number;
-  records: AttendanceRecord[];
+  records: AttendanceIssueRecord[];
+}
+
+export interface AttendanceSummary {
+  lateCount: number;
+  absentCount: number;
+  earlyLeaveCount: number;
 }
 
 export interface AssignItem {
@@ -52,9 +57,14 @@ export const parentApi = {
 
   getAttendance: (studentId: string, year: number, month: number) =>
     api
-      .get<AttendanceResponse>(`/api/parent/children/${studentId}/attendance`, {
+      .get<AttendanceIssueResponse>(`/api/parent/children/${studentId}/attendance`, {
         params: { year, month },
       })
+      .then((r) => r.data),
+
+  getAttendanceSummary: (studentId: string) =>
+    api
+      .get<AttendanceSummary>(`/api/parent/children/${studentId}/attendance/summary`)
       .then((r) => r.data),
 
   getAssignments: (studentId: string, classSn: number) =>
