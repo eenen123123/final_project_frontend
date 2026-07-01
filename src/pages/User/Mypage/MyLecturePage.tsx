@@ -17,14 +17,20 @@ interface Lecture {
   progress: number;
   expireDate: string;
   dday: number | null;
-  thumbBg: string;
-  thumbLabel: string;
   thmbImg?: string;
   favorite: boolean;
   status: TabType;
 }
 
-const THUMB_COLORS = ["#1E3A8A", "#065F46", "#4B5563", "#7C3AED", "#B45309", "#1E40AF", "#9D174D"];
+const SUBJECT_THEME: Record<string, { bg: string; label: string }> = {
+  국어:   { bg: "linear-gradient(160deg, #DC2626 0%, #991B1B 100%)", label: "KOREAN"  },
+  수학:   { bg: "linear-gradient(160deg, #2563EB 0%, #1E40AF 100%)", label: "MATH"    },
+  영어:   { bg: "linear-gradient(160deg, #EA580C 0%, #C2410C 100%)", label: "ENGLISH" },
+  사회탐구: { bg: "linear-gradient(160deg, #059669 0%, #065F46 100%)", label: "SOCIAL"  },
+  과학탐구: { bg: "linear-gradient(160deg, #7C3AED 0%, #5B21B6 100%)", label: "SCIENCE" },
+};
+
+const DEFAULT_SUBJECT_THEME = { bg: "linear-gradient(160deg, #4B5563 0%, #1F2937 100%)", label: "HERMES" };
 
 
 const TAB_LABELS: { key: TabType; label: string }[] = [
@@ -78,7 +84,7 @@ export default function MyLecturePage() {
     api.get<{ enrlSn: number; courseSn: number; courseNm: string; thmbImg: string | null; instrNm: string; accsEndDt: string; progressPct: number; subjClNm: string | null }[]>("/api/mypage/courses")
       .then((res) => {
         const now = Date.now();
-        setLectures(res.data.map((e, i) => {
+        setLectures(res.data.map((e) => {
           const endDate = e.accsEndDt ? new Date(e.accsEndDt) : null;
           const daysLeft = endDate ? Math.ceil((endDate.getTime() - now) / (1000 * 60 * 60 * 24)) : null;
           const expireDate = endDate
@@ -93,9 +99,7 @@ export default function MyLecturePage() {
             category: e.subjClNm ?? "전체",
             progress: e.progressPct ?? 0,
             expireDate,
-            dday: daysLeft !== null && daysLeft <= 14 ? daysLeft : null,
-            thumbBg: THUMB_COLORS[i % THUMB_COLORS.length],
-            thumbLabel: (e.courseNm ?? "").slice(0, 4),
+            dday: daysLeft !== null && daysLeft >= 0 && daysLeft <= 14 ? daysLeft : null,
             thmbImg: e.thmbImg ?? undefined,
             favorite: false,
             status: (endDate && endDate.getTime() < now ? "end" : "active") as TabType,
@@ -284,31 +288,39 @@ export default function MyLecturePage() {
             ) : (
               <div className="flex flex-col gap-3 mb-5">
                 {filtered.map((lecture) => {
-                  const isExpiring = lecture.dday !== null && lecture.dday <= 14;
-                  const accentColor = isExpiring ? "#EF4444" : "#3B82F6";
+                  const isEnd = lecture.status === "end";
+                  const isExpiring = !isEnd && lecture.dday !== null && lecture.dday <= 14;
+                  const accentColor = isEnd ? "#9CA3AF" : isExpiring ? "#EF4444" : "#3B82F6";
 
                   return (
                     <div
                       key={lecture.id}
-                      className="bg-white rounded-2xl overflow-hidden shadow-sm transition-all border hover:shadow-md hover:border-gray-200"
-                      style={{ border: isExpiring ? "1px solid #FCA5A5" : "1px solid #F3F4F6" }}
+                      className="rounded-2xl overflow-hidden shadow-sm transition-all border"
+                      style={{
+                        background: isEnd ? "#F9FAFB" : "#FFFFFF",
+                        border: isEnd ? "1px solid #E5E7EB" : isExpiring ? "1px solid #FCA5A5" : "1px solid #F3F4F6",
+                      }}
                     >
                       <div className="flex items-center gap-5 p-5">
                         {/* 썸네일 */}
                         <div className="relative flex-shrink-0">
-                          <div className="w-24 h-24 rounded-xl overflow-hidden shadow-inner flex-shrink-0">
-                            {lecture.thmbImg ? (
-                              <img src={lecture.thmbImg} alt={lecture.title} className="w-full h-full object-cover" />
-                            ) : (
-                              <div
-                                className="w-full h-full flex items-center justify-center"
-                                style={{ background: lecture.thumbBg }}
-                              >
-                                <span className="text-xs font-semibold text-white text-center leading-tight whitespace-pre-line px-2">
-                                  {lecture.thumbLabel}
-                                </span>
+                          <div className="w-24 h-24 rounded-xl overflow-hidden shadow-inner flex-shrink-0 relative">
+                            {isEnd && (
+                              <div className="absolute inset-0 bg-gray-900/40 z-10 flex items-center justify-center rounded-xl">
+                                <span className="text-[10px] font-bold text-white/90 tracking-wider">수강종료</span>
                               </div>
                             )}
+                            {lecture.thmbImg ? (
+                              <img src={lecture.thmbImg} alt={lecture.title} className="w-full h-full object-cover" />
+                            ) : (() => {
+                              const theme = SUBJECT_THEME[lecture.subject] ?? DEFAULT_SUBJECT_THEME;
+                              return (
+                                <div className="w-full h-full flex flex-col items-center justify-center px-2" style={{ background: theme.bg }}>
+                                  <span className="text-[9px] font-semibold tracking-widest text-white/60 mb-1">HERMES</span>
+                                  <span className="text-sm font-extrabold tracking-wider text-white text-center leading-tight">{theme.label}</span>
+                                </div>
+                              );
+                            })()}
                           </div>
                           <button
                             onClick={() => handleFavorite(lecture.id)}
@@ -333,17 +345,19 @@ export default function MyLecturePage() {
                         {/* 강좌 세부정보 */}
                         <div className="flex-1 min-w-0">
                           {/* 📌 과목 우측으로 뱃지를 정렬한 상단 레이아웃 */}
-                          <div className="flex items-center gap-0 mb-1">
-                            <p className="text-xs font-bold text-blue-600">{lecture.subject}</p>
+                          <div className="flex items-center gap-2 mb-1">
+                            <p className={`text-xs font-bold ${isEnd ? "text-gray-400" : "text-blue-600"}`}>{lecture.subject}</p>
                             <span
                               className="text-[10px] px-1.5 py-0.5 rounded font-semibold tracking-wide"
-                              style={{
-                                background: isExpiring ? "#FEF2F2" : "#EBF5FF",
-                                color: isExpiring ? "#991B1B" : "#1D4ED8",
-                                border: `1px solid ${isExpiring ? "#FECACA" : "#BFDBFE"}`,
-                              }}
+                              style={
+                                lecture.status === "end"
+                                  ? { background: "#F3F4F6", color: "#6B7280", border: "1px solid #E5E7EB" }
+                                  : isExpiring
+                                    ? { background: "#FEF2F2", color: "#991B1B", border: "1px solid #FECACA" }
+                                    : { background: "#EBF5FF", color: "#1D4ED8", border: "1px solid #BFDBFE" }
+                              }
                             >
-                              {isExpiring ? `만료임박 D-${lecture.dday}` : "수강중"}
+                              {lecture.status === "end" ? "수강종료" : isExpiring ? `만료임박 D-${lecture.dday}` : "수강중"}
                             </span>
                           </div>
 
@@ -385,7 +399,7 @@ export default function MyLecturePage() {
                             </span>
                             <span
                               className="text-xs"
-                              style={{ color: isExpiring ? "#EF4444" : "#9CA3AF", fontWeight: isExpiring ? 600 : 400 }}
+                              style={{ color: isExpiring ? "#EF4444" : "#9CA3AF", fontWeight: isExpiring ? 600 : 400, textDecoration: isEnd ? "line-through" : "none" }}
                             >
                               ~{lecture.expireDate}
                             </span>
@@ -396,6 +410,7 @@ export default function MyLecturePage() {
                         <div className="flex flex-col gap-2 flex-shrink-0">
                           <button
                             onClick={() => {
+                              if (isEnd) { alert("수강이 만료된 강좌입니다."); return; }
                               api.get<{ lectures: { lectureSn: number }[] }>(`/api/course/${lecture.courseSn}`)
                                 .then((res) => {
                                   const first = res.data.lectures?.[0];
@@ -404,7 +419,7 @@ export default function MyLecturePage() {
                                 })
                                 .catch((error) => alert(error.response?.data?.message ?? "강의 정보를 불러올 수 없습니다."));
                             }}
-                            className="text-xs px-4 py-2.5 text-white rounded-xl font-semibold shadow-sm transition-all cursor-pointer whitespace-nowrap hover:opacity-90"
+                            className="text-xs px-4 py-2.5 text-white rounded-xl font-semibold shadow-sm transition-all whitespace-nowrap hover:opacity-90 cursor-pointer"
                             style={{ background: accentColor }}
                           >
                             강의 보기
