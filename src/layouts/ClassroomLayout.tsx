@@ -4,7 +4,7 @@ import api from "../api/api";
 import type { ClassroomInfo } from "../types/ClassroomInterface";
 import { useAuth } from "../auth/AuthContext";
 
-export type TabType = "home" | "notice" | "lecture" | "assign" | "qna" | "dataroom" | "exam";
+export type TabType = "home" | "notice" | "lecture" | "assign" | "exam" | "attendance" | "qna" | "dataroom";
 
 const TABS: { id: TabType; label: string; icon: string }[] = [
   { id: "home", label: "홈", icon: "fa-solid fa-house" },
@@ -12,6 +12,7 @@ const TABS: { id: TabType; label: string; icon: string }[] = [
   { id: "lecture", label: "강의", icon: "fa-solid fa-play" },
   { id: "assign", label: "과제", icon: "fa-solid fa-file-lines" },
   { id: "exam", label: "시험", icon: "fa-solid fa-clipboard-question" },
+  { id: "attendance", label: "출석 현황", icon: "fa-solid fa-calendar-check" },
   { id: "qna", label: "Q&A", icon: "fa-solid fa-comments" },
   { id: "dataroom", label: "자료실", icon: "fa-solid fa-folder-open" },
 ];
@@ -46,9 +47,8 @@ export default function ClassroomLayout() {
 
   useEffect(() => {
     if (!classId) return;
-    setAccessError(null);
     api.get(`/api/classroom/${classId}`)
-      .then((res) => setClassroom(res.data))
+      .then((res) => { setClassroom(res.data); setAccessError(null); })
       .catch((err) => {
         const status = err?.response?.status;
         if (status === 403 || status === 404) setAccessError(status);
@@ -129,7 +129,7 @@ export default function ClassroomLayout() {
             </div>
             <div className="w-px h-5 bg-slate-100 hidden md:block" />
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-400 to-purple-500 flex items-center justify-center text-white text-sm font-bold select-none">
+              <div className="w-8 h-8 rounded-full bg-linear-to-br from-violet-400 to-purple-500 flex items-center justify-center text-white text-sm font-bold select-none">
                 {myName?.charAt(0) ?? "?"}
               </div>
               <span className="font-medium text-slate-700 text-sm hidden sm:block">

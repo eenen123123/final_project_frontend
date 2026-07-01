@@ -341,7 +341,7 @@ function ScoreTab({ exams }: { exams: ExamItem[] }) {
               <span className={`text-xs px-2.5 py-1 rounded-full font-bold border
                 ${e.status === "ONGOING" ? "bg-emerald-50 text-emerald-600 border-emerald-100"
                   : e.status === "UPCOMING" ? "bg-blue-50 text-blue-600 border-blue-100"
-                  : "bg-slate-100 text-slate-400 border-slate-200"}`}>
+                    : "bg-slate-100 text-slate-400 border-slate-200"}`}>
                 {e.status === "ONGOING" ? "진행중" : e.status === "UPCOMING" ? "예정" : "종료"}
               </span>
               <span className="text-sm text-slate-700" dangerouslySetInnerHTML={{ __html: e.examNm }} />
@@ -545,7 +545,7 @@ export default function ParentPage() {
                     {isActive && (
                       <motion.div
                         layoutId="parentTabUnderline"
-                        className="absolute bottom-[-1px] left-0 right-0 h-[2.5px] bg-emerald-500 rounded-full"
+                        className="absolute -bottom-px left-0 right-0 h-[2.5px] bg-emerald-500 rounded-full"
                         transition={{ type: "spring", stiffness: 450, damping: 35 }}
                       />
                     )}
