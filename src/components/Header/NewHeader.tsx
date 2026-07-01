@@ -34,10 +34,10 @@ export default function NewHeader() {
     { to: "/gradeCut", label: "등급컷 조회" },
     // { to: "/header/Ainavigator", label: "AI 입시정보" },
     // { to: "/header/books", label: "HERMES 패스" },
-    {
-      to: "/viewer?courseId=81&lectureId=23",
-      label: "테스트 뷰어",
-    },
+    // {
+    //   to: "/viewer?courseId=81&lectureId=23",
+    //   label: "테스트 뷰어",
+    // },
     ...(isStudent ? [{ to: "/my-classrooms", label: "Classroom" }] : []),
   ];
 
