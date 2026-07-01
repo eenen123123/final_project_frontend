@@ -52,7 +52,7 @@ function InstructorCard({
           <img
             src={instr.instrProfileImg}
             alt={instr.userName}
-            className="w-auto h-full mx-auto object-cover backdrop-blur-2xl transition-transform duration-300 group-hover:scale-105"
+            className="w-full h-full object-cover object-[50%_20%] backdrop-blur-2xl transition-transform duration-300 group-hover:scale-105"
           />
         ) : (
           <div
