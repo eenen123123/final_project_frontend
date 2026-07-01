@@ -12,7 +12,7 @@ interface InstructorSummary {
 const TABS = [
   { id: "courses", label: "강좌목록", path: (uuid: string) => `/instructor/${uuid}/courses` },
   { id: "notice", label: "공지사항", path: (uuid: string) => `/instructor/${uuid}/notice` },
-  { id: "qna", label: "선생님 Q&A", path: (uuid: string) => `/instructor/${uuid}/qna` },
+  { id: "qna", label: "강사 Q&A", path: (uuid: string) => `/instructor/${uuid}/qna` },
   { id: "dataroom", label: "학습자료실", path: (uuid: string) => `/instructor/${uuid}/dataroom` },
 ];
 
@@ -44,7 +44,7 @@ export default function InstructorBoardLayout() {
             <div className="mb-6">
               <p className="text-xs text-gray-400 mb-1">{instructor.subject}영역</p>
               <h2 className="text-lg font-extrabold text-gray-800">
-                {instructor.userName} 선생님
+                {instructor.userName} 강사
               </h2>
             </div>
           )}
