@@ -4,15 +4,14 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../../../api/api";
 import RichContent from "../../../components/RichContent";
-
-type TabType = "home" | "notice" | "lecture" | "assign" | "qna" | "dataroom" | "exam";
+import type { TabType } from "../../../layouts/ClassroomLayout";
 
 // ── 공통 컴포넌트 ────────────────────────────────────────────────
 
 function EmptyState({ icon, message }: { icon: string; message: string }) {
   return (
     <div className="p-20 flex flex-col items-center justify-center text-center gap-4">
-      <div className="w-16 h-16 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-200 text-3xl">
+      <div className="w-16 h-16 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-200 text-3xl">
         <i className={`fa-solid fa-${icon}`} />
       </div>
       <p className="text-base font-medium text-slate-400">{message}</p>
@@ -57,7 +56,7 @@ interface MySummary {
   progressRate: number;
   assignSubmitRate: number;
   upcomingExamCount: number;
-  avgScore: number | null;
+  examAvgScore: number | null;
 }
 
 
@@ -134,10 +133,10 @@ export function HomeTab({ classSn, onTabChange }: { classSn: number | null; onTa
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
           { label: "과제 제출률", value: summary ? `${summary.assignSubmitRate}%` : "-", sub: "제출 / 전체" },
-          { label: "평균 점수", value: summary?.avgScore != null ? `${summary.avgScore}점` : "-", sub: "채점 완료 기준" },
+          { label: "평균 점수", value: summary?.examAvgScore != null ? `${summary.examAvgScore}점` : "-", sub: "채점 완료 기준" },
           { label: "예정/진행 시험", value: summary ? `${summary.upcomingExamCount}` : "-", sub: "예정 + 진행 중 합계" },
         ].map((card) => (
-          <div key={card.label} className="bg-white border border-slate-100 rounded-xl px-6 py-5">
+          <div key={card.label} className="bg-white border border-slate-200 rounded-xl px-6 py-5">
             <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">{card.label}</p>
             <p className="text-3xl font-black text-slate-800 mt-1">{card.value}</p>
             <p className="text-xs text-slate-300 mt-0.5">{card.sub}</p>
@@ -147,8 +146,8 @@ export function HomeTab({ classSn, onTabChange }: { classSn: number | null; onTa
 
       {/* 강좌 진도율 + 미제출 과제 */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        <div className="bg-white border border-slate-100 rounded-xl overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100">
+        <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-200">
             <h3 className="text-sm font-bold text-slate-800">내 강의 진도율</h3>
             <p className="text-sm text-slate-400 mt-1">강의별 개인 완료 현황</p>
           </div>
@@ -160,11 +159,12 @@ export function HomeTab({ classSn, onTabChange }: { classSn: number | null; onTa
               <div className="h-full bg-blue-500 rounded-full transition-all duration-700"
                 style={{ width: `${summary?.progressRate ?? 0}%` }} />
             </div>
+            <p className="text-xs text-slate-400">전체 강의 누적 재생 시간 대비 내가 시청한 시간의 비율입니다.</p>
           </div>
         </div>
 
-        <div className="bg-white border border-slate-100 rounded-xl overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+        <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
             <h3 className="text-sm font-bold text-slate-800">미제출 과제</h3>
             <button onClick={() => onTabChange("assign")} className="text-sm font-semibold text-blue-500 hover:underline flex-shrink-0">
               전체 과제
@@ -176,7 +176,7 @@ export function HomeTab({ classSn, onTabChange }: { classSn: number | null; onTa
               <p className="text-sm font-medium text-slate-400">미제출 과제가 없습니다.</p>
             </div>
           ) : (
-            <ul className="divide-y divide-slate-50 max-h-64 overflow-y-auto">
+            <ul className="divide-y divide-slate-100 max-h-64 overflow-y-auto">
               {unsubmitted.map((a) => {
                 const badge = dDayBadge(a.dueDt);
                 return (
@@ -201,8 +201,8 @@ export function HomeTab({ classSn, onTabChange }: { classSn: number | null; onTa
       {/* 하단 3열: 최근 공지사항 · 최근 자료실 · 답변된 Q&A */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         {/* 최근 공지사항 */}
-        <div className="bg-white border border-slate-100 rounded-xl overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+        <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
             <h3 className="text-sm font-bold text-slate-800">최근 공지사항</h3>
             <button onClick={() => onTabChange("notice")} className="text-sm font-semibold text-blue-500 hover:underline">전체보기</button>
           </div>
@@ -212,7 +212,7 @@ export function HomeTab({ classSn, onTabChange }: { classSn: number | null; onTa
               <p className="text-sm font-medium text-slate-400">공지사항이 없습니다.</p>
             </div>
           ) : (
-            <ul className="divide-y divide-slate-50">
+            <ul className="divide-y divide-slate-100">
               {notices.map((n) => {
                 const sn = n.postSn ?? n.boardSn;
                 return (
@@ -229,8 +229,8 @@ export function HomeTab({ classSn, onTabChange }: { classSn: number | null; onTa
         </div>
 
         {/* 최근 자료실 */}
-        <div className="bg-white border border-slate-100 rounded-xl overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+        <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
             <h3 className="text-sm font-bold text-slate-800">최근 자료실</h3>
             <button onClick={() => onTabChange("dataroom")} className="text-sm font-semibold text-blue-500 hover:underline">전체보기</button>
           </div>
@@ -240,7 +240,7 @@ export function HomeTab({ classSn, onTabChange }: { classSn: number | null; onTa
               <p className="text-sm font-medium text-slate-400">등록된 자료가 없습니다.</p>
             </div>
           ) : (
-            <ul className="divide-y divide-slate-50">
+            <ul className="divide-y divide-slate-100">
               {dataroom.map((d) => {
                 const sn = d.postSn ?? d.boardSn;
                 return (
@@ -257,8 +257,8 @@ export function HomeTab({ classSn, onTabChange }: { classSn: number | null; onTa
         </div>
 
         {/* 답변된 내 Q&A */}
-        <div className="bg-white border border-slate-100 rounded-xl overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+        <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
             <h3 className="text-sm font-bold text-slate-800">답변된 내 질문</h3>
             <button onClick={() => onTabChange("qna")} className="text-sm font-semibold text-blue-500 hover:underline">전체보기</button>
           </div>
@@ -268,7 +268,7 @@ export function HomeTab({ classSn, onTabChange }: { classSn: number | null; onTa
               <p className="text-sm font-medium text-slate-400">답변된 질문이 없습니다.</p>
             </div>
           ) : (
-            <ul className="divide-y divide-slate-50">
+            <ul className="divide-y divide-slate-100">
               {answeredQna.map((q) => {
                 const sn = q.postSn ?? q.boardSn;
                 return (
@@ -284,6 +284,7 @@ export function HomeTab({ classSn, onTabChange }: { classSn: number | null; onTa
           )}
         </div>
       </div>
+
     </div>
   );
 }
@@ -318,8 +319,8 @@ export function NoticeTab({ classSn }: { classSn: number | null }) {
   }, [classSn, currentPage]);
 
   return (
-    <div className="bg-white border border-slate-100 rounded-xl overflow-hidden">
-      <div className="px-7 py-5 border-b border-slate-100">
+    <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+      <div className="px-7 py-5 border-b border-slate-200">
         <h2 className="text-base font-bold text-slate-800">공지사항</h2>
         <p className="text-sm text-slate-400 mt-1">수강생에게 전달할 공지사항입니다.</p>
       </div>
@@ -329,7 +330,7 @@ export function NoticeTab({ classSn }: { classSn: number | null }) {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-slate-100 text-sm text-slate-400">
+              <tr className="border-b border-slate-200 text-sm text-slate-400">
                 <th className="py-4 px-7 w-14 font-medium whitespace-nowrap">번호</th>
                 <th className="py-4 px-7 font-medium">제목</th>
                 <th className="py-4 px-7 w-32 font-medium whitespace-nowrap">작성자</th>
@@ -339,7 +340,7 @@ export function NoticeTab({ classSn }: { classSn: number | null }) {
             </thead>
             <tbody className="text-slate-700">
               {items.map((n, idx) => (
-                <tr key={n.boardSn ?? n.postSn} onClick={() => navigate(`/classroom/${classId}/notices/${n.boardSn ?? n.postSn}`)} className="border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer">
+                <tr key={n.boardSn ?? n.postSn} onClick={() => navigate(`/classroom/${classId}/notices/${n.boardSn ?? n.postSn}`)} className="border-b border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer">
                   <td className="py-4 px-7 text-sm text-slate-300 font-mono whitespace-nowrap">
                     {totalCount - (currentPage - 1) * PAGE_SIZE - idx}
                   </td>
@@ -361,7 +362,7 @@ export function NoticeTab({ classSn }: { classSn: number | null }) {
           </table>
         </div>
       )}
-      <div className="px-7 py-4 border-t border-slate-100 flex items-center justify-between">
+      <div className="px-7 py-4 border-t border-slate-200 flex items-center justify-between">
         <p className="text-sm text-slate-400">전체 <span className="font-semibold text-slate-600">{totalCount}</span>건</p>
         <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
       </div>
@@ -398,8 +399,8 @@ export function LectureTab({ courseSn }: { courseSn: number | null }) {
   const lectures = state.status === "success" ? state.lectures : [];
 
   return (
-    <div className="bg-white border border-slate-100 rounded-xl overflow-hidden">
-      <div className="px-7 py-5 border-b border-slate-100">
+    <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+      <div className="px-7 py-5 border-b border-slate-200">
         <h2 className="text-base font-bold text-slate-800">강의 목록</h2>
         <p className="text-sm text-slate-400 mt-1">강의를 클릭해서 학습을 시작하세요.</p>
       </div>
@@ -412,7 +413,7 @@ export function LectureTab({ courseSn }: { courseSn: number | null }) {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-slate-100 text-sm text-slate-400">
+              <tr className="border-b border-slate-200 text-sm text-slate-400">
                 <th className="py-4 px-7 w-14 font-medium whitespace-nowrap">순서</th>
                 <th className="py-4 px-7 font-medium">강의명</th>
                 <th className="py-4 px-7 w-28 text-center font-medium whitespace-nowrap">재생 시간</th>
@@ -422,11 +423,11 @@ export function LectureTab({ courseSn }: { courseSn: number | null }) {
             </thead>
             <tbody className="text-slate-700">
               {lectures.map((l, idx) => (
-                <tr key={l.lectureSn} className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
+                <tr key={l.lectureSn} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
                   <td className="py-4 px-7 text-sm text-slate-300 font-mono whitespace-nowrap">{idx + 1}</td>
                   <td className="py-4 px-7">
                     <div className="flex items-center gap-3">
-                      <span className="w-8 h-8 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center text-blue-400 text-sm flex-shrink-0">
+                      <span className="w-8 h-8 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center text-blue-400 text-sm flex-shrink-0">
                         <i className="fa-solid fa-play" />
                       </span>
                       <span className="font-semibold text-slate-800 text-sm">{l.lectureName}</span>
@@ -466,7 +467,7 @@ export function LectureTab({ courseSn }: { courseSn: number | null }) {
           </table>
         </div>
       )}
-      <div className="px-7 py-4 border-t border-slate-100">
+      <div className="px-7 py-4 border-t border-slate-200">
         <p className="text-sm text-slate-400">전체 <span className="font-semibold text-slate-600">{lectures.length}</span>개 강의</p>
       </div>
     </div>
@@ -502,8 +503,8 @@ export function AssignTab({ classSn }: { classSn: number | null }) {
   const isPast = (dueDt: string | null) => dueDt ? new Date(dueDt) < new Date() : false;
 
   return (
-    <div className="bg-white border border-slate-100 rounded-xl overflow-hidden">
-      <div className="px-7 py-5 border-b border-slate-100">
+    <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+      <div className="px-7 py-5 border-b border-slate-200">
         <h2 className="text-base font-bold text-slate-800">과제 목록</h2>
         <p className="text-sm text-slate-400 mt-1">제출해야 할 과제 목록입니다.</p>
       </div>
@@ -513,7 +514,7 @@ export function AssignTab({ classSn }: { classSn: number | null }) {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-slate-100 text-sm text-slate-400">
+              <tr className="border-b border-slate-200 text-sm text-slate-400">
                 <th className="py-4 px-7 w-14 font-medium whitespace-nowrap">번호</th>
                 <th className="py-4 px-7 font-medium">제목</th>
                 <th className="py-4 px-7 w-32 text-center font-medium whitespace-nowrap">제출 상태</th>
@@ -523,7 +524,7 @@ export function AssignTab({ classSn }: { classSn: number | null }) {
             </thead>
             <tbody className="text-slate-700">
               {items.map((a, idx) => (
-                <tr key={a.asgmtSn} onClick={() => navigate(`/classroom/${classId}/assignments/${a.asgmtSn}`)} className="border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer">
+                <tr key={a.asgmtSn} onClick={() => navigate(`/classroom/${classId}/assignments/${a.asgmtSn}`)} className="border-b border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer">
                   <td className="py-4 px-7 text-sm text-slate-300 font-mono whitespace-nowrap">
                     {totalCount - (currentPage - 1) * PAGE_SIZE - idx}
                   </td>
@@ -548,7 +549,7 @@ export function AssignTab({ classSn }: { classSn: number | null }) {
           </table>
         </div>
       )}
-      <div className="px-7 py-4 border-t border-slate-100 flex items-center justify-between">
+      <div className="px-7 py-4 border-t border-slate-200 flex items-center justify-between">
         <p className="text-sm text-slate-400">전체 <span className="font-semibold text-slate-600">{totalCount}</span>건</p>
         <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
       </div>
@@ -588,8 +589,8 @@ export function QnaTab({ classSn }: { classSn: number | null }) {
 
   return (
     <>
-      <div className="bg-white border border-slate-100 rounded-xl overflow-hidden">
-        <div className="px-7 py-5 border-b border-slate-100 flex items-center justify-between">
+      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+        <div className="px-7 py-5 border-b border-slate-200 flex items-center justify-between">
           <div>
             <h2 className="text-base font-bold text-slate-800">Q&A</h2>
             <p className="text-sm text-slate-400 mt-1">강사에게 질문을 남겨보세요.</p>
@@ -604,7 +605,7 @@ export function QnaTab({ classSn }: { classSn: number | null }) {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-slate-100 text-sm text-slate-400">
+                <tr className="border-b border-slate-200 text-sm text-slate-400">
                   <th className="py-4 px-7 w-14 font-medium whitespace-nowrap">번호</th>
                   <th className="py-4 px-7 font-medium">제목</th>
                   <th className="py-4 px-7 w-28 font-medium whitespace-nowrap">작성자</th>
@@ -615,7 +616,7 @@ export function QnaTab({ classSn }: { classSn: number | null }) {
               </thead>
               <tbody className="text-slate-700">
                 {items.map((q, idx) => (
-                  <tr key={q.boardSn ?? q.postSn} onClick={() => navigate(`/classroom/${classId}/qna/${q.boardSn ?? q.postSn}`)} className="border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer">
+                  <tr key={q.boardSn ?? q.postSn} onClick={() => navigate(`/classroom/${classId}/qna/${q.boardSn ?? q.postSn}`)} className="border-b border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer">
                     <td className="py-4 px-7 text-sm text-slate-300 font-mono whitespace-nowrap">
                       {totalCount - (currentPage - 1) * PAGE_SIZE - idx}
                     </td>
@@ -628,7 +629,7 @@ export function QnaTab({ classSn }: { classSn: number | null }) {
                     <td className="py-4 px-7 text-center whitespace-nowrap">
                       {q.answYn === "Y"
                         ? <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold text-emerald-500 border border-emerald-100">답변완료</span>
-                        : <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold text-amber-500 border border-amber-100">미답변</span>
+                        : <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold text-amber-500 bg-amber-50 border border-amber-200">미답변</span>
                       }
                     </td>
                     <td className="py-4 px-7 text-sm text-slate-400 text-center whitespace-nowrap">
@@ -643,7 +644,7 @@ export function QnaTab({ classSn }: { classSn: number | null }) {
             </table>
           </div>
         )}
-        <div className="px-7 py-4 border-t border-slate-100 flex items-center justify-between">
+        <div className="px-7 py-4 border-t border-slate-200 flex items-center justify-between">
           <p className="text-sm text-slate-400">전체 <span className="font-semibold text-slate-600">{totalCount}</span>건</p>
           <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
         </div>
@@ -683,8 +684,8 @@ export function DataroomTab({ classSn }: { classSn: number | null }) {
   }, [classSn, currentPage]);
 
   return (
-    <div className="bg-white border border-slate-100 rounded-xl overflow-hidden">
-      <div className="px-7 py-5 border-b border-slate-100">
+    <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+      <div className="px-7 py-5 border-b border-slate-200">
         <h2 className="text-base font-bold text-slate-800">자료실</h2>
         <p className="text-sm text-slate-400 mt-1">강사가 제공한 학습 자료입니다.</p>
       </div>
@@ -694,7 +695,7 @@ export function DataroomTab({ classSn }: { classSn: number | null }) {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-slate-100 text-sm text-slate-400">
+              <tr className="border-b border-slate-200 text-sm text-slate-400">
                 <th className="py-4 px-7 w-14 font-medium whitespace-nowrap">번호</th>
                 <th className="py-4 px-7 font-medium">제목</th>
                 <th className="py-4 px-7 w-32 font-medium whitespace-nowrap">작성자</th>
@@ -704,7 +705,7 @@ export function DataroomTab({ classSn }: { classSn: number | null }) {
             </thead>
             <tbody className="text-slate-700">
               {items.map((d, idx) => (
-                <tr key={d.boardSn ?? d.postSn} onClick={() => navigate(`/classroom/${classId}/dataroom/${d.boardSn ?? d.postSn}`)} className="border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer">
+                <tr key={d.boardSn ?? d.postSn} onClick={() => navigate(`/classroom/${classId}/dataroom/${d.boardSn ?? d.postSn}`)} className="border-b border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer">
                   <td className="py-4 px-7 text-sm text-slate-300 font-mono whitespace-nowrap">
                     {totalCount - (currentPage - 1) * PAGE_SIZE - idx}
                   </td>
@@ -726,7 +727,7 @@ export function DataroomTab({ classSn }: { classSn: number | null }) {
           </table>
         </div>
       )}
-      <div className="px-7 py-4 border-t border-slate-100 flex items-center justify-between">
+      <div className="px-7 py-4 border-t border-slate-200 flex items-center justify-between">
         <p className="text-sm text-slate-400">전체 <span className="font-semibold text-slate-600">{totalCount}</span>건</p>
         <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
       </div>
@@ -749,7 +750,7 @@ interface ExamItem {
 const EXAM_STATUS = {
   UPCOMING: { label: "예정", cls: "border-blue-100 bg-blue-50 text-blue-600" },
   ONGOING: { label: "진행중", cls: "border-emerald-100 bg-emerald-50 text-emerald-600" },
-  CLOSED: { label: "종료", cls: "border-slate-100 bg-slate-100 text-slate-400" },
+  CLOSED: { label: "종료", cls: "border-slate-200 bg-slate-100 text-slate-400" },
 };
 
 export function ExamTab({ classSn }: { classSn: number | null }) {
@@ -765,8 +766,8 @@ export function ExamTab({ classSn }: { classSn: number | null }) {
   }, [classSn]);
 
   return (
-    <div className="bg-white border border-slate-100 rounded-xl overflow-hidden">
-      <div className="px-7 py-5 border-b border-slate-100">
+    <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+      <div className="px-7 py-5 border-b border-slate-200">
         <h2 className="text-base font-bold text-slate-800">시험 목록</h2>
         <p className="text-sm text-slate-400 mt-1">이 클래스룸에 등록된 시험 목록입니다.</p>
       </div>
@@ -776,7 +777,7 @@ export function ExamTab({ classSn }: { classSn: number | null }) {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-slate-100 text-sm text-slate-400">
+              <tr className="border-b border-slate-200 text-sm text-slate-400">
                 <th className="py-4 px-7 w-14 font-medium whitespace-nowrap">번호</th>
                 <th className="py-4 px-7 font-medium">시험명</th>
                 <th className="py-4 px-7 w-24 text-center font-medium whitespace-nowrap">상태</th>
@@ -789,7 +790,7 @@ export function ExamTab({ classSn }: { classSn: number | null }) {
               {items.map((e, idx) => {
                 const st = EXAM_STATUS[e.status] ?? EXAM_STATUS.CLOSED;
                 return (
-                  <tr key={e.examSn} className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
+                  <tr key={e.examSn} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
                     <td className="py-4 px-7 text-sm text-slate-300 font-mono whitespace-nowrap">{items.length - idx}</td>
                     <td className="py-4 px-7">
                       <RichContent html={e.examNm} className="font-semibold text-slate-800 text-sm prose prose-sm max-w-none" />
@@ -822,9 +823,10 @@ export function ExamTab({ classSn }: { classSn: number | null }) {
           </table>
         </div>
       )}
-      <div className="px-7 py-4 border-t border-slate-100">
+      <div className="px-7 py-4 border-t border-slate-200">
         <p className="text-sm text-slate-400">전체 <span className="font-semibold text-slate-600">{items.length}</span>건</p>
       </div>
     </div>
   );
 }
+

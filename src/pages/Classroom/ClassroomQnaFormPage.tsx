@@ -97,8 +97,8 @@ export default function ClassroomQnaFormPage() {
   if (loading) return <div className="flex-1 flex items-center justify-center text-slate-400 text-sm">불러오는 중...</div>;
 
   return (
-    <div className="flex-1">
-      <div className="max-w-3xl mx-auto px-10 py-8">
+    <div className="flex-1 overflow-y-scroll">
+      <div className="max-w-6xl mx-auto px-8 py-8">
         <button
           onClick={() => isEdit
             ? navigate(`/classroom/${classId}/qna/${postSn}`, { replace: true })
@@ -108,8 +108,8 @@ export default function ClassroomQnaFormPage() {
           <i className="fa-solid fa-arrow-left" /> {isEdit ? "Q&A 상세로" : "Q&A 목록으로"}
         </button>
 
-        <div className="bg-white border border-slate-100 rounded-2xl overflow-hidden">
-          <div className="px-7 py-5 border-b border-slate-100">
+        <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
+          <div className="px-7 py-5 border-b border-slate-200">
             <h2 className="text-base font-bold text-slate-800">{isEdit ? "질문 수정" : "질문 작성"}</h2>
             <p className="text-sm text-slate-400 mt-1">강사에게 궁금한 점을 질문해 보세요.</p>
           </div>
@@ -184,7 +184,7 @@ export default function ClassroomQnaFormPage() {
             </div>
           </div>
 
-          <div className="px-7 py-5 border-t border-slate-100 flex justify-end gap-2">
+          <div className="px-7 py-5 border-t border-slate-200 flex justify-end gap-2">
             <button
               onClick={() => isEdit
                 ? navigate(`/classroom/${classId}/qna/${postSn}`, { replace: true })

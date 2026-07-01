@@ -22,7 +22,7 @@ const NAV_LINKS = [
   },
   {
     id: "qna",
-    label: "선생님 Q&A",
+    label: "강사 Q&A",
     path: (uuid: string) => `/instructor/${uuid}/qna`,
   },
   {
@@ -100,7 +100,7 @@ export default function InstructorDetailPage() {
               {instructor.subject}영역
             </p>
             <h1 className="text-3xl font-extrabold text-gray-900 leading-tight mb-5">
-              {instructor.userName} 선생님
+              {instructor.userName} 강사
             </h1>
 
             <nav className="flex-1 mt-5">

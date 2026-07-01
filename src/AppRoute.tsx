@@ -120,7 +120,7 @@ export default function AppRoute() {
           />
           <Route
             path="qna"
-            element={<BoardTab key="qna" boardType="qna" title="선생님 Q&A" />}
+            element={<BoardTab key="qna" boardType="qna" title="강사 Q&A" />}
           />
           <Route
             path="dataroom"

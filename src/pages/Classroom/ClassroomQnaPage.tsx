@@ -54,14 +54,14 @@ export default function ClassroomQnaPage() {
   const isMyPost = myName && qna.memberDto?.userName === myName;
 
   return (
-    <div className="flex-1">
-      <div className="max-w-5xl mx-auto px-10 py-8 flex flex-col gap-5">
+    <div className="flex-1 overflow-y-scroll">
+      <div className="max-w-6xl mx-auto px-8 py-8 flex flex-col gap-5">
         <button onClick={() => navigate(`/classroom/${classId}?tab=qna`)} className="flex items-center gap-2 text-slate-400 hover:text-slate-600 transition-colors text-sm font-medium w-fit">
           <i className="fa-solid fa-arrow-left" /> Q&A 목록으로
         </button>
 
-        <div className="bg-white border border-slate-100 rounded-2xl overflow-hidden">
-          <div className="px-7 py-5 border-b border-slate-100 flex items-start justify-between gap-4">
+        <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
+          <div className="px-7 py-5 border-b border-slate-200 flex items-start justify-between gap-4">
             <div className="min-w-0 flex-1">
               <h1 className="text-base font-bold text-slate-800">{title}</h1>
               <div className="flex items-center gap-3 mt-2 text-sm text-slate-400">
@@ -95,8 +95,8 @@ export default function ClassroomQnaPage() {
         </div>
 
         {qna.answYn === "Y" && (
-          <div className="bg-white border border-slate-100 rounded-2xl overflow-hidden">
-            <div className="px-7 py-5 border-b border-slate-100 flex items-center gap-3">
+          <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
+            <div className="px-7 py-5 border-b border-slate-200 flex items-center gap-3">
               <span className="w-7 h-7 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-500 text-xs flex-shrink-0">
                 <i className="fa-solid fa-check" />
               </span>

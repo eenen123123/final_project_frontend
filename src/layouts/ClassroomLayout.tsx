@@ -72,7 +72,7 @@ export default function ClassroomLayout() {
   const statCd = classroom?.classStatCd ?? "ACTIVE";
 
   if (accessError) return (
-    <div className="min-h-screen bg-white flex flex-col items-center justify-center gap-4 font-sans">
+    <div className="min-h-screen bg-slate-100 flex flex-col items-center justify-center gap-4 font-sans">
       <i className={`fa-solid ${accessError === 403 ? "fa-lock" : "fa-triangle-exclamation"} text-5xl text-slate-200`} />
       <p className="text-lg font-bold text-slate-700">
         {accessError === 403 ? "접근 권한이 없습니다." : accessError === 404 ? "존재하지 않는 클래스입니다." : "클래스 정보를 불러오지 못했습니다."}
@@ -88,9 +88,9 @@ export default function ClassroomLayout() {
   );
 
   return (
-    <div className="min-h-screen bg-white flex flex-col font-sans antialiased">
+    <div className="h-screen bg-slate-100 flex flex-col font-sans antialiased overflow-hidden">
       {/* 메인 헤더 */}
-      <header className="bg-white border-b border-slate-100 sticky top-0 z-50 flex-shrink-0">
+      <header className="bg-slate-50 border-b border-slate-200 sticky top-0 z-50 shrink-0">
         <div className="px-10 h-16 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4 min-w-0">
             <Link to="/my-classrooms"
@@ -140,7 +140,7 @@ export default function ClassroomLayout() {
         </div>
 
         {/* 탭 내비게이션 */}
-        <nav className="bg-white border-t border-slate-100 px-10">
+        <nav className="bg-slate-50 border-t border-slate-200 px-10">
           <div className="flex items-end">
             {TABS.map((tab) => {
               const isActive = activeTab === tab.id;

@@ -17,8 +17,8 @@ export default function ClassroomPage() {
     navigate(`/classroom/${classId}?tab=${tab}`, { replace: true });
 
   return (
-    <main className="flex-1 overflow-y-auto">
-      <div className="max-w-5xl mx-auto px-10 py-8">
+    <main className="flex-1 overflow-y-scroll">
+      <div className="max-w-6xl mx-auto px-8 py-8">
         <motion.div
           key={activeTab}
           initial={{ opacity: 0, y: 4 }}
