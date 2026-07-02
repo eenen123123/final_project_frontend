@@ -78,9 +78,9 @@ export default function StudyReport({ subjects, teachers }: StudyReportProps) {
         {/* 영역별 학습 시간 밸런스 */}
         <div>
           <p className="text-sm font-medium text-gray-500 text-center mb-4">영역별 학습 시간 밸런스</p>
-          <div className="flex items-start gap-4">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
             <RadarChart subjects={subjects} />
-            <div className="flex-1 pt-2">
+            <div className="w-full sm:flex-1 sm:pt-2">
               <table className="w-full text-xs">
                 <tbody className="divide-y divide-gray-100">
                   {subjects.map((s) => (
@@ -99,7 +99,7 @@ export default function StudyReport({ subjects, teachers }: StudyReportProps) {
         {/* 선생님 집중도 */}
         <div>
           <p className="text-sm font-medium text-gray-500 text-center mb-4">선생님 집중도</p>
-          <div className="flex gap-4">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
             {/* 1위 강사 이미지 */}
             <div className="w-28 h-28 flex-shrink-0 bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center overflow-hidden">
               {teachers[0]?.profileImage ? (
@@ -109,12 +109,12 @@ export default function StudyReport({ subjects, teachers }: StudyReportProps) {
               )}
             </div>
             {/* 랭킹 리스트 */}
-            <div className="flex-1 space-y-2">
+            <div className="w-full sm:flex-1 space-y-2">
               {teachers.map((t) => (
-                <div key={t.rank} className="flex items-center gap-1">
-                  <span className="text-sm font-bold text-gray-400 w-4">{t.rank}</span>
-                  <span className="text-sm text-gray-700 flex-1">{t.label}</span>
-                  <span className="text-sm text-blue-400">{t.hours}</span>
+                <div key={t.rank} className="flex items-center gap-2">
+                  <span className="text-sm font-bold text-gray-400 w-4 shrink-0">{t.rank}</span>
+                  <span className="text-sm text-gray-700 flex-1 min-w-0 truncate">{t.label}</span>
+                  <span className="text-sm text-blue-400 shrink-0">{t.hours}</span>
                 </div>
               ))}
             </div>
