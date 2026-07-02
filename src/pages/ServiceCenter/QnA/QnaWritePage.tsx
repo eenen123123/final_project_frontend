@@ -6,7 +6,7 @@ import ServiceSidebar from "../components/ServiceSidebar";
 import QnaHeader from "./components/QnaHeader";
 import { useAuth } from "../../../auth/AuthContext";
 import api from "../../../api/api";
-import type { QnaCreateRequest } from '../../../types/CustomerServiceInterface';
+import type { QnaCreateRequest } from "../../../types/CustomerServiceInterface";
 import type { JSONContent } from "@tiptap/react";
 import TipTapEditor from "../../../components/TipTapEditor/TipTapEditor";
 
@@ -14,13 +14,6 @@ const QNA_CATEGORIES = [
   { code: "01", name: "수강문의" },
   { code: "02", name: "결제문의" },
   { code: "03", name: "기타" },
-];
-
-const NOTI_OPTIONS = [
-  { id: "noti-kakao", label: "카카오톡 알림 받기" },
-  { id: "noti-sms", label: "SMS 알림 받기" },
-  { id: "noti-none", label: "선택 안함" },
-  { id: "noti-admin", label: "관리자 페이지에서 알람전송 구현" },
 ];
 
 export default function QnaWritePage() {
@@ -40,7 +33,6 @@ export default function QnaWritePage() {
   const isEmpty =
     !form.postCn || !form.postCn.content?.some((n) => n.content?.length);
 
-  const [notiType, setNotiType] = useState("noti-none");
   const [submitting, setSubmitting] = useState(false);
 
   const handleTipTapChange = (json: JSONContent, pending: boolean) => {
@@ -104,7 +96,6 @@ export default function QnaWritePage() {
                   ))}
                 </select>
               </div>
-
               {/* 제목 */}
               <div className="mb-4">
                 <label className="block text-xs font-semibold text-gray-700 mb-1.5">
@@ -121,7 +112,6 @@ export default function QnaWritePage() {
                   className="w-full border border-gray-300 rounded text-sm px-3 py-2 focus:outline-none focus:border-blue-400 transition-colors"
                 />
               </div>
-
               {/* 내용 */}
               <TipTapEditor
                 onChange={handleTipTapChange}
@@ -130,9 +120,8 @@ export default function QnaWritePage() {
                 maxImages={5}
                 placeholder="내용을 입력하세요..."
               />
-
               {/* 비공개 여부 */}
-              <div className="mb-5 flex items-center gap-2">
+              <div className="mt-3 mb-5 flex items-center gap-2">
                 <input
                   type="checkbox"
                   id="secrYn"
@@ -166,34 +155,6 @@ export default function QnaWritePage() {
                   비공개 글로 등록
                 </label>
               </div>
-
-              {/* 답변 알림 */}
-              <div className="mb-6 border border-gray-200 rounded p-4">
-                <label className="block text-xs font-semibold text-gray-700 mb-3">
-                  답변 알림 (추후에 구현예정)
-                </label>
-                <div className="flex flex-wrap gap-4">
-                  {NOTI_OPTIONS.map((opt) => (
-                    <label
-                      key={opt.id}
-                      htmlFor={opt.id}
-                      className="flex items-center gap-1.5 text-xs text-gray-600 cursor-pointer"
-                    >
-                      <input
-                        type="radio"
-                        id={opt.id}
-                        name="notiType"
-                        value={opt.id}
-                        checked={notiType === opt.id}
-                        onChange={() => setNotiType(opt.id)}
-                        className="accent-blue-600 cursor-pointer"
-                      />
-                      {opt.label}
-                    </label>
-                  ))}
-                </div>
-              </div>
-
               {/* 버튼 */}
               <div className="flex items-center justify-center gap-3 border-t border-gray-200 pt-5">
                 <button
@@ -217,4 +178,3 @@ export default function QnaWritePage() {
     </div>
   );
 }
-
