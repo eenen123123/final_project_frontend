@@ -138,7 +138,7 @@ export default function MyLecturePage() {
 
   return (
     <div className="min-h-screen bg-gray-50/50">
-      <div className="max-w-6xl mx-auto px-6 py-10">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
         {/* 토스트 알림 */}
         <div
           className={`fixed top-6 left-1/2 z-50 transition-all duration-300 transform -translate-x-1/2
@@ -301,10 +301,10 @@ export default function MyLecturePage() {
                         border: isEnd ? "1px solid #E5E7EB" : isExpiring ? "1px solid #FCA5A5" : "1px solid #F3F4F6",
                       }}
                     >
-                      <div className="flex items-center gap-5 p-5">
+                      <div className="flex flex-wrap items-center gap-4 sm:gap-5 p-4 sm:p-5">
                         {/* 썸네일 */}
                         <div className="relative flex-shrink-0">
-                          <div className="w-24 h-24 rounded-xl overflow-hidden shadow-inner flex-shrink-0 relative">
+                          <div className="w-16 h-16 sm:w-24 sm:h-24 rounded-xl overflow-hidden shadow-inner flex-shrink-0 relative">
                             {isEnd && (
                               <div className="absolute inset-0 bg-gray-900/40 z-10 flex items-center justify-center rounded-xl">
                                 <span className="text-[10px] font-bold text-white/90 tracking-wider">수강종료</span>
@@ -407,7 +407,7 @@ export default function MyLecturePage() {
                         </div>
 
                         {/* 우측 액션 버튼 */}
-                        <div className="flex flex-col gap-2 flex-shrink-0">
+                        <div className="flex sm:flex-col gap-2 w-full sm:w-auto shrink-0">
                           <button
                             onClick={() => {
                               if (isEnd) { alert("수강이 만료된 강좌입니다."); return; }
@@ -419,7 +419,7 @@ export default function MyLecturePage() {
                                 })
                                 .catch((error) => alert(error.response?.data?.message ?? "강의 정보를 불러올 수 없습니다."));
                             }}
-                            className="text-xs px-4 py-2.5 text-white rounded-xl font-semibold shadow-sm transition-all whitespace-nowrap hover:opacity-90 cursor-pointer"
+                            className="flex-1 sm:flex-initial text-xs px-4 py-2.5 text-white rounded-xl font-semibold shadow-sm transition-all whitespace-nowrap hover:opacity-90 cursor-pointer"
                             style={{ background: accentColor }}
                           >
                             강의 보기
@@ -430,7 +430,7 @@ export default function MyLecturePage() {
                                 .then((res) => navigate(`/instructor/${res.data.course.instrUuid}/courses/${lecture.courseSn}`))
                                 .catch((error) => alert(error.response?.data?.message ?? "강좌 정보를 불러올 수 없습니다."));
                             }}
-                            className="text-xs px-4 py-2.5 border border-gray-200 rounded-xl font-medium text-gray-600 bg-white hover:bg-gray-50 transition-colors cursor-pointer whitespace-nowrap"
+                            className="flex-1 sm:flex-initial text-xs px-4 py-2.5 border border-gray-200 rounded-xl font-medium text-gray-600 bg-white hover:bg-gray-50 transition-colors cursor-pointer whitespace-nowrap"
                           >
                             강좌정보
                           </button>

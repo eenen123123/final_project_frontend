@@ -26,18 +26,18 @@ export default function NotificationsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-6xl mx-auto px-6 py-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
         <div className="flex flex-col lg:flex-row gap-5 lg:items-start">
           <MyPageSidebar activeSection={activeSection} onSectionChange={setActiveSection} />
 
           <div className="flex-1 min-w-0 space-y-4">
             {/* 헤더 카드 */}
-            <div className="bg-white border border-gray-200 rounded-xl shadow-sm px-6 py-5 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg bg-yellow-50 flex items-center justify-center">
+            <div className="bg-white border border-gray-200 rounded-xl shadow-sm px-4 sm:px-6 py-5 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-9 h-9 rounded-lg bg-yellow-50 flex items-center justify-center shrink-0">
                   <Bell className="w-4.5 h-4.5 text-yellow-400" />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <h2 className="text-sm font-bold text-gray-900">전체 알림</h2>
                   <p className="text-xs text-gray-400 mt-0.5">
                     {loading ? "불러오는 중..." : unreadCount > 0 ? `${unreadCount}개의 읽지 않은 알림이 있습니다.` : "모든 알림을 확인했습니다."}
@@ -46,7 +46,7 @@ export default function NotificationsPage() {
               </div>
               <button
                 onClick={() => navigate("/mypage")}
-                className="flex items-center gap-0.5 text-xs text-gray-400 hover:text-gray-700 transition-colors"
+                className="flex items-center gap-0.5 text-xs text-gray-400 hover:text-gray-700 transition-colors shrink-0 whitespace-nowrap"
               >
                 <ChevronLeft className="w-3.5 h-3.5" />
                 마이페이지
@@ -119,11 +119,11 @@ export default function NotificationsPage() {
 
               {/* 페이지네이션 */}
               {totalPages > 1 && (
-                <div className="flex items-center justify-center gap-1 px-6 py-4 border-t border-gray-100">
+                <div className="flex items-center justify-start sm:justify-center gap-1 px-4 sm:px-6 py-4 border-t border-gray-100 overflow-x-auto">
                   <button
                     onClick={() => setPage((p) => Math.max(1, p - 1))}
                     disabled={page === 1}
-                    className="px-3 py-1.5 text-xs rounded-lg text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    className="px-3 py-1.5 text-xs rounded-lg text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors shrink-0 whitespace-nowrap"
                   >
                     이전
                   </button>
@@ -131,7 +131,7 @@ export default function NotificationsPage() {
                     <button
                       key={p}
                       onClick={() => setPage(p)}
-                      className={`w-7 h-7 text-xs rounded-lg transition-colors ${p === page ? "bg-blue-500 text-white font-semibold" : "text-gray-500 hover:bg-gray-100"}`}
+                      className={`w-7 h-7 text-xs rounded-lg transition-colors shrink-0 ${p === page ? "bg-blue-500 text-white font-semibold" : "text-gray-500 hover:bg-gray-100"}`}
                     >
                       {p}
                     </button>
@@ -139,7 +139,7 @@ export default function NotificationsPage() {
                   <button
                     onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                     disabled={page === totalPages}
-                    className="px-3 py-1.5 text-xs rounded-lg text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    className="px-3 py-1.5 text-xs rounded-lg text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors shrink-0 whitespace-nowrap"
                   >
                     다음
                   </button>

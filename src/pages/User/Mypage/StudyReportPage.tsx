@@ -146,7 +146,7 @@ export default function StudyReportPage() {
       .then((res) => {
         setInstructors(res.data.map((item, i) => ({ rank: i + 1, ...item })));
       })
-      .catch(() => {});
+      .catch(() => { });
 
     api
       .get<{ subjectName: string; totalSeconds: number }[]>(
@@ -164,7 +164,7 @@ export default function StudyReportPage() {
           })),
         );
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   const activeCourses = courses.filter(
@@ -176,18 +176,21 @@ export default function StudyReportPage() {
   const avgProgress =
     courses.length > 0
       ? Math.round(
-          courses.reduce((sum, c) => sum + c.progressPct, 0) / courses.length,
-        )
+        courses.reduce((sum, c) => sum + c.progressPct, 0) / courses.length,
+      )
       : 0;
 
   return (
-    <div className="min-h-screen bg-gray-50/50">
-      <div className="max-w-6xl mx-auto px-6 py-10">
-        <div className="flex flex-col lg:flex-row gap-8 lg:items-start">
-          <MyPageSidebar
-            activeSection={activeSection}
-            onSectionChange={setActiveSection}
-          />
+    <div className="min-h-screen bg-slate-50/50 antialiased text-slate-900 selection:bg-blue-100">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
+        <div className="flex flex-col lg:flex-row gap-10 lg:items-start">
+          {/* 사이드바 영역 */}
+          <div className="w-full lg:w-64 shrink-0">
+            <MyPageSidebar
+              activeSection={activeSection}
+              onSectionChange={setActiveSection}
+            />
+          </div>
 
           {/* 메인 리포트 영역 */}
           <div className="flex-1 min-w-0 space-y-6">
