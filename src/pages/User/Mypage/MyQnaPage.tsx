@@ -78,7 +78,7 @@ export default function MyQnaPage() {
   }, [activeTab, isAuthReady]);
 
   const TABS = [
-    { key: "instructor" as TabKey, label: "선생님 Q&A" },
+    { key: "instructor" as TabKey, label: "강사 Q&A" },
     { key: "customer" as TabKey, label: "고객센터 Q&A" },
   ];
 
@@ -93,7 +93,7 @@ export default function MyQnaPage() {
             <div className="mb-6">
               <h2 className="text-xl font-bold text-gray-900 inline mr-3">나의 Q&A</h2>
               <span className="text-xs text-gray-400">
-                선생님 Q&A, 고객센터 게시판에 문의하신 내용에 대한 답변 현황을 확인할 수 있습니다.
+                강사 Q&A, 고객센터 게시판에 문의하신 내용에 대한 답변 현황을 확인할 수 있습니다.
               </span>
             </div>
 
