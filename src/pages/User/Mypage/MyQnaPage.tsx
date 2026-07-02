@@ -91,10 +91,10 @@ export default function MyQnaPage() {
           <div className="flex-1 min-w-0">
             {/* 헤더 */}
             <div className="mb-6">
-              <h2 className="text-xl font-bold text-gray-900 inline mr-3">나의 Q&A</h2>
-              <span className="text-xs text-gray-400">
+              <h2 className="text-2xl font-bold text-gray-900 tracking-tight">나의 Q&A</h2>
+              <p className="text-sm text-gray-500 mt-1">
                 선생님 Q&A, 고객센터 게시판에 문의하신 내용에 대한 답변 현황을 확인할 수 있습니다.
-              </span>
+              </p>
             </div>
 
             {/* 탭 */}
