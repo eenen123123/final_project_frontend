@@ -67,7 +67,7 @@ export default function Login() {
   };
 
   useEffect(() => {
-    if (!import.meta.env.DEV) return;
+    if (import.meta.env.DEV) return;
     const fetchAccounts = async () => {
       try {
         const response = await api.get("/api/temp/accounts");
