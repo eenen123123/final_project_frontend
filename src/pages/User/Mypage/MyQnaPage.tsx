@@ -78,7 +78,7 @@ export default function MyQnaPage() {
   }, [activeTab, isAuthReady]);
 
   const TABS = [
-    { key: "instructor" as TabKey, label: "선생님 Q&A" },
+    { key: "instructor" as TabKey, label: "강사 Q&A" },
     { key: "customer" as TabKey, label: "고객센터 Q&A" },
   ];
 
