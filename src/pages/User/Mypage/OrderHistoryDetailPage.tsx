@@ -134,23 +134,20 @@ export default function OrderHistoryDetailPage() {
   const couponDisc = Math.max(0, origAmt - pointAmt - (orderInfo?.totAmt ?? 0));
 
   return (
-    <div className="min-h-screen bg-slate-50/50 antialiased text-slate-900 selection:bg-blue-100">
-      <div className="max-w-6xl mx-auto px-6 py-12">
-        <div className="flex gap-10 items-start">
-          {/* 사이드바 영역 */}
-          <div className="w-64 shrink-0 hidden md:block">
-            <MyPageSidebar
-              activeSection={activeSection}
-              onSectionChange={setActiveSection}
-            />
-          </div>
+    <div className="min-h-screen bg-gray-50/50">
+      <div className="max-w-6xl mx-auto px-6 py-10">
+        <div className="flex flex-col lg:flex-row gap-8 lg:items-start">
+          <MyPageSidebar
+            activeSection={activeSection}
+            onSectionChange={setActiveSection}
+          />
 
           {/* 메인 콘텐츠 영역 */}
           <div className="flex-1 min-w-0 space-y-6">
             {/* 상단 네비게이션 */}
             <div className="flex flex-col gap-3">
               <div className="flex items-center justify-between mt-1">
-                <h2 className="text-2xl font-bold tracking-tight text-slate-900">
+                <h2 className="text-2xl font-bold text-gray-900 tracking-tight">
                   주문 상세 내역
                 </h2>
                 {/* ⚠️ 기존 상단 환불/취소 신청 버튼 제거됨 */}
