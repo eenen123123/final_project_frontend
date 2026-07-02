@@ -121,16 +121,16 @@ export default function ClassroomAssignPage() {
 
   return (
     <div className="flex-1 overflow-y-scroll">
-      <div className="max-w-6xl mx-auto px-8 py-8 flex flex-col gap-5">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col gap-5">
         <button onClick={() => navigate(`/classroom/${classId}?tab=assign`)} className="flex items-center gap-2 text-slate-400 hover:text-slate-600 transition-colors text-sm font-medium w-fit">
           <i className="fa-solid fa-arrow-left" /> 과제 목록으로
         </button>
 
         {/* 과제 내용 */}
         <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
-          <div className="px-7 py-5 border-b border-slate-200 flex items-center justify-between">
+          <div className="px-7 py-5 border-b border-slate-200">
             <h2 className="text-base font-bold text-slate-800">{assign.asgmtNm}</h2>
-            <div className="flex items-center gap-2 text-sm text-slate-400 shrink-0">
+            <div className="flex items-center gap-2 mt-3 text-sm text-slate-400">
               <i className="fa-regular fa-clock" />
               <span>{assign.dueDt ? assign.dueDt.slice(0, 16).replace("T", " ") : "기한 없음"} 마감</span>
             </div>
@@ -143,7 +143,10 @@ export default function ClassroomAssignPage() {
           <div className="px-7 py-5 border-b border-slate-200 flex items-center justify-between">
             <h3 className="text-sm font-bold text-slate-800">내 제출</h3>
             <div className="flex items-center gap-3">
-              {assign.score != null && <span className="text-sm font-black text-blue-600">{assign.score}점</span>}
+              {assign.score != null
+                ? <span className="text-sm font-black text-blue-600">{assign.score}점</span>
+                : assign.submitted && <span className="text-sm font-semibold text-slate-400">채점중</span>
+              }
               {assign.submitted
                 ? <span className="text-xs font-semibold px-2.5 py-1 rounded-lg border border-emerald-100 bg-emerald-50 text-emerald-600">제출완료</span>
                 : <span className="text-xs font-semibold px-2.5 py-1 rounded-lg border border-rose-100 bg-rose-50 text-rose-500">미제출</span>

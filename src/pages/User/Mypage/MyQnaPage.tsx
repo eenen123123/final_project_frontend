@@ -84,17 +84,17 @@ export default function MyQnaPage() {
 
   return (
     <div className="min-h-screen bg-gray-50/50">
-      <div className="max-w-6xl mx-auto px-6 py-10">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
         <div className="flex flex-col lg:flex-row gap-8 lg:items-start">
           <MyPageSidebar activeSection="나의 Q&A" onSectionChange={() => {}} />
 
           <div className="flex-1 min-w-0">
             {/* 헤더 */}
             <div className="mb-6">
-              <h2 className="text-2xl font-bold text-gray-900 tracking-tight">나의 Q&A</h2>
-              <p className="text-sm text-gray-500 mt-1">
+              <h2 className="text-xl font-bold text-gray-900 inline mr-3">나의 Q&A</h2>
+              <span className="text-xs text-gray-400">
                 강사 Q&A, 고객센터 게시판에 문의하신 내용에 대한 답변 현황을 확인할 수 있습니다.
-              </p>
+              </span>
             </div>
 
             {/* 탭 */}
@@ -104,7 +104,7 @@ export default function MyQnaPage() {
                   key={tab.key}
                   type="button"
                   onClick={() => setActiveTab(tab.key)}
-                  className={`px-10 py-3 text-sm font-bold border-r border-gray-300 last:border-r-0 cursor-pointer transition-colors
+                  className={`px-4 sm:px-10 py-3 text-sm font-bold border-r border-gray-300 last:border-r-0 cursor-pointer transition-colors whitespace-nowrap
                     ${activeTab === tab.key
                       ? "bg-gray-800 text-white"
                       : "bg-white text-gray-500 hover:bg-gray-50"}`}
@@ -142,57 +142,85 @@ export default function MyQnaPage() {
             {/* ===== 선생님 Q&A 탭 ===== */}
             {activeTab === "instructor" && (
               <>
-                <table className="w-full border-t border-gray-200 bg-white text-sm mb-1">
-                  <colgroup>
-                    <col style={{ width: "60px" }} />
-                    <col />
-                    <col style={{ width: "120px" }} />
-                    <col style={{ width: "90px" }} />
-                    <col style={{ width: "90px" }} />
-                  </colgroup>
-                  <thead>
-                    <tr className="bg-gray-50 border-b border-gray-200">
-                      <th className="py-2.5 px-3 text-xs font-semibold text-gray-600 text-center">번호</th>
-                      <th className="py-2.5 px-3 text-xs font-semibold text-gray-600 text-left">제목</th>
-                      <th className="py-2.5 px-3 text-xs font-semibold text-gray-600 text-center">강사</th>
-                      <th className="py-2.5 px-3 text-xs font-semibold text-gray-600 text-center">작성일</th>
-                      <th className="py-2.5 px-3 text-xs font-semibold text-gray-600 text-center">처리현황</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {instrLoading ? (
-                      <tr><td colSpan={5} className="py-12 text-center text-sm text-gray-400">불러오는 중...</td></tr>
-                    ) : instrItems.length === 0 ? (
-                      <tr><td colSpan={5} className="py-12 text-center text-sm text-gray-400">문의 내역이 없습니다.</td></tr>
-                    ) : (
-                      instrItems.map((item) => (
-                        <tr key={item.postSn} className="hover:bg-gray-50 transition-colors">
-                          <td className="py-3 px-3 text-center text-xs text-gray-400">{item.postSn}</td>
-                          <td className="py-3 px-3">
-                            {item.instrUuid ? (
-                              <Link to={`/instructor/${item.instrUuid}/qna/${item.postSn}`} className="text-sm text-gray-800 hover:text-blue-600 transition-colors">
-                                {item.secrYn === "Y" && <span className="mr-1 text-gray-400">🔒</span>}
-                                {item.postSj}
-                              </Link>
-                            ) : (
-                              <span className="text-sm text-gray-800">
-                                {item.secrYn === "Y" && <span className="mr-1 text-gray-400">🔒</span>}
-                                {item.postSj}
-                              </span>
-                            )}
-                          </td>
-                          <td className="py-3 px-3 text-center text-xs text-gray-500">{item.instrUserNm}</td>
-                          <td className="py-3 px-3 text-center text-xs text-gray-400">{item.regDt?.slice(0, 10)}</td>
-                          <td className="py-3 px-3 text-center">
-                            {item.answYn === "Y"
-                              ? <span className="text-xs bg-blue-50 text-blue-700 font-semibold px-2 py-0.5 rounded-full">답변완료</span>
-                              : <span className="text-xs text-gray-500 font-semibold">답변대기</span>}
-                          </td>
+                {instrLoading ? (
+                  <div className="py-12 text-center text-sm text-gray-400 bg-white border-t border-gray-200">불러오는 중...</div>
+                ) : instrItems.length === 0 ? (
+                  <div className="py-12 text-center text-sm text-gray-400 bg-white border-t border-gray-200">문의 내역이 없습니다.</div>
+                ) : (
+                  <>
+                    <div className="hidden md:block overflow-x-auto">
+                    <table className="w-full border-t border-gray-200 bg-white text-sm mb-1">
+                      <colgroup>
+                        <col style={{ width: "60px" }} />
+                        <col />
+                        <col style={{ width: "120px" }} />
+                        <col style={{ width: "90px" }} />
+                        <col style={{ width: "90px" }} />
+                      </colgroup>
+                      <thead>
+                        <tr className="bg-gray-50 border-b border-gray-200">
+                          <th className="py-2.5 px-3 text-xs font-semibold text-gray-600 text-center">번호</th>
+                          <th className="py-2.5 px-3 text-xs font-semibold text-gray-600 text-left">제목</th>
+                          <th className="py-2.5 px-3 text-xs font-semibold text-gray-600 text-center">강사</th>
+                          <th className="py-2.5 px-3 text-xs font-semibold text-gray-600 text-center">작성일</th>
+                          <th className="py-2.5 px-3 text-xs font-semibold text-gray-600 text-center">처리현황</th>
                         </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100">
+                        {instrItems.map((item) => (
+                          <tr key={item.postSn} className="hover:bg-gray-50 transition-colors">
+                            <td className="py-3 px-3 text-center text-xs text-gray-400">{item.postSn}</td>
+                            <td className="py-3 px-3">
+                              {item.instrUuid ? (
+                                <Link to={`/instructor/${item.instrUuid}/qna/${item.postSn}`} className="text-sm text-gray-800 hover:text-blue-600 transition-colors">
+                                  {item.secrYn === "Y" && <span className="mr-1 text-gray-400">🔒</span>}
+                                  {item.postSj}
+                                </Link>
+                              ) : (
+                                <span className="text-sm text-gray-800">
+                                  {item.secrYn === "Y" && <span className="mr-1 text-gray-400">🔒</span>}
+                                  {item.postSj}
+                                </span>
+                              )}
+                            </td>
+                            <td className="py-3 px-3 text-center text-xs text-gray-500">{item.instrUserNm}</td>
+                            <td className="py-3 px-3 text-center text-xs text-gray-400">{item.regDt?.slice(0, 10)}</td>
+                            <td className="py-3 px-3 text-center">
+                              {item.answYn === "Y"
+                                ? <span className="text-xs bg-blue-50 text-blue-700 font-semibold px-2 py-0.5 rounded-full">답변완료</span>
+                                : <span className="text-xs text-gray-500 font-semibold">답변대기</span>}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    </div>
+
+                    <ul className="md:hidden divide-y divide-gray-100 bg-white border-t border-gray-200">
+                      {instrItems.map((item) => (
+                        <li key={item.postSn} className="px-4 py-3">
+                          {item.instrUuid ? (
+                            <Link to={`/instructor/${item.instrUuid}/qna/${item.postSn}`} className="text-sm font-medium text-gray-800 hover:text-blue-600 transition-colors line-clamp-2">
+                              {item.secrYn === "Y" && <span className="mr-1 text-gray-400">🔒</span>}
+                              {item.postSj}
+                            </Link>
+                          ) : (
+                            <span className="text-sm font-medium text-gray-800 line-clamp-2">
+                              {item.secrYn === "Y" && <span className="mr-1 text-gray-400">🔒</span>}
+                              {item.postSj}
+                            </span>
+                          )}
+                          <div className="flex items-center justify-between mt-1.5 text-xs text-gray-400">
+                            <span>{item.instrUserNm} · {item.regDt?.slice(0, 10)}</span>
+                            {item.answYn === "Y"
+                              ? <span className="text-xs bg-blue-50 text-blue-700 font-semibold px-2 py-0.5 rounded-full shrink-0">답변완료</span>
+                              : <span className="text-xs text-gray-500 font-semibold shrink-0">답변대기</span>}
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                )}
 
                 {instrTotalPages > 1 && (
                   <div className="flex items-center justify-center gap-1 my-4">
@@ -213,50 +241,71 @@ export default function MyQnaPage() {
             {/* ===== 고객센터 Q&A 탭 ===== */}
             {activeTab === "customer" && (
               <>
-                <table className="w-full border-t border-gray-200 bg-white text-sm mb-1">
-                  <colgroup>
-                    <col style={{ width: "60px" }} />
-                    <col style={{ width: "100px" }} />
-                    <col />
-                    <col style={{ width: "90px" }} />
-                    <col style={{ width: "90px" }} />
-                  </colgroup>
-                  <thead>
-                    <tr className="bg-gray-50 border-b border-gray-200">
-                      <th className="py-2.5 px-3 text-xs font-semibold text-gray-600 text-center">번호</th>
-                      <th className="py-2.5 px-3 text-xs font-semibold text-gray-600 text-center">분류</th>
-                      <th className="py-2.5 px-3 text-xs font-semibold text-gray-600 text-left">제목</th>
-                      <th className="py-2.5 px-3 text-xs font-semibold text-gray-600 text-center">작성일</th>
-                      <th className="py-2.5 px-3 text-xs font-semibold text-gray-600 text-center">처리현황</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {customerLoading ? (
-                      <tr><td colSpan={5} className="py-12 text-center text-sm text-gray-400">불러오는 중...</td></tr>
-                    ) : customerItems.length === 0 ? (
-                      <tr><td colSpan={5} className="py-12 text-center text-sm text-gray-400">문의 내역이 없습니다.</td></tr>
-                    ) : (
-                      customerItems.map((item) => (
-                        <tr key={item.postSn} className="hover:bg-gray-50 transition-colors">
-                          <td className="py-3 px-3 text-center text-xs text-gray-400">{item.postSn}</td>
-                          <td className="py-3 px-3 text-center text-xs text-gray-500">{item.qnaCtgNm}</td>
-                          <td className="py-3 px-3">
-                            <Link to={`/customer/qna/${item.postSn}`} className="text-sm text-gray-800 hover:text-blue-600 transition-colors">
-                              {item.secrYn === "Y" && <span className="mr-1 text-gray-400">🔒</span>}
-                              {item.postSj}
-                            </Link>
-                          </td>
-                          <td className="py-3 px-3 text-center text-xs text-gray-400">{item.regDt?.slice(0, 10)}</td>
-                          <td className="py-3 px-3 text-center">
-                            {item.answStatCd === "01"
-                              ? <span className="text-xs text-gray-500 font-semibold">답변대기</span>
-                              : <span className="text-xs bg-blue-50 text-blue-700 font-semibold px-2 py-0.5 rounded-full">답변완료</span>}
-                          </td>
+                {customerLoading ? (
+                  <div className="py-12 text-center text-sm text-gray-400 bg-white border-t border-gray-200">불러오는 중...</div>
+                ) : customerItems.length === 0 ? (
+                  <div className="py-12 text-center text-sm text-gray-400 bg-white border-t border-gray-200">문의 내역이 없습니다.</div>
+                ) : (
+                  <>
+                    <div className="hidden md:block overflow-x-auto">
+                    <table className="w-full border-t border-gray-200 bg-white text-sm mb-1">
+                      <colgroup>
+                        <col style={{ width: "60px" }} />
+                        <col style={{ width: "100px" }} />
+                        <col />
+                        <col style={{ width: "90px" }} />
+                        <col style={{ width: "90px" }} />
+                      </colgroup>
+                      <thead>
+                        <tr className="bg-gray-50 border-b border-gray-200">
+                          <th className="py-2.5 px-3 text-xs font-semibold text-gray-600 text-center">번호</th>
+                          <th className="py-2.5 px-3 text-xs font-semibold text-gray-600 text-center">분류</th>
+                          <th className="py-2.5 px-3 text-xs font-semibold text-gray-600 text-left">제목</th>
+                          <th className="py-2.5 px-3 text-xs font-semibold text-gray-600 text-center">작성일</th>
+                          <th className="py-2.5 px-3 text-xs font-semibold text-gray-600 text-center">처리현황</th>
                         </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100">
+                        {customerItems.map((item) => (
+                          <tr key={item.postSn} className="hover:bg-gray-50 transition-colors">
+                            <td className="py-3 px-3 text-center text-xs text-gray-400">{item.postSn}</td>
+                            <td className="py-3 px-3 text-center text-xs text-gray-500">{item.qnaCtgNm}</td>
+                            <td className="py-3 px-3">
+                              <Link to={`/customer/qna/${item.postSn}`} className="text-sm text-gray-800 hover:text-blue-600 transition-colors">
+                                {item.secrYn === "Y" && <span className="mr-1 text-gray-400">🔒</span>}
+                                {item.postSj}
+                              </Link>
+                            </td>
+                            <td className="py-3 px-3 text-center text-xs text-gray-400">{item.regDt?.slice(0, 10)}</td>
+                            <td className="py-3 px-3 text-center">
+                              {item.answStatCd === "01"
+                                ? <span className="text-xs text-gray-500 font-semibold">답변대기</span>
+                                : <span className="text-xs bg-blue-50 text-blue-700 font-semibold px-2 py-0.5 rounded-full">답변완료</span>}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    </div>
+
+                    <ul className="md:hidden divide-y divide-gray-100 bg-white border-t border-gray-200">
+                      {customerItems.map((item) => (
+                        <li key={item.postSn} className="px-4 py-3">
+                          <Link to={`/customer/qna/${item.postSn}`} className="text-sm font-medium text-gray-800 hover:text-blue-600 transition-colors line-clamp-2">
+                            {item.secrYn === "Y" && <span className="mr-1 text-gray-400">🔒</span>}
+                            {item.postSj}
+                          </Link>
+                          <div className="flex items-center justify-between mt-1.5 text-xs text-gray-400">
+                            <span>{item.qnaCtgNm} · {item.regDt?.slice(0, 10)}</span>
+                            {item.answStatCd === "01"
+                              ? <span className="text-xs text-gray-500 font-semibold shrink-0">답변대기</span>
+                              : <span className="text-xs bg-blue-50 text-blue-700 font-semibold px-2 py-0.5 rounded-full shrink-0">답변완료</span>}
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                )}
 
                 {/* 페이지네이션 */}
                 {customerTotalPages > 1 && (
@@ -272,12 +321,6 @@ export default function MyQnaPage() {
                   </div>
                 )}
 
-                <div className="flex justify-end mt-3">
-                  <Link to="/customer/qna/write"
-                    className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2 rounded transition-colors">
-                    질문 등록하기
-                  </Link>
-                </div>
               </>
             )}
           </div>

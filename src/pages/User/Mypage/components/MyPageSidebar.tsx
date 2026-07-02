@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import { useAuth } from "../../../../auth/AuthContext";
 
 interface NavItem {
@@ -112,19 +113,19 @@ export default function MyPageSidebar({
             <div key={item.label}>
               <button
                 onClick={() => handleClick(item)}
-                className={`w-full flex items-center justify-between px-5 py-2.5 text-sm transition-colors rounded-md cursor-pointer ${
-                  openMenus.includes(item.label) || activeSection === item.label
-                    ? "text-blue-600 font-semibold bg-blue-50"
-                    : "text-gray-700 hover:bg-gray-50"
-                }`}
+                className={`w-full flex items-center justify-between px-5 py-2.5 text-sm transition-colors rounded-md cursor-pointer ${openMenus.includes(item.label) || activeSection === item.label
+                  ? "text-blue-600 font-semibold bg-blue-50"
+                  : "text-gray-700 hover:bg-gray-50"
+                  }`}
               >
                 <span>{item.label}</span>
                 {item.children ? (
-                  <span className="text-gray-400 text-xs">
-                    {openMenus.includes(item.label) ? "∧" : "∨"}
-                  </span>
+                  <ChevronDown
+                    className={`w-3.5 h-3.5 text-gray-400 transition-transform ${openMenus.includes(item.label) ? "rotate-180" : ""
+                      }`}
+                  />
                 ) : (
-                  <span className="text-gray-300 text-xs">›</span>
+                  <ChevronRight className="w-3.5 h-3.5 text-gray-400" />
                 )}
               </button>
 

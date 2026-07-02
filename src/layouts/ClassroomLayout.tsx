@@ -91,7 +91,7 @@ export default function ClassroomLayout() {
     <div className="h-screen bg-slate-100 flex flex-col font-sans antialiased overflow-hidden">
       {/* 메인 헤더 */}
       <header className="bg-slate-50 border-b border-slate-200 sticky top-0 z-50 shrink-0">
-        <div className="px-10 h-16 flex items-center justify-between gap-4">
+        <div className="px-4 sm:px-6 lg:px-10 h-16 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4 min-w-0">
             <Link to="/my-classrooms"
               className="flex items-center gap-2 text-slate-400 hover:text-slate-600 transition-colors text-sm font-medium shrink-0">
@@ -140,8 +140,8 @@ export default function ClassroomLayout() {
         </div>
 
         {/* 탭 내비게이션 */}
-        <nav className="bg-slate-50 border-t border-slate-200 px-10">
-          <div className="flex items-end">
+        <nav className="bg-slate-50 border-t border-slate-200 px-4 sm:px-6 lg:px-10 overflow-x-auto">
+          <div className="flex items-end w-max min-w-full">
             {TABS.map((tab) => {
               const isActive = activeTab === tab.id;
               return (

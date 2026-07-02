@@ -330,10 +330,11 @@ export default function CouponPointContent() {
     <>
       {/* 상단 통합 자산 박스 */}
       <div className="border border-gray-300 bg-white shadow-xs mb-8">
-        <div className="grid grid-cols-4 border-b border-gray-200">
+        <div className="grid grid-cols-2 sm:grid-cols-4 border-b border-gray-200">
           {ASSET_TABS.map((tab, idx) => {
             const isActive = activeTab === tab.id;
-            const hasRightBorder = (idx + 1) % 4 !== 0;
+            const hasRightBorder = idx % 2 === 0;
+            const hasBottomBorder = idx < 2;
             return (
               <button
                 key={tab.id}
@@ -342,6 +343,8 @@ export default function CouponPointContent() {
                 className={`py-7 px-5 flex items-center justify-center gap-4 transition-all cursor-pointer select-none
                   ${isActive ? "bg-[#2E313D] text-white" : "bg-white text-gray-700 hover:bg-gray-50/80"}
                   ${hasRightBorder ? "border-r border-gray-200" : ""}
+                  ${hasBottomBorder ? "border-b border-gray-200 sm:border-b-0" : ""}
+                  ${idx < 3 ? "sm:border-r sm:border-gray-200" : "sm:border-r-0"}
                 `}
               >
                 <div
@@ -425,8 +428,8 @@ export default function CouponPointContent() {
             )}
           </div>
 
-          <div className="flex justify-between items-end text-[11px] text-gray-400/90 leading-relaxed font-medium">
-            <div className="space-y-0.5">
+          <div className="flex flex-wrap justify-between items-end gap-3 text-[11px] text-gray-400/90 leading-relaxed font-medium">
+            <div className="space-y-0.5 min-w-0">
               {SUMMARY_NOTICES[activeTab]?.map((line, i) => (
                 <p key={i}>· {line}</p>
               ))}
@@ -434,7 +437,7 @@ export default function CouponPointContent() {
             <button
               type="button"
               onClick={() => setShowModal(true)}
-              className="px-3 py-1.5 bg-white border border-gray-300 text-[11px] text-gray-600 font-bold hover:bg-gray-50 transition-colors rounded-sm cursor-pointer whitespace-nowrap"
+              className="px-3 py-1.5 bg-white border border-gray-300 text-[11px] text-gray-600 font-bold hover:bg-gray-50 transition-colors rounded-sm cursor-pointer whitespace-nowrap shrink-0"
             >
               {tabTitle}
               {iranSuffix(tabTitle)}{" "}
@@ -464,16 +467,16 @@ export default function CouponPointContent() {
 
       {/* 할인권 등록 폼 */}
       {activeTab === "hm-coupon" && couponSubTab === "register" && (
-        <div className="mb-8">
+        <div className="mb-8 overflow-x-auto">
           <table className="w-full text-xs border-collapse border border-gray-300">
             <tbody>
               <tr>
                 <td className="w-28 py-5 px-4 bg-gray-50 font-bold text-gray-700 text-center align-middle border-r border-gray-300 whitespace-nowrap">
                   할인권 S/N
                 </td>
-                <td className="py-8 px-8">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3 ml-6">
+                <td className="py-6 px-4 sm:py-8 sm:px-8">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div className="flex flex-wrap items-center gap-3 sm:ml-6">
                       {couponSn.map((val, i) => (
                         <div key={i} className="flex items-center gap-3">
                           <input
@@ -492,7 +495,7 @@ export default function CouponPointContent() {
                                 snRefs[i + 1].current?.focus();
                             }}
                             placeholder="5자리"
-                            className="border border-gray-300 px-3 py-1 w-28 text-center text-sm text-gray-700 bg-white focus:outline-none focus:border-gray-500 tracking-widest"
+                            className="border border-gray-300 px-3 py-1 w-20 sm:w-28 text-center text-sm text-gray-700 bg-white focus:outline-none focus:border-gray-500 tracking-widest"
                           />
                           {i < 2 && (
                             <span className="text-gray-400 font-bold">-</span>
@@ -527,7 +530,7 @@ export default function CouponPointContent() {
                           );
                         }
                       }}
-                      className="px-6 py-2 bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold transition-colors cursor-pointer whitespace-nowrap mr-32"
+                      className="px-6 py-2 bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold transition-colors cursor-pointer whitespace-nowrap shrink-0 sm:mr-32 self-start sm:self-center"
                     >
                       등록하기 &gt;
                     </button>
@@ -570,13 +573,13 @@ export default function CouponPointContent() {
 
             <form
               onSubmit={handleSearchSubmit}
-              className="border border-gray-300 bg-[#FAFAFA] p-4 flex items-center gap-6 text-xs text-gray-700 mb-3"
+              className="border border-gray-300 bg-[#FAFAFA] p-4 flex flex-wrap items-center gap-x-6 gap-y-3 text-xs text-gray-700 mb-3"
             >
-              <div className="flex items-center gap-4">
-                <span className="text-gray-500 font-bold tracking-tight">
+              <div className="flex items-center gap-4 w-full sm:w-auto min-w-0">
+                <span className="text-gray-500 font-bold tracking-tight whitespace-nowrap shrink-0">
                   기간검색
                 </span>
-                <div className="flex rounded-xs border border-gray-300 bg-white overflow-hidden">
+                <div className="flex rounded-xs border border-gray-300 bg-white overflow-x-auto min-w-0">
                   {[
                     { label: "1주일", days: 7 },
                     { label: "1개월", days: 30 },
@@ -587,7 +590,7 @@ export default function CouponPointContent() {
                       key={p.days}
                       type="button"
                       onClick={() => handlePeriodChange(p.days)}
-                      className={`px-3 py-1.5 text-[11px] font-medium border-r last:border-r-0 border-gray-200 transition-colors cursor-pointer ${
+                      className={`px-3 py-1.5 text-[11px] font-medium border-r last:border-r-0 border-gray-200 transition-colors cursor-pointer shrink-0 whitespace-nowrap ${
                         selectedPeriod === p.days
                           ? "bg-gray-700 text-white font-bold"
                           : "text-gray-600 hover:bg-gray-50 bg-white"
@@ -648,7 +651,9 @@ export default function CouponPointContent() {
 
             <div className="border-t border-b border-gray-300 mb-5">
               {activeTab === "hm-coupon" ? (
-                <table className="w-full text-xs border-collapse">
+                <>
+                <div className="hidden md:block overflow-x-auto">
+                <table className="w-full min-w-[560px] text-xs border-collapse">
                   <colgroup>
                     <col style={{ width: "14%" }} />
                     <col style={{ width: "34%" }} />
@@ -658,19 +663,19 @@ export default function CouponPointContent() {
                   </colgroup>
                   <thead>
                     <tr className="border-b border-gray-200 bg-white">
-                      <th className="py-3 px-2 text-center font-bold text-gray-700">
+                      <th className="py-3 px-2 text-center font-bold text-gray-700 whitespace-nowrap">
                         발급일
                       </th>
-                      <th className="py-3 px-4 text-center font-bold text-gray-700">
+                      <th className="py-3 px-4 text-center font-bold text-gray-700 whitespace-nowrap">
                         쿠폰명
                       </th>
-                      <th className="py-3 px-2 text-center font-bold text-gray-700">
+                      <th className="py-3 px-2 text-center font-bold text-gray-700 whitespace-nowrap">
                         혜택
                       </th>
-                      <th className="py-3 px-2 text-center font-bold text-gray-700">
+                      <th className="py-3 px-2 text-center font-bold text-gray-700 whitespace-nowrap">
                         상태
                       </th>
-                      <th className="py-3 px-2 text-center font-bold text-gray-700">
+                      <th className="py-3 px-2 text-center font-bold text-gray-700 whitespace-nowrap">
                         유효기간
                       </th>
                     </tr>
@@ -709,7 +714,7 @@ export default function CouponPointContent() {
                           key={c.mcpntSn}
                           className="border-b border-gray-100 last:border-b-0"
                         >
-                          <td className="py-3 px-2 text-center text-gray-600">
+                          <td className="py-3 px-2 text-center text-gray-600 whitespace-nowrap">
                             {c.issueDt.slice(0, 10)}
                           </td>
                           <td className="py-3 px-4 text-left text-gray-800 font-medium">
@@ -744,11 +749,11 @@ export default function CouponPointContent() {
                             </div>
                           </td>
                           <td
-                            className={`py-3 px-2 text-center font-bold ${useYnColor[c.useYn] ?? "text-gray-500"}`}
+                            className={`py-3 px-2 text-center font-bold whitespace-nowrap ${useYnColor[c.useYn] ?? "text-gray-500"}`}
                           >
                             {useYnLabel[c.useYn] ?? c.useYn}
                           </td>
-                          <td className="py-3 px-2 text-center text-gray-600">
+                          <td className="py-3 px-2 text-center text-gray-600 whitespace-nowrap">
                             {c.expiryDt ? c.expiryDt.slice(0, 10) : "-"}
                           </td>
                         </tr>
@@ -756,8 +761,80 @@ export default function CouponPointContent() {
                     })()}
                   </tbody>
                 </table>
+                </div>
+                <ul className="md:hidden divide-y divide-gray-100 bg-white">
+                  {(() => {
+                    const filtered = coupons.filter((c) => {
+                      if (sortType === "Y") return c.useYn === "N";
+                      if (sortType === "N") return c.useYn !== "N";
+                      return true;
+                    });
+                    if (filtered.length === 0) {
+                      return (
+                        <li className="py-14 text-center text-gray-500 font-medium text-xs">
+                          보유 쿠폰이 없습니다.
+                        </li>
+                      );
+                    }
+                    const useYnLabel: Record<string, string> = {
+                      N: "미사용",
+                      Y: "사용완료",
+                      E: "소멸",
+                    };
+                    const useYnColor: Record<string, string> = {
+                      N: "text-emerald-600",
+                      Y: "text-gray-400",
+                      E: "text-red-400",
+                    };
+                    return filtered.map((c) => (
+                      <li key={c.mcpntSn} className="px-4 py-3">
+                        <div className="flex items-start justify-between gap-2 mb-1.5">
+                          <p className="text-sm font-medium text-gray-800 min-w-0">{c.couponNm}</p>
+                          <span
+                            className={`text-xs font-bold whitespace-nowrap shrink-0 ${useYnColor[c.useYn] ?? "text-gray-500"}`}
+                          >
+                            {useYnLabel[c.useYn] ?? c.useYn}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5 mb-1.5">
+                          {c.useLimitCd && (
+                            <span
+                              className={`inline-flex items-center justify-center w-14 py-0.5 rounded text-[10px] font-bold border shrink-0 ${
+                                c.useLimitCd === "COURSE"
+                                  ? "bg-blue-50 text-blue-600 border-blue-200"
+                                  : c.useLimitCd === "TEXTBOOK"
+                                    ? "bg-orange-50 text-orange-600 border-orange-200"
+                                    : "bg-purple-50 text-purple-600 border-purple-200"
+                              }`}
+                            >
+                              {c.useLimitCd === "ALL"
+                                ? "강좌+교재"
+                                : c.useLimitCd === "COURSE"
+                                  ? "강좌"
+                                  : "교재"}
+                            </span>
+                          )}
+                          <span className="text-xs text-gray-700 font-medium">
+                            {c.discType === "FIXED" && c.discAmt
+                              ? `${c.discAmt.toLocaleString()}원 할인`
+                              : c.discType === "RATE" && c.discRate
+                                ? `${c.discRate}% 할인`
+                                : "-"}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-3 text-[11px] text-gray-400 whitespace-nowrap">
+                          <span>발급 {c.issueDt.slice(0, 10)}</span>
+                          <span>유효 {c.expiryDt ? c.expiryDt.slice(0, 10) : "-"}</span>
+                        </div>
+                      </li>
+                    ));
+                  })()}
+                </ul>
+                </>
               ) : (
-                <table className="w-full text-xs border-collapse">
+                <>
+                <div className="hidden md:block overflow-x-auto">
+                <table className="w-full min-w-[560px] text-xs border-collapse">
                   <colgroup>
                     <col style={{ width: "16%" }} />
                     <col style={{ width: "40%" }} />
@@ -767,19 +844,19 @@ export default function CouponPointContent() {
                   </colgroup>
                   <thead>
                     <tr className="border-b border-gray-200 bg-white">
-                      <th className="py-3 px-2 text-center font-bold text-gray-700">
+                      <th className="py-3 px-2 text-center font-bold text-gray-700 whitespace-nowrap">
                         날짜
                       </th>
-                      <th className="py-3 px-4 text-center font-bold text-gray-700">
+                      <th className="py-3 px-4 text-center font-bold text-gray-700 whitespace-nowrap">
                         사용내역
                       </th>
-                      <th className="py-3 px-2 text-center font-bold text-gray-700">
+                      <th className="py-3 px-2 text-center font-bold text-gray-700 whitespace-nowrap">
                         적립포인트
                       </th>
-                      <th className="py-3 px-2 text-center font-bold text-gray-700">
+                      <th className="py-3 px-2 text-center font-bold text-gray-700 whitespace-nowrap">
                         사용/소멸 포인트
                       </th>
-                      <th className="py-3 px-2 text-center font-bold text-gray-700">
+                      <th className="py-3 px-2 text-center font-bold text-gray-700 whitespace-nowrap">
                         유효기간
                       </th>
                     </tr>
@@ -813,7 +890,7 @@ export default function CouponPointContent() {
                             key={h.pointHistSn}
                             className="border-b border-gray-100 last:border-b-0"
                           >
-                            <td className="py-3 px-2 text-center text-gray-600">
+                            <td className="py-3 px-2 text-center text-gray-600 whitespace-nowrap">
                               {h.regDt?.slice(0, 10)}
                             </td>
                             <td className="py-3 px-4 text-left text-gray-800">
@@ -839,7 +916,7 @@ export default function CouponPointContent() {
                                 <span className="text-gray-400">-</span>
                               )}
                             </td>
-                            <td className="py-3 px-2 text-center text-gray-500">
+                            <td className="py-3 px-2 text-center text-gray-500 whitespace-nowrap">
                               {h.expiryDt ?? "-"}
                             </td>
                           </tr>
@@ -848,6 +925,52 @@ export default function CouponPointContent() {
                     })()}
                   </tbody>
                 </table>
+                </div>
+                <ul className="md:hidden divide-y divide-gray-100 bg-white">
+                  {(() => {
+                    const filtered = pointHistory.filter((h) => {
+                      if (sortType === "Y") return h.histType === "EARN";
+                      if (sortType === "N")
+                        return h.histType === "USE" || h.histType === "EXPIRE";
+                      return true;
+                    });
+                    if (filtered.length === 0) {
+                      return (
+                        <li className="py-14 text-center text-gray-500 font-medium text-xs">
+                          내역이 없습니다.
+                        </li>
+                      );
+                    }
+                    return filtered.map((h) => {
+                      const isEarn = h.changeAmt > 0;
+                      return (
+                        <li key={h.pointHistSn} className="px-4 py-3">
+                          <div className="flex items-start justify-between gap-2 mb-1">
+                            <p className="text-sm text-gray-800 min-w-0">
+                              {h.memo
+                                ? h.memo.length > 32
+                                  ? h.memo.slice(0, 32) + "…"
+                                  : h.memo
+                                : "-"}
+                            </p>
+                            <span
+                              className={`text-xs font-bold whitespace-nowrap shrink-0 ${isEarn ? "text-emerald-600" : "text-red-400"}`}
+                            >
+                              {isEarn
+                                ? `+${h.changeAmt.toLocaleString()}`
+                                : `-${Math.abs(h.changeAmt).toLocaleString()}`}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-3 text-[11px] text-gray-400 whitespace-nowrap">
+                            <span>{h.regDt?.slice(0, 10)}</span>
+                            <span>유효 {h.expiryDt ?? "-"}</span>
+                          </div>
+                        </li>
+                      );
+                    });
+                  })()}
+                </ul>
+                </>
               )}
             </div>
 
@@ -907,8 +1030,8 @@ export default function CouponPointContent() {
                 <td className="w-24 py-5 px-4 bg-gray-50 font-bold text-gray-700 text-center align-top border-r border-gray-300">
                   충전금액
                 </td>
-                <td className="py-5 px-5">
-                  <div className="flex items-center gap-2 mb-3">
+                <td className="py-5 px-3 sm:px-5">
+                  <div className="flex flex-wrap items-center gap-2 mb-3">
                     <input
                       type="text"
                       value={chargeAmount}
@@ -932,7 +1055,7 @@ export default function CouponPointContent() {
                       (최소입력단위 1,000원)
                     </span>
                   </div>
-                  <div className="grid grid-cols-5 gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                     {[
                       1000, 3000, 5000, 10000, 50000, 100000, 150000, 200000,
                       250000, 500000,

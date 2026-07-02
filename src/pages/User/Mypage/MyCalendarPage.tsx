@@ -223,7 +223,7 @@ function CalendarGrid({
             <div
               key={cell.dateStr + (isOther ? "-o" : "")}
               onClick={() => !isOther && onDateClick(cell.dateStr)}
-              className={`border-r border-b border-gray-200 h-24 p-1.5 flex flex-col gap-0.5 transition-colors
+              className={`border-r border-b border-gray-200 h-14 sm:h-24 p-1 sm:p-1.5 flex flex-col gap-0.5 transition-colors
                 ${isOther ? "bg-gray-50/50 cursor-default" : isSun ? "bg-red-50/70 cursor-pointer hover:bg-red-50" : "cursor-pointer hover:bg-gray-50"}
                 ${isSelected && !isOther ? "ring-1 ring-inset ring-gray-800" : ""}
               `}
@@ -235,33 +235,47 @@ function CalendarGrid({
                   {cell.day}
                 </span>
                 {isToday && !isOther && (
-                  <span className="text-[10px] font-bold text-gray-900">
+                  <span className="hidden sm:inline text-[10px] font-bold text-gray-900">
                     Today
                   </span>
                 )}
               </div>
 
-              {dayEvents.slice(0, 3).map((ev) => {
-                const c = TYPE_COLOR[ev.type];
-                return (
-                  <div
-                    key={ev.id}
-                    className={`text-[10px] font-medium truncate flex items-center gap-1 ${c.text}`}
+              {/* 모바일: 최우선순위 이벤트 색상 + 개수 배지 */}
+              {dayEvents.length > 0 && (
+                <div className="flex sm:hidden">
+                  <span
+                    className={`inline-flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full text-[9px] font-bold text-white ${TYPE_COLOR[dayEvents[0].type].dot}`}
                   >
-                    <span
-                      className={`w-1 h-1 rounded-full flex-shrink-0 ${c.dot}`}
-                    />
-                    {ev.title.length > 8
-                      ? ev.title.slice(0, 8) + "..."
-                      : ev.title}
-                  </div>
-                );
-              })}
-              {dayEvents.length > 3 && (
-                <span className="text-[10px] text-gray-400">
-                  +{dayEvents.length - 3}개
-                </span>
+                    {dayEvents.length}
+                  </span>
+                </div>
               )}
+
+              {/* sm 이상: 제목까지 표시 */}
+              <div className="hidden sm:flex sm:flex-col sm:gap-0.5">
+                {dayEvents.slice(0, 3).map((ev) => {
+                  const c = TYPE_COLOR[ev.type];
+                  return (
+                    <div
+                      key={ev.id}
+                      className={`text-[10px] font-medium truncate flex items-center gap-1 ${c.text}`}
+                    >
+                      <span
+                        className={`w-1 h-1 rounded-full flex-shrink-0 ${c.dot}`}
+                      />
+                      {ev.title.length > 8
+                        ? ev.title.slice(0, 8) + "..."
+                        : ev.title}
+                    </div>
+                  );
+                })}
+                {dayEvents.length > 3 && (
+                  <span className="text-[10px] text-gray-400">
+                    +{dayEvents.length - 3}개
+                  </span>
+                )}
+              </div>
             </div>
           );
         })}
@@ -410,7 +424,7 @@ export default function MyCalendarPage() {
 
   return (
     <div className="min-h-screen bg-gray-50/50">
-      <div className="max-w-6xl mx-auto px-6 py-10">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
         <div className="flex flex-col lg:flex-row gap-8 lg:items-start">
           <MyPageSidebar
             activeSection={activeSection}

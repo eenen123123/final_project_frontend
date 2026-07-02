@@ -170,11 +170,11 @@ export default function CouponPointModal({ tabId, isOpen, onClose }: InfoModalPr
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
       onClick={onClose}
     >
       <div
-        className="bg-white w-[560px] max-h-[80vh] overflow-y-auto shadow-2xl"
+        className="bg-white w-full max-w-[560px] max-h-[80vh] overflow-y-auto shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* 헤더 */}
@@ -261,11 +261,11 @@ export function ExpiryDetailModal({ tabId, tabTitle, isOpen, onClose }: ExpiryMo
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
       onClick={onClose}
     >
       <div
-        className="bg-white w-[620px] max-h-[80vh] overflow-y-auto shadow-2xl"
+        className="bg-white w-full max-w-[620px] max-h-[80vh] overflow-y-auto shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between px-6 py-4 bg-[#2E313D]">
@@ -291,6 +291,7 @@ export function ExpiryDetailModal({ tabId, tabTitle, isOpen, onClose }: ExpiryMo
           <p className="text-xs text-gray-600 mb-4">{description}</p>
 
           {isCoupon ? (
+            <div className="overflow-x-auto">
             <table className="w-full text-xs border-collapse border border-gray-300">
               <colgroup>
                 <col style={{ width: "24%" }} />
@@ -320,7 +321,9 @@ export function ExpiryDetailModal({ tabId, tabTitle, isOpen, onClose }: ExpiryMo
                 ))}
               </tbody>
             </table>
+            </div>
           ) : (
+            <div className="overflow-x-auto">
             <table className="w-full text-xs border-collapse border border-gray-300">
               <colgroup>
                 <col style={{ width: "20%" }} />
@@ -353,6 +356,7 @@ export function ExpiryDetailModal({ tabId, tabTitle, isOpen, onClose }: ExpiryMo
                 ))}
               </tbody>
             </table>
+            </div>
           )}
         </div>
 

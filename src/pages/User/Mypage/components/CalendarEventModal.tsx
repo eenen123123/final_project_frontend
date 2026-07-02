@@ -140,9 +140,9 @@ export default function CalendarEventModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl w-full max-w-xl shadow-2xl overflow-hidden text-xs text-left">
+      <div className="bg-white rounded-2xl w-full max-w-xl mx-4 shadow-2xl overflow-hidden text-xs text-left flex flex-col max-h-[85vh]">
         {/* 헤더 */}
-        <div className="bg-gray-900 px-5 py-4 flex items-center justify-between text-white">
+        <div className="bg-gray-900 px-5 py-4 flex items-center justify-between text-white shrink-0">
           <h3 className="text-sm font-bold">일정 관리</h3>
           <button
             onClick={onClose}
@@ -152,7 +152,7 @@ export default function CalendarEventModal({
           </button>
         </div>
 
-        <div className="p-5">
+        <div className="p-5 overflow-y-auto">
           {/* 탭 */}
           <div className="flex border-b border-gray-200 mb-4">
             {(["academic", "personal"] as const).map((tab) => (
@@ -170,7 +170,7 @@ export default function CalendarEventModal({
           {/* 학습 일정 */}
           {form.activeTab === "academic" && (
             <div className="space-y-3">
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <select
                   value={form.area}
                   onChange={(e) => set({ area: e.target.value, teacher: "" })}
@@ -210,21 +210,23 @@ export default function CalendarEventModal({
               >
                 <option value="">강의 선택</option>
               </select>
-              <div className="flex items-center gap-2">
-                <span className="w-10 text-gray-500 flex-shrink-0">일자</span>
-                <input
-                  type="date"
-                  value={form.startDate}
-                  onChange={(e) => set({ startDate: e.target.value })}
-                  className="border border-gray-300 rounded-lg p-1.5 flex-1 text-xs cursor-pointer"
-                />
-                <span className="text-gray-400">-</span>
-                <input
-                  type="date"
-                  value={form.endDate}
-                  onChange={(e) => set({ endDate: e.target.value })}
-                  className="border border-gray-300 rounded-lg p-1.5 flex-1 text-xs cursor-pointer"
-                />
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                <span className="text-gray-500 sm:w-10 shrink-0">일자</span>
+                <div className="flex items-center gap-2 flex-1">
+                  <input
+                    type="date"
+                    value={form.startDate}
+                    onChange={(e) => set({ startDate: e.target.value })}
+                    className="border border-gray-300 rounded-lg p-1.5 flex-1 min-w-0 text-xs cursor-pointer"
+                  />
+                  <span className="text-gray-400 shrink-0">-</span>
+                  <input
+                    type="date"
+                    value={form.endDate}
+                    onChange={(e) => set({ endDate: e.target.value })}
+                    className="border border-gray-300 rounded-lg p-1.5 flex-1 min-w-0 text-xs cursor-pointer"
+                  />
+                </div>
               </div>
               <div className="flex items-center gap-2">
                 <span className="w-10 text-gray-500 flex-shrink-0">내용</span>
@@ -243,7 +245,7 @@ export default function CalendarEventModal({
           {/* 개인 일정 */}
           {form.activeTab === "personal" && (
             <div className="space-y-3">
-              <div className="flex items-center gap-4 py-1">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 py-1">
                 <span className="w-10 text-gray-500 flex-shrink-0">구분</span>
                 {(["공부", "기념", "행사", "기타"] as const).map((label) => (
                   <label
@@ -261,21 +263,23 @@ export default function CalendarEventModal({
                   </label>
                 ))}
               </div>
-              <div className="flex items-center gap-2">
-                <span className="w-10 text-gray-500 flex-shrink-0">일자</span>
-                <input
-                  type="date"
-                  value={form.startDate}
-                  onChange={(e) => set({ startDate: e.target.value })}
-                  className="border border-gray-300 rounded-lg p-1.5 flex-1 text-xs cursor-pointer"
-                />
-                <span className="text-gray-400">-</span>
-                <input
-                  type="date"
-                  value={form.endDate}
-                  onChange={(e) => set({ endDate: e.target.value })}
-                  className="border border-gray-300 rounded-lg p-1.5 flex-1 text-xs cursor-pointer"
-                />
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                <span className="text-gray-500 sm:w-10 shrink-0">일자</span>
+                <div className="flex items-center gap-2 flex-1">
+                  <input
+                    type="date"
+                    value={form.startDate}
+                    onChange={(e) => set({ startDate: e.target.value })}
+                    className="border border-gray-300 rounded-lg p-1.5 flex-1 min-w-0 text-xs cursor-pointer"
+                  />
+                  <span className="text-gray-400 shrink-0">-</span>
+                  <input
+                    type="date"
+                    value={form.endDate}
+                    onChange={(e) => set({ endDate: e.target.value })}
+                    className="border border-gray-300 rounded-lg p-1.5 flex-1 min-w-0 text-xs cursor-pointer"
+                  />
+                </div>
               </div>
               <div className="flex items-center gap-2">
                 <span className="w-10 text-gray-500 flex-shrink-0">내용</span>
@@ -306,7 +310,7 @@ export default function CalendarEventModal({
               <p className="text-[11px] font-semibold text-blue-600 mb-1.5">
                 ✓ 등록 예정 일정 ({pendingEvents.length}건)
               </p>
-              <div className="border border-blue-100 rounded-xl overflow-hidden bg-blue-50/30">
+              <div className="border border-blue-100 rounded-xl overflow-x-auto bg-blue-50/30">
                 <table className="w-full text-left border-collapse text-xs">
                   <tbody className="divide-y divide-blue-100">
                     {pendingEvents.map((ev) => (
@@ -339,7 +343,7 @@ export default function CalendarEventModal({
           )}
 
           {/* 기존 개인 일정 목록 (source === 'user' 만) */}
-          <div className="mt-4 border border-gray-200 rounded-xl overflow-hidden bg-gray-50">
+          <div className="mt-4 border border-gray-200 rounded-xl overflow-x-auto bg-gray-50">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
                 <tr className="bg-gray-100 border-b border-gray-200 text-gray-600 font-semibold">

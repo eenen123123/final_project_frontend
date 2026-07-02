@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import RichContent from "../../components/RichContent";
 import api from "../../api/api";
@@ -51,13 +51,9 @@ export default function ClassroomExamPage() {
       });
   }, [classId, examSn]);
 
-  useEffect(() => {
-    if (countdown?.expired && status === "ready" && !submittedRef.current) handleSubmit(true);
-  }, [countdown?.expired]);
-
   const setAnswer = (qstnSn: number, val: string) => setAnswers((prev) => ({ ...prev, [qstnSn]: val }));
 
-  const handleSubmit = async (auto = false) => {
+  const handleSubmit = useCallback(async (auto = false) => {
     if (submittedRef.current) return;
     if (!auto) {
       const unanswered = exam?.questions.filter((q) => !answers[q.qstnSn]).length ?? 0;
@@ -74,7 +70,11 @@ export default function ClassroomExamPage() {
       setStatus("ready");
       alert("제출에 실패했습니다. 다시 시도해 주세요.");
     }
-  };
+  }, [exam, answers, classId, examSn]);
+
+  useEffect(() => {
+    if (countdown?.expired && status === "ready" && !submittedRef.current) handleSubmit(true);
+  }, [countdown?.expired, status, handleSubmit]);
 
   if (status === "loading") return <div className="flex-1 flex items-center justify-center text-slate-400 text-sm">불러오는 중...</div>;
   if (status === "forbidden") return (
@@ -114,74 +114,74 @@ export default function ClassroomExamPage() {
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
-      <div className="bg-white border-b border-slate-200 px-8 h-12 flex items-center justify-between gap-4 shrink-0">
+      <div className="bg-white border-b border-slate-200 px-4 sm:px-6 lg:px-8 h-12 flex items-center justify-between gap-3 shrink-0">
         <div className="flex items-center gap-2 min-w-0">
-          <i className="fa-solid fa-clipboard-question text-blue-500 text-sm" />
+          <i className="fa-solid fa-clipboard-question text-blue-500 text-sm shrink-0" />
           <span className="font-bold text-slate-800 text-sm truncate">{exam.examNm}</span>
         </div>
-        <div className="flex items-center gap-6 shrink-0">
+        <div className="flex items-center gap-3 sm:gap-6 shrink-0">
           {countdown && !countdown.expired && (
             <div className={`flex items-center gap-2 text-sm font-black tabular-nums ${timerCls}`}>
               <i className="fa-regular fa-clock" />
               {String(countdown.h).padStart(2, "0")}:{String(countdown.m).padStart(2, "0")}:{String(countdown.s).padStart(2, "0")}
             </div>
           )}
-          <span className="text-sm text-slate-400">
+          <span className="hidden sm:inline text-sm text-slate-400">
             <span className="font-semibold text-slate-700">{answeredCount}</span> / {exam.questions.length} 답변
           </span>
           <button onClick={() => handleSubmit(false)} disabled={status === "submitting"}
-            className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white text-sm font-semibold rounded-lg transition-colors">
+            className="px-3 sm:px-4 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white text-sm font-semibold rounded-lg transition-colors whitespace-nowrap">
             {status === "submitting" ? "제출 중..." : "답안 제출"}
           </button>
         </div>
       </div>
 
       <div className="flex-1 overflow-y-scroll">
-        <div className="max-w-6xl mx-auto px-8 py-8 flex flex-col gap-6">
-        {exam.questions.map((q) => (
-          <div key={q.qstnSn} className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
-            <div className="px-8 py-5 border-b border-slate-200 flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <span className="w-8 h-8 rounded-full bg-blue-600 text-white text-sm font-black flex items-center justify-center flex-shrink-0">{q.qstnNo}</span>
-                <RichContent html={q.qstnCn} className="text-sm font-semibold text-slate-800 leading-relaxed prose prose-sm max-w-none" />
-              </div>
-              <span className="text-xs font-bold text-blue-500 bg-blue-50 border border-blue-100 px-2.5 py-1 rounded-lg shrink-0">{q.score}점</span>
-            </div>
-            <div className="px-8 py-5">
-              {q.qstnType === "MULTIPLE_CHOICE" && q.choices && (
-                <div className="flex flex-col gap-2.5">
-                  {q.choices.map((choice, i) => {
-                    const val = String(i + 1);
-                    const selected = answers[q.qstnSn] === val;
-                    return (
-                      <label key={i} className={`flex items-center gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-all ${selected ? "border-blue-300 bg-blue-50" : "border-slate-200 hover:border-slate-200 hover:bg-slate-50"}`}>
-                        <input type="radio" name={`q-${q.qstnSn}`} value={val} checked={selected}
-                          onChange={() => setAnswer(q.qstnSn, val)} className="accent-blue-600 w-4 h-4 shrink-0" />
-                        <span className={`text-sm font-medium ${selected ? "text-blue-700" : "text-slate-700"}`}>{choice}</span>
-                      </label>
-                    );
-                  })}
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col gap-6">
+          {exam.questions.map((q) => (
+            <div key={q.qstnSn} className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
+              <div className="px-5 sm:px-8 py-5 border-b border-slate-200 flex items-start justify-between gap-4">
+                <div className="flex items-start gap-3 min-w-0">
+                  <span className="w-8 h-8 rounded-full bg-blue-600 text-white text-sm font-black flex items-center justify-center shrink-0">{q.qstnNo}</span>
+                  <RichContent html={q.qstnCn} className="text-sm font-semibold text-slate-800 leading-relaxed prose prose-sm max-w-none min-w-0" />
                 </div>
-              )}
-              {q.qstnType === "SHORT_ANSWER" && (
-                <input type="text" value={answers[q.qstnSn] ?? ""} onChange={(e) => setAnswer(q.qstnSn, e.target.value)}
-                  placeholder="답을 입력하세요"
-                  className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-300 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all" />
-              )}
-              {q.qstnType === "ESSAY" && (
-                <textarea value={answers[q.qstnSn] ?? ""} onChange={(e) => setAnswer(q.qstnSn, e.target.value)}
-                  placeholder="서술형 답안을 입력하세요" rows={6}
-                  className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-300 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all resize-none" />
-              )}
+                <span className="text-xs font-bold text-blue-500 bg-blue-50 border border-blue-100 px-2.5 py-1 rounded-lg shrink-0">{q.score}점</span>
+              </div>
+              <div className="px-5 sm:px-8 py-5">
+                {q.qstnType === "MULTIPLE_CHOICE" && q.choices && (
+                  <div className="flex flex-col gap-2.5">
+                    {q.choices.map((choice, i) => {
+                      const val = String(i + 1);
+                      const selected = answers[q.qstnSn] === val;
+                      return (
+                        <label key={i} className={`flex items-center gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-all ${selected ? "border-blue-300 bg-blue-50" : "border-slate-200 hover:border-slate-200 hover:bg-slate-50"}`}>
+                          <input type="radio" name={`q-${q.qstnSn}`} value={val} checked={selected}
+                            onChange={() => setAnswer(q.qstnSn, val)} className="accent-blue-600 w-4 h-4 shrink-0" />
+                          <span className={`text-sm font-medium ${selected ? "text-blue-700" : "text-slate-700"}`}>{choice}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                )}
+                {q.qstnType === "SHORT_ANSWER" && (
+                  <input type="text" value={answers[q.qstnSn] ?? ""} onChange={(e) => setAnswer(q.qstnSn, e.target.value)}
+                    placeholder="답을 입력하세요"
+                    className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-300 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all" />
+                )}
+                {q.qstnType === "ESSAY" && (
+                  <textarea value={answers[q.qstnSn] ?? ""} onChange={(e) => setAnswer(q.qstnSn, e.target.value)}
+                    placeholder="서술형 답안을 입력하세요" rows={6}
+                    className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-300 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all resize-none" />
+                )}
+              </div>
             </div>
+          ))}
+          <div className="flex justify-end pb-10">
+            <button onClick={() => handleSubmit(false)} disabled={status === "submitting"}
+              className="px-8 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-bold rounded-xl transition-colors">
+              {status === "submitting" ? "제출 중..." : "최종 답안 제출"}
+            </button>
           </div>
-        ))}
-        <div className="flex justify-end pb-10">
-          <button onClick={() => handleSubmit(false)} disabled={status === "submitting"}
-            className="px-8 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-bold rounded-xl transition-colors">
-            {status === "submitting" ? "제출 중..." : "최종 답안 제출"}
-          </button>
-        </div>
         </div>
       </div>
     </div>

@@ -24,7 +24,7 @@ export default function AddressBookPopup({ open, onClose, onSelect, addressList 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="relative bg-white w-[460px] shadow-2xl border border-gray-200 flex flex-col max-h-[80vh]">
+      <div className="relative bg-white w-full max-w-[460px] mx-4 shadow-2xl border border-gray-200 flex flex-col max-h-[80vh]">
         {/* 헤더 */}
         <div className="flex items-center justify-between px-5 py-3.5 bg-gray-800 shrink-0">
           <h3 className="text-sm font-bold text-white">배송지 주소록</h3>

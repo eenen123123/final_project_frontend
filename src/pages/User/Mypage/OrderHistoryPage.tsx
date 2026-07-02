@@ -137,7 +137,7 @@ export default function OrderHistoryPage() {
 
   return (
     <div className="min-h-screen bg-gray-50/50">
-      <div className="max-w-6xl mx-auto px-6 py-10">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
         <div className="flex flex-col lg:flex-row gap-8 lg:items-start">
           {/* 1. 사이드바 */}
           <MyPageSidebar
@@ -148,10 +148,10 @@ export default function OrderHistoryPage() {
           {/* 2. 메인 콘텐츠 */}
           <div className="flex-1 min-w-0">
             <div className="mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">
+              <h2 className="text-2xl font-bold text-gray-900 tracking-tight">
                 주문/배송 조회
               </h2>
-              <p className="text-sm text-gray-500 mt-1.5">
+              <p className="text-sm text-gray-500 mt-1">
                 주문하신 상품의 결제 및 배송 현황을 확인하실 수 있습니다.
               </p>
             </div>
@@ -209,11 +209,11 @@ export default function OrderHistoryPage() {
               onSubmit={handleSearchSubmit}
               className="bg-white border border-gray-200 rounded-xl p-5 flex flex-wrap items-center gap-x-6 gap-y-4 mb-6"
             >
-              <div className="flex items-center gap-3">
-                <span className="text-sm font-bold text-gray-700">
+              <div className="w-full sm:w-auto sm:flex sm:items-center sm:gap-3">
+                <span className="text-sm font-bold text-gray-700 whitespace-nowrap shrink-0 block sm:inline mb-2 sm:mb-0">
                   기간검색
                 </span>
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex gap-1.5 overflow-x-auto min-w-0">
                   {[
                     { label: "1주일", days: 7 },
                     { label: "1개월", days: 30 },
@@ -224,7 +224,7 @@ export default function OrderHistoryPage() {
                       key={p.days}
                       type="button"
                       onClick={() => handlePeriodChange(p.days)}
-                      className={`px-3.5 py-1.5 text-xs font-bold rounded-full border transition-all cursor-pointer ${
+                      className={`px-3.5 py-1.5 text-xs font-bold rounded-full border transition-all cursor-pointer shrink-0 whitespace-nowrap ${
                         selectedPeriod === p.days
                           ? "bg-blue-600 border-blue-600 text-white"
                           : "bg-white border-gray-200 text-gray-500 hover:border-gray-300 hover:text-gray-700"
@@ -260,7 +260,7 @@ export default function OrderHistoryPage() {
 
               <button
                 type="submit"
-                className="ml-auto px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition-colors cursor-pointer"
+                className="w-full sm:w-auto sm:ml-auto px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition-colors cursor-pointer"
               >
                 검색
               </button>
@@ -286,7 +286,7 @@ export default function OrderHistoryPage() {
                     key={item.ordSn}
                     className="group bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md hover:border-blue-200 transition-all"
                   >
-                    <div className="flex items-center gap-5">
+                    <div className="flex flex-wrap sm:flex-nowrap items-center gap-x-5 gap-y-3">
                       <div className="hidden sm:flex shrink-0 w-14 h-14 rounded-xl bg-blue-50 items-center justify-center text-blue-600">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -336,7 +336,7 @@ export default function OrderHistoryPage() {
                         </p>
                       </div>
 
-                      <div className="shrink-0 text-right">
+                      <div className="w-full sm:w-auto shrink-0 text-right">
                         <p className="text-lg font-bold text-gray-900">
                           {(item.origAmt ?? item.totAmt).toLocaleString("ko-KR")}
                           <span className="text-xs font-normal text-gray-400 ml-0.5">

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Settings } from "lucide-react";
 import { useAuth } from "../../../auth/AuthContext";
@@ -6,7 +6,7 @@ import api from "../../../api/api";
 import StudyStatus from "../Mypage/components/StudyStatus";
 import StudyCalendar from "../Mypage/components/StudyCalendar";
 import StudyReport from "../Mypage/components/StudyReport";
-import AlertDropdown from "../Mypage/components/AlertDropdown";
+import { AlertBellButton, AlertPanel } from "../Mypage/components/AlertDropdown";
 import { useNotifications } from "../../../hooks/useNotifications";
 import type {
   CourseStatus,
@@ -64,7 +64,20 @@ export default function MyPage() {
     : "bg-gray-100 text-gray-700";
 
   const [activeSection, setActiveSection] = useState("마이룸");
+  const [alertOpen, setAlertOpen] = useState(false);
+  const alertCardRef = useRef<HTMLDivElement>(null);
   const { notifications, markAsRead, dismiss } = useNotifications();
+
+  useEffect(() => {
+    if (!alertOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (alertCardRef.current && !alertCardRef.current.contains(e.target as Node)) {
+        setAlertOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [alertOpen]);
   const [courseStatus, setCourseStatus] = useState<CourseStatus>(COURSE_STATUS);
   const [teachers, setTeachers] = useState<TeacherRank[]>([]);
   const [subjects, setSubjects] = useState<StudySubject[]>([]);
@@ -189,7 +202,7 @@ export default function MyPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-6xl mx-auto px-6 py-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
         {/* 본문: 사이드바 + 메인 */}
         <div className="flex flex-col lg:flex-row gap-5 lg:items-start">
           <MyPageSidebar
@@ -199,7 +212,7 @@ export default function MyPage() {
 
           <div className="flex-1 min-w-0">
             {/* 유저 정보 상단 바 */}
-            <div className="bg-white border border-gray-200 rounded-xl px-5 sm:px-8 py-5 sm:py-6 flex flex-wrap items-center gap-x-5 gap-y-3 mb-5 shadow-sm">
+            <div ref={alertCardRef} className="relative bg-white border border-gray-200 rounded-xl px-5 sm:px-8 py-5 sm:py-6 flex flex-wrap items-center gap-x-5 gap-y-3 mb-5 shadow-sm">
               <span
                 className={`inline-flex items-center justify-center px-3 py-1.5 rounded-md text-sm font-bold flex-shrink-0 ${badgeClass}`}
               >
@@ -209,7 +222,11 @@ export default function MyPage() {
                 <span className="font-bold">{userName ?? "-"}</span>님
               </span>
               <div className="flex items-center gap-4 ml-auto text-sm text-gray-500">
-                <AlertDropdown items={notifications} onRead={markAsRead} onDismiss={dismiss} />
+                <AlertBellButton
+                  unreadCount={notifications.filter((n) => !n.read).length}
+                  open={alertOpen}
+                  onToggle={() => setAlertOpen((v) => !v)}
+                />
                 <div className="w-px h-4 bg-gray-200" />
                 <button
                   onClick={() => {
@@ -236,6 +253,14 @@ export default function MyPage() {
                   <Settings className="w-3.5 h-3.5" />
                 </button>
               </div>
+              {alertOpen && (
+                <AlertPanel
+                  items={notifications}
+                  onRead={markAsRead}
+                  onDismiss={dismiss}
+                  onClose={() => setAlertOpen(false)}
+                />
+              )}
             </div>
             <StudyStatus status={courseStatus} />
             <FeaturedCarousel />

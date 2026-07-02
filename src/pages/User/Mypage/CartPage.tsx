@@ -228,7 +228,7 @@ export default function CartPage() {
 
   return (
     <div className="min-h-screen bg-gray-50/50">
-      <div className="max-w-6xl mx-auto px-6 py-10">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
         <div className="flex flex-col lg:flex-row gap-8 lg:items-start">
           <MyPageSidebar
             activeSection={activeSection}
@@ -237,31 +237,28 @@ export default function CartPage() {
 
           <div className="flex-1 min-w-0">
             {/* 단계 헤더 */}
-            <div
-              className="flex border border-gray-300 mb-6"
-              style={{ height: "56px" }}
-            >
+            <div className="flex border border-gray-300 mb-6 min-h-[56px]">
               {STEP_CONFIG.map(({ key, label, icon }, i) => {
                 const isActive = currentStep === key;
                 const isLast = i === STEP_CONFIG.length - 1;
                 return (
                   <div
                     key={key}
-                    className={`relative flex-1 flex items-center justify-center gap-2
+                    className={`relative flex-1 flex items-center justify-center gap-1 sm:gap-2 py-2 px-1
                       ${i > 0 ? "border-l border-gray-300" : ""}
                       ${isActive ? "bg-gray-800" : "bg-white"}`}
                   >
-                    <span className={isActive ? "text-white" : "text-gray-400"}>
+                    <span className={`shrink-0 ${isActive ? "text-white" : "text-gray-400"}`}>
                       {icon}
                     </span>
                     <span
-                      className={`text-sm font-semibold ${isActive ? "text-white" : "text-gray-400"}`}
+                      className={`text-xs sm:text-sm font-semibold text-center ${isActive ? "text-white" : "text-gray-400"}`}
                     >
                       {label}
                     </span>
                     {!isLast && (
                       <span
-                        className={`ml-1 text-sm font-bold ${isActive ? "text-gray-400" : "text-gray-300"}`}
+                        className={`ml-1 text-sm font-bold shrink-0 hidden sm:inline ${isActive ? "text-gray-400" : "text-gray-300"}`}
                       >
                         &gt;
                       </span>
@@ -293,6 +290,7 @@ export default function CartPage() {
               <>
                 {/* 상품 테이블 */}
                 <div className="border-t-2 border-b border-gray-800 mb-3">
+                  <div className="hidden md:block">
                   <table className="w-full text-sm border-collapse">
                     <thead>
                       <tr className="border-b border-gray-200 bg-gray-50">
@@ -459,6 +457,128 @@ export default function CartPage() {
                       ))}
                     </tbody>
                   </table>
+                  </div>
+
+                  {/* 모바일 카드형 */}
+                  <div className="md:hidden divide-y divide-gray-200">
+                    <label className="flex items-center gap-2 px-3 py-3 bg-gray-50 text-sm text-gray-700">
+                      <input
+                        type="checkbox"
+                        checked={allChecked}
+                        onChange={(e) => toggleAll(e.target.checked)}
+                        className="w-3.5 h-3.5 cursor-pointer accent-gray-800"
+                      />
+                      전체선택
+                    </label>
+                    {items.map((item) => (
+                      <div key={item.cartSn} className="p-4 flex flex-col gap-3">
+                        <div className="flex items-start gap-2">
+                          <input
+                            type="checkbox"
+                            checked={item.checked}
+                            onChange={() => toggleItem(item.cartSn)}
+                            className="w-3.5 h-3.5 mt-1 cursor-pointer accent-gray-800 shrink-0"
+                          />
+                          <div className="min-w-0">
+                            <p className="font-semibold text-gray-900 leading-snug text-sm flex items-center gap-1.5 flex-wrap">
+                              <span
+                                className={`inline-block text-[10px] px-1 py-px border font-semibold shrink-0 ${
+                                  item.prodDivCd === "COURSE"
+                                    ? "border-blue-400 text-blue-500 bg-blue-50"
+                                    : "border-green-400 text-green-600 bg-green-50"
+                                }`}
+                              >
+                                {item.prodDivCd === "COURSE" ? "강좌" : "교재"}
+                              </span>
+                              {item.prodNm}
+                            </p>
+                            {item.regDt &&
+                              (() => {
+                                const { dDay, until } = calcKeepInfo(item.regDt);
+                                return (
+                                  <p className="text-xs text-orange-500 mt-1">
+                                    보관기한: D-{dDay}{" "}
+                                    <span className="text-gray-400">
+                                      ({until}까지)
+                                    </span>
+                                  </p>
+                                );
+                              })()}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between text-sm text-gray-700">
+                          <span>{formatPrice(item.prodPrice)}원</span>
+                          {item.prodDivCd === "COURSE" ? null : (
+                            <div className="flex items-center">
+                              <input
+                                type="text"
+                                inputMode="numeric"
+                                value={qtyInputs[item.cartSn] ?? item.itemQty}
+                                onChange={(e) => {
+                                  const val = e.target.value.replace(/\D/g, "");
+                                  setQtyInputs((prev) => ({
+                                    ...prev,
+                                    [item.cartSn]: val,
+                                  }));
+                                }}
+                                onBlur={() => {
+                                  const val = parseInt(qtyInputs[item.cartSn] ?? "");
+                                  if (!isNaN(val) && val >= 1 && val !== item.itemQty) {
+                                    updateQty(item.cartSn, val);
+                                  } else {
+                                    setQtyInputs((prev) => ({
+                                      ...prev,
+                                      [item.cartSn]: String(item.itemQty),
+                                    }));
+                                  }
+                                }}
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+                                }}
+                                className="w-12 h-7 border border-gray-300 text-center text-sm focus:outline-none focus:border-gray-500"
+                              />
+                              <div className="flex flex-col h-7 border border-l-0 border-gray-300">
+                                <button
+                                  onClick={() => updateQty(item.cartSn, item.itemQty + 1)}
+                                  className="flex-1 px-1.5 text-gray-500 hover:bg-gray-100 cursor-pointer leading-none text-[10px]"
+                                >
+                                  ▲
+                                </button>
+                                <button
+                                  onClick={() => updateQty(item.cartSn, item.itemQty - 1)}
+                                  disabled={item.itemQty <= 1}
+                                  className="flex-1 px-1.5 text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer leading-none text-[10px] border-t border-gray-300"
+                                >
+                                  ▼
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                          <p className="font-bold text-orange-500 text-sm whitespace-nowrap">
+                            {formatPrice(item.prodPrice * item.itemQty)}원
+                          </p>
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              onClick={() => navigate("/checkout", { state: { items: [item] } })}
+                              className="px-3 py-1.5 bg-gray-600 text-white text-xs hover:bg-gray-800 transition-colors cursor-pointer"
+                            >
+                              주문 &gt;
+                            </button>
+                            <button
+                              onClick={() => deleteItem(item.cartSn)}
+                              className="px-3 py-1.5 bg-gray-400 text-white text-xs hover:bg-red-500 transition-colors cursor-pointer"
+                            >
+                              삭제 &gt;
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
                 {/* 하단 삭제 버튼 */}
@@ -526,10 +646,10 @@ export default function CartPage() {
             ))}
 
             {/* 액션 버튼 */}
-            <div className="flex justify-center gap-3 mt-6">
+            <div className="flex flex-wrap justify-center gap-3 mt-6">
               <button
                 onClick={() => navigate("/header/books")}
-                className="px-10 py-3 bg-gray-500 text-white text-sm font-semibold hover:bg-gray-700 transition-colors cursor-pointer"
+                className="px-6 sm:px-10 py-3 bg-gray-500 text-white text-sm font-semibold hover:bg-gray-700 transition-colors cursor-pointer whitespace-nowrap"
               >
                 강좌/교재 더보기 &gt;
               </button>
@@ -542,7 +662,7 @@ export default function CartPage() {
                   }
                   navigate("/checkout", { state: { items: selected } });
                 }}
-                className="px-10 py-3 bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600 transition-colors cursor-pointer"
+                className="px-6 sm:px-10 py-3 bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600 transition-colors cursor-pointer whitespace-nowrap"
               >
                 결제하기 &gt;
               </button>

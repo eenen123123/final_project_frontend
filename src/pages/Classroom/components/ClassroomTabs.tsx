@@ -19,6 +19,25 @@ function EmptyState({ icon, message }: { icon: string; message: string }) {
   );
 }
 
+const PAGINATION_ELLIPSIS = "…";
+
+function getPageItems(currentPage: number, totalPages: number, siblingCount = 1): (number | typeof PAGINATION_ELLIPSIS)[] {
+  const totalVisible = siblingCount * 2 + 5; // first + last + current + 2 siblings + 2 ellipses
+  if (totalPages <= totalVisible) return Array.from({ length: totalPages }, (_, i) => i + 1);
+
+  const leftSibling = Math.max(currentPage - siblingCount, 1);
+  const rightSibling = Math.min(currentPage + siblingCount, totalPages);
+  const showLeftEllipsis = leftSibling > 2;
+  const showRightEllipsis = rightSibling < totalPages - 1;
+
+  const items: (number | typeof PAGINATION_ELLIPSIS)[] = [1];
+  if (showLeftEllipsis) items.push(PAGINATION_ELLIPSIS);
+  for (let i = Math.max(leftSibling, 2); i <= Math.min(rightSibling, totalPages - 1); i++) items.push(i);
+  if (showRightEllipsis) items.push(PAGINATION_ELLIPSIS);
+  items.push(totalPages);
+  return items;
+}
+
 function Pagination({ currentPage, totalPages, onPageChange }: {
   currentPage: number;
   totalPages: number;
@@ -29,23 +48,44 @@ function Pagination({ currentPage, totalPages, onPageChange }: {
     <div className="flex items-center gap-1">
       {currentPage > 1 && (
         <button onClick={() => onPageChange(currentPage - 1)}
-          className="px-3 py-1.5 text-sm text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors">
+          className="px-3 py-1.5 text-sm text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors shrink-0">
           <ChevronLeft size={14} />
         </button>
       )}
-      {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-        <button key={p} onClick={() => onPageChange(p)}
-          className={`px-3 py-1.5 text-sm rounded-lg transition-colors font-medium
-            ${p === currentPage ? "bg-blue-600 text-white" : "text-slate-500 hover:bg-slate-100"}`}>
-          {p}
-        </button>
-      ))}
+      {getPageItems(currentPage, totalPages).map((p, i) =>
+        p === PAGINATION_ELLIPSIS
+          ? <span key={`ellipsis-${i}`} className="px-2 text-sm text-slate-300 select-none shrink-0">{PAGINATION_ELLIPSIS}</span>
+          : (
+            <button key={p} onClick={() => onPageChange(p)}
+              className={`px-3 py-1.5 text-sm rounded-lg transition-colors font-medium shrink-0
+                ${p === currentPage ? "bg-blue-600 text-white" : "text-slate-500 hover:bg-slate-100"}`}>
+              {p}
+            </button>
+          )
+      )}
       {currentPage < totalPages && (
         <button onClick={() => onPageChange(currentPage + 1)}
-          className="px-3 py-1.5 text-sm text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors">
+          className="px-3 py-1.5 text-sm text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors shrink-0">
           <ChevronRight size={14} />
         </button>
       )}
+    </div>
+  );
+}
+
+function ListFooter({ totalCount, currentPage, totalPages, onPageChange }: {
+  totalCount: number;
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+}) {
+  return (
+    <div className="px-7 py-4 border-t border-slate-200 flex items-center justify-between gap-3 md:grid md:grid-cols-3">
+      <p className="text-sm text-slate-400 shrink-0 whitespace-nowrap">전체 <span className="font-semibold text-slate-600">{totalCount}</span>건</p>
+      <div className="md:justify-self-center">
+        <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={onPageChange} />
+      </div>
+      <div className="hidden md:block" />
     </div>
   );
 }
@@ -221,8 +261,8 @@ export function HomeTab({ classSn, onTabChange }: { classSn: number | null; onTa
                   <li key={sn}
                     onClick={() => sn && navigate(`/classroom/${classId}/notices/${sn}`)}
                     className="px-6 py-3 flex items-center justify-between gap-3 hover:bg-slate-50 transition-colors cursor-pointer">
-                    <RichContent html={n.boardSj ?? n.postSj ?? "-"} className="text-sm font-medium text-slate-800 prose prose-sm max-w-none" />
-                    <span className="text-xs text-slate-400 shrink-0">{n.regDt ? n.regDt.slice(0, 10) : ""}</span>
+                    <RichContent html={n.boardSj ?? n.postSj ?? "-"} className="text-sm font-medium text-slate-800 prose prose-sm max-w-none flex-1 min-w-0" />
+                    <span className="text-xs text-slate-400 shrink-0 whitespace-nowrap">{n.regDt ? n.regDt.slice(0, 10) : ""}</span>
                   </li>
                 );
               })}
@@ -249,8 +289,8 @@ export function HomeTab({ classSn, onTabChange }: { classSn: number | null; onTa
                   <li key={sn}
                     onClick={() => sn && navigate(`/classroom/${classId}/dataroom/${sn}`)}
                     className="px-6 py-3 flex items-center justify-between gap-3 hover:bg-slate-50 transition-colors cursor-pointer">
-                    <RichContent html={d.boardSj ?? d.postSj ?? "-"} className="text-sm font-medium text-slate-800 prose prose-sm max-w-none" />
-                    <span className="text-xs text-slate-400 shrink-0">{d.regDt ? d.regDt.slice(0, 10) : ""}</span>
+                    <RichContent html={d.boardSj ?? d.postSj ?? "-"} className="text-sm font-medium text-slate-800 prose prose-sm max-w-none flex-1 min-w-0" />
+                    <span className="text-xs text-slate-400 shrink-0 whitespace-nowrap">{d.regDt ? d.regDt.slice(0, 10) : ""}</span>
                   </li>
                 );
               })}
@@ -277,8 +317,8 @@ export function HomeTab({ classSn, onTabChange }: { classSn: number | null; onTa
                   <li key={sn}
                     onClick={() => sn && navigate(`/classroom/${classId}/qna/${sn}`)}
                     className="px-6 py-3 flex items-center justify-between gap-3 hover:bg-slate-50 transition-colors cursor-pointer">
-                    <RichContent html={q.boardSj ?? q.postSj ?? "-"} className="text-sm font-medium text-slate-800 prose prose-sm max-w-none" />
-                    <span className="text-xs text-slate-400 shrink-0">{q.answDt ? q.answDt.slice(0, 10) : ""}</span>
+                    <RichContent html={q.boardSj ?? q.postSj ?? "-"} className="text-sm font-medium text-slate-800 prose prose-sm max-w-none flex-1 min-w-0" />
+                    <span className="text-xs text-slate-400 shrink-0 whitespace-nowrap">{q.answDt ? q.answDt.slice(0, 10) : ""}</span>
                   </li>
                 );
               })}
@@ -329,45 +369,60 @@ export function NoticeTab({ classSn }: { classSn: number | null }) {
       {items.length === 0 ? (
         <EmptyState icon="bullhorn" message="등록된 공지사항이 없습니다." />
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-slate-200 text-sm text-slate-400">
-                <th className="py-4 px-7 w-14 font-medium whitespace-nowrap">번호</th>
-                <th className="py-4 px-7 font-medium">제목</th>
-                <th className="py-4 px-7 w-32 font-medium whitespace-nowrap">작성자</th>
-                <th className="py-4 px-7 w-20 text-center font-medium whitespace-nowrap">조회</th>
-                <th className="py-4 px-7 w-40 font-medium whitespace-nowrap">작성일</th>
-              </tr>
-            </thead>
-            <tbody className="text-slate-700">
-              {items.map((n, idx) => (
-                <tr key={n.boardSn ?? n.postSn} onClick={() => navigate(`/classroom/${classId}/notices/${n.boardSn ?? n.postSn}`)} className="border-b border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer">
-                  <td className="py-4 px-7 text-sm text-slate-300 font-mono whitespace-nowrap">
-                    {totalCount - (currentPage - 1) * PAGE_SIZE - idx}
-                  </td>
-                  <td className="py-4 px-7">
-                    <RichContent html={n.boardSj ?? n.postSj ?? ""} className="font-semibold text-slate-800 text-sm hover:text-blue-600 transition-colors prose prose-sm max-w-none" />
-                  </td>
-                  <td className="py-4 px-7 text-sm text-slate-500 whitespace-nowrap">
-                    {n.memberDto?.userName ?? n.wrtrUserId ?? "-"}
-                  </td>
-                  <td className="py-4 px-7 text-sm text-slate-400 text-center whitespace-nowrap">
-                    {n.inqCnt ?? "-"}
-                  </td>
-                  <td className="py-4 px-7 text-sm text-slate-400 font-mono whitespace-nowrap">
-                    {n.regDt ? n.regDt.slice(0, 10) : "-"}
-                  </td>
+        <>
+          <div className="hidden md:block overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-slate-200 text-sm text-slate-400">
+                  <th className="py-4 px-7 w-14 font-medium whitespace-nowrap">번호</th>
+                  <th className="py-4 px-7 font-medium">제목</th>
+                  <th className="py-4 px-7 w-32 font-medium whitespace-nowrap">작성자</th>
+                  <th className="py-4 px-7 w-20 text-center font-medium whitespace-nowrap">조회</th>
+                  <th className="py-4 px-7 w-40 font-medium whitespace-nowrap">작성일</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="text-slate-700">
+                {items.map((n, idx) => (
+                  <tr key={n.boardSn ?? n.postSn} onClick={() => navigate(`/classroom/${classId}/notices/${n.boardSn ?? n.postSn}`)} className="border-b border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer">
+                    <td className="py-4 px-7 text-sm text-slate-300 font-mono whitespace-nowrap">
+                      {totalCount - (currentPage - 1) * PAGE_SIZE - idx}
+                    </td>
+                    <td className="py-4 px-7">
+                      <RichContent html={n.boardSj ?? n.postSj ?? ""} className="font-semibold text-slate-800 text-sm hover:text-blue-600 transition-colors prose prose-sm max-w-none" />
+                    </td>
+                    <td className="py-4 px-7 text-sm text-slate-500 whitespace-nowrap">
+                      {n.memberDto?.userName ?? n.wrtrUserId ?? "-"}
+                    </td>
+                    <td className="py-4 px-7 text-sm text-slate-400 text-center whitespace-nowrap">
+                      {n.inqCnt ?? "-"}
+                    </td>
+                    <td className="py-4 px-7 text-sm text-slate-400 font-mono whitespace-nowrap">
+                      {n.regDt ? n.regDt.slice(0, 10) : "-"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <ul className="md:hidden divide-y divide-slate-100">
+            {items.map((n) => (
+              <li key={n.boardSn ?? n.postSn}
+                onClick={() => navigate(`/classroom/${classId}/notices/${n.boardSn ?? n.postSn}`)}
+                className="px-5 py-4 flex flex-col gap-1.5 active:bg-slate-50 transition-colors cursor-pointer">
+                <RichContent html={n.boardSj ?? n.postSj ?? ""} className="font-semibold text-slate-800 text-sm prose prose-sm max-w-none line-clamp-2" />
+                <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-xs text-slate-400">
+                  <span className="whitespace-nowrap">{n.memberDto?.userName ?? n.wrtrUserId ?? "-"}</span>
+                  <div className="flex items-center gap-3">
+                    <span className="whitespace-nowrap">조회 {n.inqCnt ?? "-"}</span>
+                    <span className="font-mono whitespace-nowrap">{n.regDt ? n.regDt.slice(0, 10) : "-"}</span>
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </>
       )}
-      <div className="px-7 py-4 border-t border-slate-200 flex items-center justify-between">
-        <p className="text-sm text-slate-400">전체 <span className="font-semibold text-slate-600">{totalCount}</span>건</p>
-        <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
-      </div>
+      <ListFooter totalCount={totalCount} currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
     </div>
   );
 }
@@ -412,62 +467,101 @@ export function LectureTab({ courseSn }: { courseSn: number | null }) {
         <EmptyState icon="play-circle" message="등록된 강의가 없습니다." />
       )}
       {state.status === "success" && lectures.length > 0 && (
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-slate-200 text-sm text-slate-400">
-                <th className="py-4 px-7 w-14 font-medium whitespace-nowrap">순서</th>
-                <th className="py-4 px-7 font-medium">강의명</th>
-                <th className="py-4 px-7 w-28 text-center font-medium whitespace-nowrap">재생 시간</th>
-                <th className="py-4 px-7 w-28 text-center font-medium whitespace-nowrap">내 진도</th>
-                <th className="py-4 px-7 w-28 text-center font-medium whitespace-nowrap"></th>
-              </tr>
-            </thead>
-            <tbody className="text-slate-700">
-              {lectures.map((l, idx) => (
-                <tr key={l.lectureSn} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                  <td className="py-4 px-7 text-sm text-slate-300 font-mono whitespace-nowrap">{idx + 1}</td>
-                  <td className="py-4 px-7">
-                    <div className="flex items-center gap-3">
-                      <span className="w-8 h-8 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center text-blue-400 text-sm shrink-0">
-                        <i className="fa-solid fa-play" />
-                      </span>
-                      <span className="font-semibold text-slate-800 text-sm">{l.lectureName}</span>
-                    </div>
-                  </td>
-                  <td className="py-4 px-7 text-center text-sm text-slate-400 font-mono whitespace-nowrap">
-                    {l.lectureDuration
-                      ? `${Math.floor(l.lectureDuration / 60)}:${String(l.lectureDuration % 60).padStart(2, "0")}`
-                      : "-"}
-                  </td>
-                  <td className="py-4 px-7 text-center">
-                    {l.secondsWatched != null && l.lectureDuration
-                      ? (() => {
-                        const pct = Math.min(100, Math.round((l.secondsWatched / l.lectureDuration) * 100));
-                        return (
-                          <div className="flex flex-col items-center gap-1">
-                            <span className={`text-xs font-semibold ${pct === 100 ? "text-emerald-500" : "text-blue-500"}`}>{pct}%</span>
-                            <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                              <div className={`h-full rounded-full ${pct === 100 ? "bg-emerald-400" : "bg-blue-400"}`} style={{ width: `${pct}%` }} />
-                            </div>
-                          </div>
-                        );
-                      })()
-                      : <span className="text-sm text-slate-300">-</span>
-                    }
-                  </td>
-                  <td className="py-4 px-7 text-right">
-                    <motion.button whileTap={{ scale: 0.97 }}
-                      onClick={() => window.open(`/viewer?courseId=${courseSn}&lectureId=${l.lectureSn}`, "_blank")}
-                      className="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap">
-                      강의 보기
-                    </motion.button>
-                  </td>
+        <>
+          <div className="hidden md:block overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-slate-200 text-sm text-slate-400">
+                  <th className="py-4 px-7 w-14 font-medium whitespace-nowrap">순서</th>
+                  <th className="py-4 px-7 font-medium">강의명</th>
+                  <th className="py-4 px-7 w-28 text-center font-medium whitespace-nowrap">재생 시간</th>
+                  <th className="py-4 px-7 w-28 text-center font-medium whitespace-nowrap">내 진도</th>
+                  <th className="py-4 px-7 w-28 text-center font-medium whitespace-nowrap"></th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="text-slate-700">
+                {lectures.map((l, idx) => (
+                  <tr key={l.lectureSn} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                    <td className="py-4 px-7 text-sm text-slate-300 font-mono whitespace-nowrap">{idx + 1}</td>
+                    <td className="py-4 px-7">
+                      <div className="flex items-center gap-3">
+                        <span className="w-8 h-8 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center text-blue-400 text-sm shrink-0">
+                          <i className="fa-solid fa-play" />
+                        </span>
+                        <span className="font-semibold text-slate-800 text-sm">{l.lectureName}</span>
+                      </div>
+                    </td>
+                    <td className="py-4 px-7 text-center text-sm text-slate-400 font-mono whitespace-nowrap">
+                      {l.lectureDuration
+                        ? `${Math.floor(l.lectureDuration / 60)}:${String(l.lectureDuration % 60).padStart(2, "0")}`
+                        : "-"}
+                    </td>
+                    <td className="py-4 px-7 text-center">
+                      {l.secondsWatched != null && l.lectureDuration
+                        ? (() => {
+                          const pct = Math.min(100, Math.round((l.secondsWatched / l.lectureDuration) * 100));
+                          return (
+                            <div className="flex flex-col items-center gap-1">
+                              <span className={`text-xs font-semibold ${pct === 100 ? "text-emerald-500" : "text-blue-500"}`}>{pct}%</span>
+                              <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                <div className={`h-full rounded-full ${pct === 100 ? "bg-emerald-400" : "bg-blue-400"}`} style={{ width: `${pct}%` }} />
+                              </div>
+                            </div>
+                          );
+                        })()
+                        : <span className="text-sm text-slate-300">-</span>
+                      }
+                    </td>
+                    <td className="py-4 px-7 text-right">
+                      <motion.button whileTap={{ scale: 0.97 }}
+                        onClick={() => window.open(`/viewer?courseId=${courseSn}&lectureId=${l.lectureSn}`, "_blank")}
+                        className="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap">
+                        강의 보기
+                      </motion.button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <ul className="md:hidden divide-y divide-slate-100">
+            {lectures.map((l, idx) => {
+              const pct = l.secondsWatched != null && l.lectureDuration
+                ? Math.min(100, Math.round((l.secondsWatched / l.lectureDuration) * 100))
+                : null;
+              return (
+                <li key={l.lectureSn} className="px-5 py-4 flex flex-col gap-2.5">
+                  <div className="flex items-center gap-3">
+                    <span className="w-8 h-8 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center text-blue-400 text-sm shrink-0">
+                      <i className="fa-solid fa-play" />
+                    </span>
+                    <span className="font-semibold text-slate-800 text-sm min-w-0 line-clamp-2">{idx + 1}. {l.lectureName}</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-3 text-xs text-slate-400">
+                    <span className="font-mono whitespace-nowrap">
+                      {l.lectureDuration
+                        ? `${Math.floor(l.lectureDuration / 60)}:${String(l.lectureDuration % 60).padStart(2, "0")}`
+                        : "-"}
+                    </span>
+                    {pct != null ? (
+                      <div className="flex items-center gap-2 flex-1 max-w-32">
+                        <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                          <div className={`h-full rounded-full ${pct === 100 ? "bg-emerald-400" : "bg-blue-400"}`} style={{ width: `${pct}%` }} />
+                        </div>
+                        <span className={`font-semibold shrink-0 ${pct === 100 ? "text-emerald-500" : "text-blue-500"}`}>{pct}%</span>
+                      </div>
+                    ) : <span className="text-slate-300">진도 없음</span>}
+                  </div>
+                  <motion.button whileTap={{ scale: 0.97 }}
+                    onClick={() => window.open(`/viewer?courseId=${courseSn}&lectureId=${l.lectureSn}`, "_blank")}
+                    className="w-full px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors">
+                    강의 보기
+                  </motion.button>
+                </li>
+              );
+            })}
+          </ul>
+        </>
       )}
       <div className="px-7 py-4 border-t border-slate-200">
         <p className="text-sm text-slate-400">전체 <span className="font-semibold text-slate-600">{lectures.length}</span>개 강의</p>
@@ -484,6 +578,13 @@ interface AssignItem {
   dueDt: string | null;
   submitted: boolean;
   score: number | null;
+}
+
+function SubmitBadge({ submitted, compact }: { submitted: boolean; compact?: boolean }) {
+  const pad = compact ? "px-2 py-0.5" : "px-2.5 py-1";
+  return submitted
+    ? <span className={`text-xs font-semibold ${pad} rounded-lg border border-emerald-100 bg-emerald-50 text-emerald-600`}>제출완료</span>
+    : <span className={`text-xs font-semibold ${pad} rounded-lg border border-rose-100 bg-rose-50 text-rose-500`}>미제출</span>;
 }
 
 export function AssignTab({ classSn }: { classSn: number | null }) {
@@ -513,48 +614,70 @@ export function AssignTab({ classSn }: { classSn: number | null }) {
       {items.length === 0 ? (
         <EmptyState icon="file-lines" message="등록된 과제가 없습니다." />
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-slate-200 text-sm text-slate-400">
-                <th className="py-4 px-7 w-14 font-medium whitespace-nowrap">번호</th>
-                <th className="py-4 px-7 font-medium">제목</th>
-                <th className="py-4 px-7 w-32 text-center font-medium whitespace-nowrap">제출 상태</th>
-                <th className="py-4 px-7 w-24 text-center font-medium whitespace-nowrap">점수</th>
-                <th className="py-4 px-7 w-44 font-medium whitespace-nowrap">마감일</th>
-              </tr>
-            </thead>
-            <tbody className="text-slate-700">
-              {items.map((a, idx) => (
-                <tr key={a.asgmtSn} onClick={() => navigate(`/classroom/${classId}/assignments/${a.asgmtSn}`)} className="border-b border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer">
-                  <td className="py-4 px-7 text-sm text-slate-300 font-mono whitespace-nowrap">
-                    {totalCount - (currentPage - 1) * PAGE_SIZE - idx}
-                  </td>
-                  <td className="py-4 px-7">
-                    <RichContent html={a.asgmtNm} className="font-semibold text-slate-800 text-sm hover:text-blue-600 transition-colors prose prose-sm max-w-none" />
-                  </td>
-                  <td className="py-4 px-7 text-center whitespace-nowrap">
-                    {a.submitted
-                      ? <span className="text-xs font-semibold px-2.5 py-1 rounded-lg border border-emerald-100 bg-emerald-50 text-emerald-600">제출완료</span>
-                      : <span className="text-xs font-semibold px-2.5 py-1 rounded-lg border border-rose-100 bg-rose-50 text-rose-500">미제출</span>
-                    }
-                  </td>
-                  <td className="py-4 px-7 text-center text-sm font-semibold text-slate-700 whitespace-nowrap">
-                    {a.score != null ? `${a.score}점` : "-"}
-                  </td>
-                  <td className={`py-4 px-7 text-sm font-mono whitespace-nowrap ${isPast(a.dueDt) ? "text-slate-300" : "text-slate-400"}`}>
-                    {a.dueDt ? a.dueDt.slice(0, 16).replace("T", " ") : "-"}
-                  </td>
+        <>
+          <div className="hidden md:block overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-slate-200 text-sm text-slate-400">
+                  <th className="py-4 px-7 w-14 font-medium whitespace-nowrap">번호</th>
+                  <th className="py-4 px-7 font-medium">제목</th>
+                  <th className="py-4 px-7 w-32 text-center font-medium whitespace-nowrap">제출 상태</th>
+                  <th className="py-4 px-7 w-24 text-center font-medium whitespace-nowrap">점수</th>
+                  <th className="py-4 px-7 w-44 font-medium whitespace-nowrap">마감일</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="text-slate-700">
+                {items.map((a, idx) => (
+                  <tr key={a.asgmtSn} onClick={() => navigate(`/classroom/${classId}/assignments/${a.asgmtSn}`)} className="border-b border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer">
+                    <td className="py-4 px-7 text-sm text-slate-300 font-mono whitespace-nowrap">
+                      {totalCount - (currentPage - 1) * PAGE_SIZE - idx}
+                    </td>
+                    <td className="py-4 px-7">
+                      <RichContent html={a.asgmtNm} className="font-semibold text-slate-800 text-sm hover:text-blue-600 transition-colors prose prose-sm max-w-none" />
+                    </td>
+                    <td className="py-4 px-7 text-center whitespace-nowrap">
+                      <SubmitBadge submitted={a.submitted} />
+                    </td>
+                    <td className="py-4 px-7 text-center text-sm font-semibold whitespace-nowrap">
+                      {a.score != null
+                        ? <span className="text-slate-700">{a.score}점</span>
+                        : a.submitted
+                          ? <span className="text-slate-400 font-normal">채점중</span>
+                          : <span className="text-slate-300 font-normal">-</span>
+                      }
+                    </td>
+                    <td className={`py-4 px-7 text-sm font-mono whitespace-nowrap ${isPast(a.dueDt) ? "text-slate-300" : "text-slate-400"}`}>
+                      {a.dueDt ? a.dueDt.slice(0, 16).replace("T", " ") : "-"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <ul className="md:hidden divide-y divide-slate-100">
+            {items.map((a) => (
+              <li key={a.asgmtSn}
+                onClick={() => navigate(`/classroom/${classId}/assignments/${a.asgmtSn}`)}
+                className="px-5 py-4 flex flex-col gap-1.5 active:bg-slate-50 transition-colors cursor-pointer">
+                <RichContent html={a.asgmtNm} className="font-semibold text-slate-800 text-sm prose prose-sm max-w-none line-clamp-2" />
+                <div className="flex items-center justify-between text-xs text-slate-400">
+                  <span className={`font-mono ${isPast(a.dueDt) ? "text-slate-300" : "text-slate-400"}`}>
+                    {a.dueDt ? a.dueDt.slice(0, 16).replace("T", " ") + " 마감" : "마감일 없음"}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    {a.score != null
+                      ? <span className="font-semibold text-slate-700">{a.score}점</span>
+                      : a.submitted && <span className="text-slate-400">채점중</span>
+                    }
+                    <SubmitBadge submitted={a.submitted} compact />
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </>
       )}
-      <div className="px-7 py-4 border-t border-slate-200 flex items-center justify-between">
-        <p className="text-sm text-slate-400">전체 <span className="font-semibold text-slate-600">{totalCount}</span>건</p>
-        <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
-      </div>
+      <ListFooter totalCount={totalCount} currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
     </div>
   );
 }
@@ -571,6 +694,13 @@ interface QnaItem {
   regDt: string | null;
   inqCnt?: number | null;
   answYn: string;
+}
+
+function AnswerBadge({ answered, compact }: { answered: boolean; compact?: boolean }) {
+  const pad = compact ? "px-2 py-0.5" : "px-2.5 py-1";
+  return answered
+    ? <span className={`inline-flex items-center ${pad} rounded-lg text-xs font-semibold text-emerald-500 border border-emerald-100`}>답변완료</span>
+    : <span className={`inline-flex items-center ${pad} rounded-lg text-xs font-semibold text-amber-500 bg-amber-50 border border-amber-200`}>미답변</span>;
 }
 
 export function QnaTab({ classSn }: { classSn: number | null }) {
@@ -592,64 +722,77 @@ export function QnaTab({ classSn }: { classSn: number | null }) {
   return (
     <>
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
-        <div className="px-7 py-5 border-b border-slate-200 flex items-center justify-between">
-          <div>
+        <div className="px-7 py-5 border-b border-slate-200 flex items-center justify-between gap-3">
+          <div className="min-w-0">
             <h2 className="text-base font-bold text-slate-800">Q&A</h2>
             <p className="text-sm text-slate-400 mt-1">강사에게 질문을 남겨보세요.</p>
           </div>
-          <button onClick={() => navigate(`/classroom/${classId}/qna/write`)} className="text-sm font-semibold px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+          <button onClick={() => navigate(`/classroom/${classId}/qna/write`)} className="text-sm font-semibold px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shrink-0 whitespace-nowrap">
             질문 작성
           </button>
         </div>
         {items.length === 0 ? (
           <EmptyState icon="comments" message="등록된 질문이 없습니다." />
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-slate-200 text-sm text-slate-400">
-                  <th className="py-4 px-7 w-14 font-medium whitespace-nowrap">번호</th>
-                  <th className="py-4 px-7 font-medium">제목</th>
-                  <th className="py-4 px-7 w-28 font-medium whitespace-nowrap">작성자</th>
-                  <th className="py-4 px-7 w-24 text-center font-medium whitespace-nowrap">답변</th>
-                  <th className="py-4 px-7 w-16 text-center font-medium whitespace-nowrap">조회</th>
-                  <th className="py-4 px-7 w-32 font-medium whitespace-nowrap">작성일</th>
-                </tr>
-              </thead>
-              <tbody className="text-slate-700">
-                {items.map((q, idx) => (
-                  <tr key={q.boardSn ?? q.postSn} onClick={() => navigate(`/classroom/${classId}/qna/${q.boardSn ?? q.postSn}`)} className="border-b border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer">
-                    <td className="py-4 px-7 text-sm text-slate-300 font-mono whitespace-nowrap">
-                      {totalCount - (currentPage - 1) * PAGE_SIZE - idx}
-                    </td>
-                    <td className="py-4 px-7">
-                      <RichContent html={q.boardSj ?? q.postSj ?? ""} className="font-semibold text-slate-800 text-sm hover:text-blue-600 transition-colors prose prose-sm max-w-none" />
-                    </td>
-                    <td className="py-4 px-7 text-sm text-slate-500 whitespace-nowrap">
-                      {q.memberDto?.userName ?? q.wrtrUserId ?? "-"}
-                    </td>
-                    <td className="py-4 px-7 text-center whitespace-nowrap">
-                      {q.answYn === "Y"
-                        ? <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold text-emerald-500 border border-emerald-100">답변완료</span>
-                        : <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold text-amber-500 bg-amber-50 border border-amber-200">미답변</span>
-                      }
-                    </td>
-                    <td className="py-4 px-7 text-sm text-slate-400 text-center whitespace-nowrap">
-                      {q.inqCnt ?? "-"}
-                    </td>
-                    <td className="py-4 px-7 text-sm text-slate-400 font-mono whitespace-nowrap">
-                      {q.regDt ? q.regDt.slice(0, 10) : "-"}
-                    </td>
+          <>
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-200 text-sm text-slate-400">
+                    <th className="py-4 px-7 w-14 font-medium whitespace-nowrap">번호</th>
+                    <th className="py-4 px-7 font-medium">제목</th>
+                    <th className="py-4 px-7 w-28 font-medium whitespace-nowrap">작성자</th>
+                    <th className="py-4 px-7 w-24 text-center font-medium whitespace-nowrap">답변</th>
+                    <th className="py-4 px-7 w-16 text-center font-medium whitespace-nowrap">조회</th>
+                    <th className="py-4 px-7 w-32 font-medium whitespace-nowrap">작성일</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="text-slate-700">
+                  {items.map((q, idx) => (
+                    <tr key={q.boardSn ?? q.postSn} onClick={() => navigate(`/classroom/${classId}/qna/${q.boardSn ?? q.postSn}`)} className="border-b border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer">
+                      <td className="py-4 px-7 text-sm text-slate-300 font-mono whitespace-nowrap">
+                        {totalCount - (currentPage - 1) * PAGE_SIZE - idx}
+                      </td>
+                      <td className="py-4 px-7">
+                        <RichContent html={q.boardSj ?? q.postSj ?? ""} className="font-semibold text-slate-800 text-sm hover:text-blue-600 transition-colors prose prose-sm max-w-none" />
+                      </td>
+                      <td className="py-4 px-7 text-sm text-slate-500 whitespace-nowrap">
+                        {q.memberDto?.userName ?? q.wrtrUserId ?? "-"}
+                      </td>
+                      <td className="py-4 px-7 text-center whitespace-nowrap">
+                        <AnswerBadge answered={q.answYn === "Y"} />
+                      </td>
+                      <td className="py-4 px-7 text-sm text-slate-400 text-center whitespace-nowrap">
+                        {q.inqCnt ?? "-"}
+                      </td>
+                      <td className="py-4 px-7 text-sm text-slate-400 font-mono whitespace-nowrap">
+                        {q.regDt ? q.regDt.slice(0, 10) : "-"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <ul className="md:hidden divide-y divide-slate-100">
+              {items.map((q) => (
+                <li key={q.boardSn ?? q.postSn}
+                  onClick={() => navigate(`/classroom/${classId}/qna/${q.boardSn ?? q.postSn}`)}
+                  className="px-5 py-4 flex flex-col gap-1.5 active:bg-slate-50 transition-colors cursor-pointer">
+                  <RichContent html={q.boardSj ?? q.postSj ?? ""} className="font-semibold text-slate-800 text-sm prose prose-sm max-w-none line-clamp-2" />
+                  <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-xs text-slate-400">
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                      <span className="whitespace-nowrap">{q.memberDto?.userName ?? q.wrtrUserId ?? "-"}</span>
+                      <span className="whitespace-nowrap">조회 {q.inqCnt ?? "-"}</span>
+                      <span className="font-mono whitespace-nowrap">{q.regDt ? q.regDt.slice(0, 10) : "-"}</span>
+                    </div>
+                    <span className="shrink-0"><AnswerBadge answered={q.answYn === "Y"} compact /></span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </>
         )}
-        <div className="px-7 py-4 border-t border-slate-200 flex items-center justify-between">
-          <p className="text-sm text-slate-400">전체 <span className="font-semibold text-slate-600">{totalCount}</span>건</p>
-          <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
-        </div>
+        <ListFooter totalCount={totalCount} currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
       </div>
     </>
   );
@@ -694,45 +837,60 @@ export function DataroomTab({ classSn }: { classSn: number | null }) {
       {items.length === 0 ? (
         <EmptyState icon="folder-open" message="등록된 자료가 없습니다." />
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-slate-200 text-sm text-slate-400">
-                <th className="py-4 px-7 w-14 font-medium whitespace-nowrap">번호</th>
-                <th className="py-4 px-7 font-medium">제목</th>
-                <th className="py-4 px-7 w-32 font-medium whitespace-nowrap">작성자</th>
-                <th className="py-4 px-7 w-16 text-center font-medium whitespace-nowrap">조회</th>
-                <th className="py-4 px-7 w-32 font-medium whitespace-nowrap">등록일</th>
-              </tr>
-            </thead>
-            <tbody className="text-slate-700">
-              {items.map((d, idx) => (
-                <tr key={d.boardSn ?? d.postSn} onClick={() => navigate(`/classroom/${classId}/dataroom/${d.boardSn ?? d.postSn}`)} className="border-b border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer">
-                  <td className="py-4 px-7 text-sm text-slate-300 font-mono whitespace-nowrap">
-                    {totalCount - (currentPage - 1) * PAGE_SIZE - idx}
-                  </td>
-                  <td className="py-4 px-7">
-                    <RichContent html={d.boardSj ?? d.postSj ?? ""} className="font-semibold text-slate-800 text-sm hover:text-blue-600 transition-colors prose prose-sm max-w-none" />
-                  </td>
-                  <td className="py-4 px-7 text-sm text-slate-500 whitespace-nowrap">
-                    {d.memberDto?.userName ?? d.wrtrUserId ?? "-"}
-                  </td>
-                  <td className="py-4 px-7 text-sm text-slate-400 text-center whitespace-nowrap">
-                    {d.inqCnt ?? "-"}
-                  </td>
-                  <td className="py-4 px-7 text-sm text-slate-400 font-mono whitespace-nowrap">
-                    {d.regDt ? d.regDt.slice(0, 10) : "-"}
-                  </td>
+        <>
+          <div className="hidden md:block overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-slate-200 text-sm text-slate-400">
+                  <th className="py-4 px-7 w-14 font-medium whitespace-nowrap">번호</th>
+                  <th className="py-4 px-7 font-medium">제목</th>
+                  <th className="py-4 px-7 w-32 font-medium whitespace-nowrap">작성자</th>
+                  <th className="py-4 px-7 w-16 text-center font-medium whitespace-nowrap">조회</th>
+                  <th className="py-4 px-7 w-32 font-medium whitespace-nowrap">등록일</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="text-slate-700">
+                {items.map((d, idx) => (
+                  <tr key={d.boardSn ?? d.postSn} onClick={() => navigate(`/classroom/${classId}/dataroom/${d.boardSn ?? d.postSn}`)} className="border-b border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer">
+                    <td className="py-4 px-7 text-sm text-slate-300 font-mono whitespace-nowrap">
+                      {totalCount - (currentPage - 1) * PAGE_SIZE - idx}
+                    </td>
+                    <td className="py-4 px-7">
+                      <RichContent html={d.boardSj ?? d.postSj ?? ""} className="font-semibold text-slate-800 text-sm hover:text-blue-600 transition-colors prose prose-sm max-w-none" />
+                    </td>
+                    <td className="py-4 px-7 text-sm text-slate-500 whitespace-nowrap">
+                      {d.memberDto?.userName ?? d.wrtrUserId ?? "-"}
+                    </td>
+                    <td className="py-4 px-7 text-sm text-slate-400 text-center whitespace-nowrap">
+                      {d.inqCnt ?? "-"}
+                    </td>
+                    <td className="py-4 px-7 text-sm text-slate-400 font-mono whitespace-nowrap">
+                      {d.regDt ? d.regDt.slice(0, 10) : "-"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <ul className="md:hidden divide-y divide-slate-100">
+            {items.map((d) => (
+              <li key={d.boardSn ?? d.postSn}
+                onClick={() => navigate(`/classroom/${classId}/dataroom/${d.boardSn ?? d.postSn}`)}
+                className="px-5 py-4 flex flex-col gap-1.5 active:bg-slate-50 transition-colors cursor-pointer">
+                <RichContent html={d.boardSj ?? d.postSj ?? ""} className="font-semibold text-slate-800 text-sm prose prose-sm max-w-none line-clamp-2" />
+                <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-xs text-slate-400">
+                  <span className="whitespace-nowrap">{d.memberDto?.userName ?? d.wrtrUserId ?? "-"}</span>
+                  <div className="flex items-center gap-3">
+                    <span className="whitespace-nowrap">조회 {d.inqCnt ?? "-"}</span>
+                    <span className="font-mono whitespace-nowrap">{d.regDt ? d.regDt.slice(0, 10) : "-"}</span>
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </>
       )}
-      <div className="px-7 py-4 border-t border-slate-200 flex items-center justify-between">
-        <p className="text-sm text-slate-400">전체 <span className="font-semibold text-slate-600">{totalCount}</span>건</p>
-        <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
-      </div>
+      <ListFooter totalCount={totalCount} currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
     </div>
   );
 }
@@ -900,6 +1058,14 @@ const EXAM_STATUS = {
   CLOSED: { label: "종료", cls: "border-slate-200 bg-slate-100 text-slate-400" },
 };
 
+function ExamAttemptCell({ e, onAttempt, compact }: { e: ExamItem; onAttempt: () => void; compact?: boolean }) {
+  const pad = compact ? "px-2 py-0.5" : "px-2.5 py-1";
+  if (e.attempted) return <span className={`text-xs font-semibold ${pad} rounded-lg border border-emerald-100 bg-emerald-50 text-emerald-600`}>응시완료</span>;
+  if (e.status === "ONGOING") return <button onClick={onAttempt} className="text-xs font-semibold px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">응시하기</button>;
+  if (e.status === "CLOSED") return <span className={`text-xs font-semibold ${pad} rounded-lg border border-rose-100 bg-rose-50 text-rose-400`}>미응시</span>;
+  return <span className="text-sm text-slate-300">-</span>;
+}
+
 export function ExamTab({ classSn }: { classSn: number | null }) {
   const { classId } = useParams();
   const navigate = useNavigate();
@@ -921,54 +1087,73 @@ export function ExamTab({ classSn }: { classSn: number | null }) {
       {items.length === 0 ? (
         <EmptyState icon="clipboard-question" message="등록된 시험이 없습니다." />
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-slate-200 text-sm text-slate-400">
-                <th className="py-4 px-7 w-14 font-medium whitespace-nowrap">번호</th>
-                <th className="py-4 px-7 font-medium">시험명</th>
-                <th className="py-4 px-7 w-24 text-center font-medium whitespace-nowrap">상태</th>
-                <th className="py-4 px-7 w-44 font-medium whitespace-nowrap">시험 기간</th>
-                <th className="py-4 px-7 w-28 text-center font-medium whitespace-nowrap">응시 여부</th>
-                <th className="py-4 px-7 w-24 text-center font-medium whitespace-nowrap">점수</th>
-              </tr>
-            </thead>
-            <tbody className="text-slate-700">
-              {items.map((e, idx) => {
-                const st = EXAM_STATUS[e.status] ?? EXAM_STATUS.CLOSED;
-                return (
-                  <tr key={e.examSn} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                    <td className="py-4 px-7 text-sm text-slate-300 font-mono whitespace-nowrap">{items.length - idx}</td>
-                    <td className="py-4 px-7">
-                      <RichContent html={e.examNm} className="font-semibold text-slate-800 text-sm prose prose-sm max-w-none" />
-                    </td>
-                    <td className="py-4 px-7 text-center whitespace-nowrap">
-                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-lg border ${st.cls}`}>{st.label}</span>
-                    </td>
-                    <td className="py-4 px-7 text-sm font-mono text-slate-400 whitespace-nowrap">
-                      {e.examStrtDt && e.examEndDt
-                        ? `${e.examStrtDt.slice(0, 16).replace("T", " ")} ~ ${e.examEndDt.slice(0, 16).replace("T", " ")}`
-                        : "-"}
-                    </td>
-                    <td className="py-4 px-7 text-center whitespace-nowrap">
-                      {e.attempted
-                        ? <span className="text-xs font-semibold px-2.5 py-1 rounded-lg border border-emerald-100 bg-emerald-50 text-emerald-600">응시완료</span>
-                        : e.status === "ONGOING"
-                          ? <button onClick={() => navigate(`/classroom/${classId}/exams/${e.examSn}`)} className="text-xs font-semibold px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">응시하기</button>
-                          : e.status === "CLOSED"
-                            ? <span className="text-xs font-semibold px-2.5 py-1 rounded-lg border border-rose-100 bg-rose-50 text-rose-400">미응시</span>
-                            : <span className="text-sm text-slate-300">-</span>
-                      }
-                    </td>
-                    <td className="py-4 px-7 text-center text-sm font-semibold text-slate-700 whitespace-nowrap">
+        <>
+          <div className="hidden lg:block overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-slate-200 text-sm text-slate-400">
+                  <th className="py-4 px-7 w-14 font-medium whitespace-nowrap">번호</th>
+                  <th className="py-4 px-7 font-medium">시험명</th>
+                  <th className="py-4 px-7 w-24 text-center font-medium whitespace-nowrap">상태</th>
+                  <th className="py-4 px-7 w-44 font-medium whitespace-nowrap">시험 기간</th>
+                  <th className="py-4 px-7 w-28 text-center font-medium whitespace-nowrap">응시 여부</th>
+                  <th className="py-4 px-7 w-24 text-center font-medium whitespace-nowrap">점수</th>
+                </tr>
+              </thead>
+              <tbody className="text-slate-700">
+                {items.map((e, idx) => {
+                  const st = EXAM_STATUS[e.status] ?? EXAM_STATUS.CLOSED;
+                  return (
+                    <tr key={e.examSn} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                      <td className="py-4 px-7 text-sm text-slate-300 font-mono whitespace-nowrap">{items.length - idx}</td>
+                      <td className="py-4 px-7">
+                        <RichContent html={e.examNm} className="font-semibold text-slate-800 text-sm prose prose-sm max-w-none" />
+                      </td>
+                      <td className="py-4 px-7 text-center whitespace-nowrap">
+                        <span className={`text-xs font-semibold px-2.5 py-1 rounded-lg border ${st.cls}`}>{st.label}</span>
+                      </td>
+                      <td className="py-4 px-7 text-sm font-mono text-slate-400 whitespace-nowrap">
+                        {e.examStrtDt && e.examEndDt
+                          ? `${e.examStrtDt.slice(0, 16).replace("T", " ")} ~ ${e.examEndDt.slice(0, 16).replace("T", " ")}`
+                          : "-"}
+                      </td>
+                      <td className="py-4 px-7 text-center whitespace-nowrap">
+                        <ExamAttemptCell e={e} onAttempt={() => navigate(`/classroom/${classId}/exams/${e.examSn}`)} />
+                      </td>
+                      <td className="py-4 px-7 text-center text-sm font-semibold text-slate-700 whitespace-nowrap">
+                        {e.score != null ? `${e.score}점` : "-"}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          <ul className="lg:hidden divide-y divide-slate-100">
+            {items.map((e) => {
+              const st = EXAM_STATUS[e.status] ?? EXAM_STATUS.CLOSED;
+              return (
+                <li key={e.examSn} className="px-5 py-4 flex flex-col gap-1.5">
+                  <div className="flex items-start justify-between gap-2">
+                    <RichContent html={e.examNm} className="font-semibold text-slate-800 text-sm prose prose-sm max-w-none flex-1 min-w-0 line-clamp-2" />
+                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-lg border shrink-0 ${st.cls}`}>{st.label}</span>
+                  </div>
+                  <span className="text-xs font-mono text-slate-400">
+                    {e.examStrtDt && e.examEndDt
+                      ? `${e.examStrtDt.slice(0, 16).replace("T", " ")} ~ ${e.examEndDt.slice(0, 16).replace("T", " ")}`
+                      : "기간 미정"}
+                  </span>
+                  <div className="flex items-center justify-between gap-2 mt-1">
+                    <span className="text-xs font-semibold text-slate-700">
                       {e.score != null ? `${e.score}점` : "-"}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                    </span>
+                    <ExamAttemptCell e={e} onAttempt={() => navigate(`/classroom/${classId}/exams/${e.examSn}`)} compact />
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </>
       )}
       <div className="px-7 py-4 border-t border-slate-200">
         <p className="text-sm text-slate-400">전체 <span className="font-semibold text-slate-600">{items.length}</span>건</p>
