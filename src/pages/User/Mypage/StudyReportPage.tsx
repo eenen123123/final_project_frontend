@@ -10,6 +10,7 @@ interface Course {
   accsEndDt: string;
   progressPct: number;
   thmbImg: string | null;
+  subjClNm: string | null;
 }
 
 interface Subject {
@@ -145,7 +146,7 @@ export default function StudyReportPage() {
       .then((res) => {
         setInstructors(res.data.map((item, i) => ({ rank: i + 1, ...item })));
       })
-      .catch(() => {});
+      .catch(() => { });
 
     api
       .get<{ subjectName: string; totalSeconds: number }[]>(
@@ -163,7 +164,7 @@ export default function StudyReportPage() {
           })),
         );
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   const activeCourses = courses.filter(
@@ -175,8 +176,8 @@ export default function StudyReportPage() {
   const avgProgress =
     courses.length > 0
       ? Math.round(
-          courses.reduce((sum, c) => sum + c.progressPct, 0) / courses.length,
-        )
+        courses.reduce((sum, c) => sum + c.progressPct, 0) / courses.length,
+      )
       : 0;
 
   return (
@@ -195,10 +196,10 @@ export default function StudyReportPage() {
           <div className="flex-1 min-w-0 space-y-6">
             {/* 상단 타이틀 */}
             <div>
-              <h2 className="text-2xl font-bold tracking-tight text-slate-900">
+              <h2 className="text-2xl font-bold text-gray-900 tracking-tight">
                 수강 리포트
               </h2>
-              <p className="text-xs font-medium text-slate-400 mt-1.5">
+              <p className="text-sm text-gray-500 mt-1">
                 내 강좌 학습 현황과 과목별 밸런스를 통합 분석한 대시보드입니다.
               </p>
             </div>
@@ -333,9 +334,9 @@ export default function StudyReportPage() {
                           <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center gap-2.5 min-w-0">
                               <div
-                                className={`w-5 h-5 rounded-md flex-shrink-0 flex items-center justify-center text-[10px] font-extrabold shadow-sm ${THUMB_COLORS[i % THUMB_COLORS.length]}`}
+                                className={`px-1.5 h-5 rounded-md flex-shrink-0 flex items-center justify-center text-[10px] font-extrabold shadow-sm whitespace-nowrap ${THUMB_COLORS[i % THUMB_COLORS.length]}`}
                               >
-                                {(course.courseNm ?? "").slice(0, 1)}
+                                {course.subjClNm ?? course.courseNm ?? ""}
                               </div>
                               <p className="text-xs text-slate-700 font-bold truncate group-hover:text-slate-900 transition-colors">
                                 {course.courseNm}

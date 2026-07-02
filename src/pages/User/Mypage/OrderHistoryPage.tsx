@@ -148,10 +148,10 @@ export default function OrderHistoryPage() {
           {/* 2. 메인 콘텐츠 */}
           <div className="flex-1 min-w-0">
             <div className="mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">
+              <h2 className="text-2xl font-bold text-gray-900 tracking-tight">
                 주문/배송 조회
               </h2>
-              <p className="text-sm text-gray-500 mt-1.5">
+              <p className="text-sm text-gray-500 mt-1">
                 주문하신 상품의 결제 및 배송 현황을 확인하실 수 있습니다.
               </p>
             </div>
