@@ -49,8 +49,18 @@ function GridPaper() {
     <div aria-hidden className="absolute inset-0 overflow-hidden">
       <svg className="h-full w-full">
         <defs>
-          <pattern id="home-grid" width="32" height="32" patternUnits="userSpaceOnUse">
-            <path d="M32 0H0V32" fill="none" stroke="#0a0a0a" strokeOpacity="0.07" />
+          <pattern
+            id="home-grid"
+            width="32"
+            height="32"
+            patternUnits="userSpaceOnUse"
+          >
+            <path
+              d="M32 0H0V32"
+              fill="none"
+              stroke="#0a0a0a"
+              strokeOpacity="0.07"
+            />
           </pattern>
         </defs>
         <rect width="100%" height="100%" fill="url(#home-grid)" />
@@ -74,8 +84,18 @@ const features = [
     description:
       "진단부터 실전까지, 수준별로 설계된 학습 로드맵을 따라 빈틈없이 올라갑니다.",
     icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-7 w-7">
-        <path d="M3 19h6v-4h6v-4h6" strokeLinecap="round" strokeLinejoin="round" />
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        className="h-7 w-7"
+      >
+        <path
+          d="M3 19h6v-4h6v-4h6"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
         <path d="M3 19V5" strokeLinecap="round" />
         <circle cx="21" cy="7" r="1.6" fill="currentColor" stroke="none" />
       </svg>
@@ -86,9 +106,19 @@ const features = [
     description:
       "수강 기간 내 언제 어디서든, 이해될 때까지 반복해서 다시 볼 수 있습니다.",
     icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-7 w-7">
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        className="h-7 w-7"
+      >
         <rect x="3" y="5" width="18" height="14" rx="2.5" />
-        <path d="M10.5 9.5v5l4.5-2.5-4.5-2.5Z" fill="currentColor" stroke="none" />
+        <path
+          d="M10.5 9.5v5l4.5-2.5-4.5-2.5Z"
+          fill="currentColor"
+          stroke="none"
+        />
       </svg>
     ),
   },
@@ -97,7 +127,13 @@ const features = [
     description:
       "막히는 문제는 질문 게시판에서 바로 해결하고, 담당 선생님이 끝까지 챙깁니다.",
     icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-7 w-7">
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        className="h-7 w-7"
+      >
         <path
           d="M21 12a8 8 0 0 1-8 8H4l1.6-3.2A8 8 0 1 1 21 12Z"
           strokeLinecap="round"
@@ -112,7 +148,13 @@ const features = [
     description:
       "진도율과 성취도를 데이터로 확인하고, 다음에 공부할 것을 명확히 압니다.",
     icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-7 w-7">
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        className="h-7 w-7"
+      >
         <path d="M4 20V10M10 20V4M16 20v-8M21 20H3" strokeLinecap="round" />
       </svg>
     ),
@@ -147,7 +189,7 @@ export default function Home() {
   return (
     <div className="w-full bg-white text-neutral-950">
       {/* 히어로 */}
-      <section className="relative flex min-h-[calc(100svh-3.5rem)] w-full items-center">
+      <section className="relative flex md:min-h-[calc(100svh-3.5rem)] w-full items-center">
         <GridPaper />
         <div className="relative mx-auto w-full max-w-6xl px-6 py-24">
           <Reveal>
@@ -213,9 +255,9 @@ export default function Home() {
           <Reveal delay={120}>
             <p className="mt-8 max-w-3xl break-keep text-base leading-relaxed text-neutral-600 sm:text-lg">
               헤르메스는 "열심히"가 아니라 "제대로"를 가르칩니다. 검증된
-              강사진의 강의, 수준별 커리큘럼, 그리고 수강 이후까지 이어지는
-              학습 관리로 학생이 스스로 공부하는 힘을 만듭니다. 강의실이
-              아니라 결과로 이야기하는 학원, 그것이 헤르메스의 방식입니다.
+              강사진의 강의, 수준별 커리큘럼, 그리고 수강 이후까지 이어지는 학습
+              관리로 학생이 스스로 공부하는 힘을 만듭니다. 강의실이 아니라
+              결과로 이야기하는 학원, 그것이 헤르메스의 방식입니다.
             </p>
           </Reveal>
           <div className="mt-16 grid grid-cols-2 gap-x-8 gap-y-12 lg:grid-cols-4">
