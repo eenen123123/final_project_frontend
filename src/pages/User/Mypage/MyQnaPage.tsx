@@ -272,12 +272,6 @@ export default function MyQnaPage() {
                   </div>
                 )}
 
-                <div className="flex justify-end mt-3">
-                  <Link to="/customer/qna/write"
-                    className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2 rounded transition-colors">
-                    질문 등록하기
-                  </Link>
-                </div>
               </>
             )}
           </div>
