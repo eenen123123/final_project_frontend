@@ -7,6 +7,8 @@ interface StudyReportProps {
 
 // SVG 레이더 차트 (6각형)
 function RadarChart({ subjects }: { subjects: StudySubject[] }) {
+  if (subjects.length === 0) return null;
+
   const size = 180;
   const cx = size / 2;
   const cy = size / 2;

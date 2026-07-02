@@ -181,10 +181,10 @@ export default function StudyReportPage() {
 
   return (
     <div className="min-h-screen bg-slate-50/50 antialiased text-slate-900 selection:bg-blue-100">
-      <div className="max-w-6xl mx-auto px-6 py-12">
-        <div className="flex gap-10 items-start">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
+        <div className="flex flex-col lg:flex-row gap-10 lg:items-start">
           {/* 사이드바 영역 */}
-          <div className="w-64 shrink-0 hidden md:block">
+          <div className="w-full lg:w-64 shrink-0">
             <MyPageSidebar
               activeSection={activeSection}
               onSectionChange={setActiveSection}
