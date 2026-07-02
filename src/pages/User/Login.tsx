@@ -161,7 +161,7 @@ export default function Login() {
           </div>
         )}
 
-        {import.meta.env.DEV && (
+        {!import.meta.env.DEV && (
           <>
             <div>
               <button
