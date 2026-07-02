@@ -105,11 +105,11 @@ function ParentSidebar({
                 >
                   {c.studentName.length > 1 ? c.studentName[1] : c.studentName[0]}
                 </div>
-                <div>
-                  <p className={`text-sm font-bold ${isActive ? "text-emerald-700" : "text-slate-700"}`}>
+                <div className="min-w-0">
+                  <p className={`text-sm font-bold truncate ${isActive ? "text-emerald-700" : "text-slate-700"}`}>
                     {c.studentName}
                   </p>
-                  <p className="text-xs text-slate-400 mt-0.5">{c.classroomName}</p>
+                  <p className="text-xs text-slate-400 mt-0.5 truncate">{c.classroomName}</p>
                 </div>
               </button>
             );
@@ -228,16 +228,16 @@ function HomeTab({
             {recentAssigns.map((a) => (
               <div
                 key={a.asgmtSn}
-                className="flex items-center justify-between p-3 bg-slate-50/50 border border-slate-100 rounded-xl"
+                className="flex items-center justify-between gap-3 p-3 bg-slate-50/50 border border-slate-100 rounded-xl"
               >
-                <div className="flex items-center gap-3">
-                  <span className={`text-xs px-2.5 py-1 rounded-full font-bold border
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className={`text-xs px-2.5 py-1 rounded-full font-bold border shrink-0
                     ${a.submitted ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-red-50 text-red-500 border-red-100"}`}>
                     {a.submitted ? "제출완료" : "미제출"}
                   </span>
-                  <span className="text-sm text-slate-700" dangerouslySetInnerHTML={{ __html: a.asgmtNm }} />
+                  <span className="text-sm text-slate-700 truncate" dangerouslySetInnerHTML={{ __html: a.asgmtNm }} />
                 </div>
-                <span className="text-xs text-slate-400">{a.dueDt ? a.dueDt.slice(0, 10) : "-"}</span>
+                <span className="text-xs text-slate-400 shrink-0 whitespace-nowrap">{a.dueDt ? a.dueDt.slice(0, 10) : "-"}</span>
               </div>
             ))}
           </div>
@@ -336,23 +336,23 @@ function ScoreTab({ exams }: { exams: ExamItem[] }) {
       </div>
       <div className="divide-y divide-slate-100">
         {exams.map((e) => (
-          <div key={e.examSn} className="flex items-center justify-between px-5 py-4">
-            <div className="flex items-center gap-3">
-              <span className={`text-xs px-2.5 py-1 rounded-full font-bold border
+          <div key={e.examSn} className="flex items-center justify-between gap-3 px-5 py-4">
+            <div className="flex items-center gap-3 min-w-0">
+              <span className={`text-xs px-2.5 py-1 rounded-full font-bold border shrink-0
                 ${e.status === "ONGOING" ? "bg-emerald-50 text-emerald-600 border-emerald-100"
                   : e.status === "UPCOMING" ? "bg-blue-50 text-blue-600 border-blue-100"
                     : "bg-slate-100 text-slate-400 border-slate-200"}`}>
                 {e.status === "ONGOING" ? "진행중" : e.status === "UPCOMING" ? "예정" : "종료"}
               </span>
-              <span className="text-sm text-slate-700" dangerouslySetInnerHTML={{ __html: e.examNm }} />
+              <span className="text-sm text-slate-700 truncate" dangerouslySetInnerHTML={{ __html: e.examNm }} />
             </div>
-            <div className="flex items-center gap-5">
+            <div className="flex items-center gap-5 shrink-0">
               {e.score != null ? (
                 <span className="text-sm font-bold text-blue-600">{e.score}점</span>
               ) : (
                 <span className="text-sm text-slate-300">미응시</span>
               )}
-              <span className="text-xs text-slate-400">{e.examEndDt ? e.examEndDt.slice(0, 10) : "-"}</span>
+              <span className="text-xs text-slate-400 whitespace-nowrap">{e.examEndDt ? e.examEndDt.slice(0, 10) : "-"}</span>
             </div>
           </div>
         ))}
@@ -378,21 +378,21 @@ function AssignTab({ assigns }: { assigns: AssignItem[] }) {
       ) : (
         <div className="divide-y divide-slate-100">
           {assigns.map((a) => (
-            <div key={a.asgmtSn} className="flex items-center justify-between px-5 py-4">
-              <div className="flex items-center gap-3">
-                <span className={`text-xs px-2.5 py-1 rounded-full font-bold border
+            <div key={a.asgmtSn} className="flex items-center justify-between gap-3 px-5 py-4">
+              <div className="flex items-center gap-3 min-w-0">
+                <span className={`text-xs px-2.5 py-1 rounded-full font-bold border shrink-0
                   ${a.submitted ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-red-50 text-red-500 border-red-100"}`}>
                   {a.submitted ? "제출완료" : "미제출"}
                 </span>
-                <span className="text-sm text-slate-700" dangerouslySetInnerHTML={{ __html: a.asgmtNm }} />
+                <span className="text-sm text-slate-700 truncate" dangerouslySetInnerHTML={{ __html: a.asgmtNm }} />
               </div>
-              <div className="flex items-center gap-5">
+              <div className="flex items-center gap-5 shrink-0">
                 {a.score != null ? (
                   <span className="text-sm font-bold text-blue-600">{a.score}점</span>
                 ) : a.submitted ? (
                   <span className="text-sm font-medium text-slate-400">채점중</span>
                 ) : null}
-                <span className="text-xs text-slate-400">{a.dueDt ? a.dueDt.slice(0, 10) : "-"}</span>
+                <span className="text-xs text-slate-400 whitespace-nowrap">{a.dueDt ? a.dueDt.slice(0, 10) : "-"}</span>
               </div>
             </div>
           ))}
@@ -514,7 +514,7 @@ export default function ParentPage() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-slate-700 font-sans antialiased">
-      <div className="max-w-screen-xl mx-auto px-6 lg:px-10 py-8">
+      <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-10 py-8">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-7 items-start">
           {/* 사이드바 */}
           <aside className="col-span-12 md:col-span-4 lg:col-span-3">

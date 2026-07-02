@@ -223,6 +223,16 @@ export default function NewHeader() {
                 {label}
               </Link>
             ))}
+            {isParent && (
+              <Link
+                to="/parentroom"
+                onClick={closeMobileMenu}
+                className="mobile-drawer-link text-emerald-600 font-semibold"
+              >
+                <i className="fa-solid fa-child text-[10px] mr-1.5" />
+                자녀 학습 현황
+              </Link>
+            )}
           </nav>
         </aside>
       </div>

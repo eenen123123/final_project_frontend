@@ -98,7 +98,7 @@ export default function ClassroomQnaFormPage() {
 
   return (
     <div className="flex-1 overflow-y-scroll">
-      <div className="max-w-6xl mx-auto px-8 py-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <button
           onClick={() => isEdit
             ? navigate(`/classroom/${classId}/qna/${postSn}`, { replace: true })

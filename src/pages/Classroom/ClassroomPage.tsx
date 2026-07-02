@@ -18,7 +18,7 @@ export default function ClassroomPage() {
 
   return (
     <main className="flex-1 overflow-y-scroll">
-      <div className="max-w-6xl mx-auto px-8 py-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <motion.div
           key={activeTab}
           initial={{ opacity: 0, y: 4 }}

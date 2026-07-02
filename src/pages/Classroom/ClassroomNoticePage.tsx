@@ -53,23 +53,17 @@ export default function ClassroomNoticePage() {
 
   return (
     <div className="flex-1 overflow-y-scroll">
-      <div className="max-w-6xl mx-auto px-8 py-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <button onClick={() => navigate(`/classroom/${classId}?tab=notice`)} className="flex items-center gap-2 text-slate-400 hover:text-slate-600 transition-colors text-sm font-medium mb-6">
           <i className="fa-solid fa-arrow-left" /> 공지사항 목록으로
         </button>
         <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
           <div className="px-7 py-6 border-b border-slate-200">
             <h1 className="text-base font-bold text-slate-800 leading-snug">{title}</h1>
-            <div className="flex items-center gap-3 mt-3 text-sm text-slate-400">
-              <span>{author}</span>
-              <span className="w-px h-3 bg-slate-200" />
-              <span>{notice.regDt ? notice.regDt.slice(0, 16).replace("T", " ") : "-"}</span>
-              {notice.inqCnt != null && (
-                <>
-                  <span className="w-px h-3 bg-slate-200" />
-                  <span>조회 {notice.inqCnt}</span>
-                </>
-              )}
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-3 text-sm text-slate-400">
+              <span className="whitespace-nowrap">{author}</span>
+              {notice.inqCnt != null && <span className="whitespace-nowrap">조회 {notice.inqCnt}</span>}
+              <span className="whitespace-nowrap">{notice.regDt ? notice.regDt.slice(0, 16).replace("T", " ") : "-"}</span>
             </div>
           </div>
 
