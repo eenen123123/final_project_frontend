@@ -272,6 +272,9 @@ export default function Home() {
               </Reveal>
             ))}
           </div>
+          <p className="mt-10 text-xs text-neutral-400">
+            * 위 수치는 페이지 구성을 위한 예시입니다.
+          </p>
         </div>
       </section>
 
@@ -338,6 +341,9 @@ export default function Home() {
               </Reveal>
             ))}
           </div>
+          <p className="mt-10 text-xs text-neutral-400">
+            * 위 후기는 페이지 구성을 위한 예시입니다.
+          </p>
         </div>
       </section>
 
