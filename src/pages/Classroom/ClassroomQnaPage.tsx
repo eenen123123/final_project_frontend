@@ -55,28 +55,22 @@ export default function ClassroomQnaPage() {
 
   return (
     <div className="flex-1 overflow-y-scroll">
-      <div className="max-w-6xl mx-auto px-8 py-8 flex flex-col gap-5">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col gap-5">
         <button onClick={() => navigate(`/classroom/${classId}?tab=qna`)} className="flex items-center gap-2 text-slate-400 hover:text-slate-600 transition-colors text-sm font-medium w-fit">
           <i className="fa-solid fa-arrow-left" /> Q&A 목록으로
         </button>
 
         <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
-          <div className="px-7 py-5 border-b border-slate-200 flex items-start justify-between gap-4">
+          <div className="px-7 py-5 border-b border-slate-200 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
             <div className="min-w-0 flex-1">
               <h1 className="text-base font-bold text-slate-800">{title}</h1>
-              <div className="flex items-center gap-3 mt-2 text-sm text-slate-400">
-                <span>{author}</span>
-                <span className="w-px h-3 bg-slate-200" />
-                <span>{qna.regDt ? qna.regDt.slice(0, 16).replace("T", " ") : "-"}</span>
-                {qna.inqCnt != null && (
-                  <>
-                    <span className="w-px h-3 bg-slate-200" />
-                    <span>조회 {qna.inqCnt}</span>
-                  </>
-                )}
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 text-sm text-slate-400">
+                <span className="whitespace-nowrap">{author}</span>
+                {qna.inqCnt != null && <span className="whitespace-nowrap">조회 {qna.inqCnt}</span>}
+                <span className="whitespace-nowrap">{qna.regDt ? qna.regDt.slice(0, 16).replace("T", " ") : "-"}</span>
               </div>
             </div>
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-2 sm:shrink-0">
               {qna.answYn === "Y"
                 ? <span className="text-xs font-semibold px-2.5 py-1 rounded-lg border border-emerald-100 bg-emerald-50 text-emerald-600">답변완료</span>
                 : <span className="text-xs font-semibold px-2.5 py-1 rounded-lg border border-amber-100 bg-amber-50 text-amber-500">미답변</span>
@@ -97,7 +91,7 @@ export default function ClassroomQnaPage() {
         {qna.answYn === "Y" && (
           <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
             <div className="px-7 py-5 border-b border-slate-200 flex items-center gap-3">
-              <span className="w-7 h-7 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-500 text-xs flex-shrink-0">
+              <span className="w-7 h-7 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-500 text-xs shrink-0">
                 <i className="fa-solid fa-check" />
               </span>
               <h2 className="text-sm font-bold text-slate-800">강사 답변</h2>
